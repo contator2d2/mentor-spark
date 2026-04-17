@@ -43,7 +43,7 @@ export class TestsService {
     }
     const t = await this.templates.preload({ id, ...dto, mentorId });
     if (dto.questions) {
-      t.questions = dto.questions.map((q: any, i: number) => this.questions.create({ ...q, order: i, templateId: id }));
+      t.questions = dto.questions.map((q: any, i: number) => this.questions.create({ ...q, order: i, templateId: id } as Partial<TestQuestion>) as TestQuestion);
     }
     await this.templates.save(t);
     return this.getTemplate(mentorId, id);
