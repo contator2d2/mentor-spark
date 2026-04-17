@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThanOrEqual, IsNull } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Notification } from '../../entities/notification.entity';
 import { MailService } from '../../shared/mail.service';
+import { PushService } from '../push/push.service';
 
 /**
- * Serviço de criação + despacho de notificações.
- * Cria a notificação in-app e, opcionalmente, envia por email/WhatsApp.
+ * Cria notificação in-app + email (opcional) + push (se assinado).
  */
 @Injectable()
 export class NotificationsService {
@@ -15,6 +15,7 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification) private repo: Repository<Notification>,
     private mail: MailService,
+    private push: PushService,
   ) {}
 
   async create(data: {
@@ -33,7 +34,6 @@ export class NotificationsService {
       link: data.link,
     }));
 
-    // Disparo email (fire-and-forget)
     if (data.email) {
       this.mail.send({
         to: data.email,
@@ -41,6 +41,12 @@ export class NotificationsService {
         html: `<p>${data.body || data.title}</p>${data.link ? `<p><a href="${data.link}">Ver mais</a></p>` : ''}`,
       }).catch((e) => this.logger.warn(`Email falhou: ${e.message}`));
     }
+
+    this.push.sendToUser(data.userId, {
+      title: data.title,
+      body: data.body,
+      url: data.link,
+    }).catch((e) => this.logger.warn(`Push falhou: ${e.message}`));
 
     return notif;
   }
