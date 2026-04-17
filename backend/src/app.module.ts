@@ -16,17 +16,13 @@ import { AiModule } from './modules/ai/ai.module';
 import { PublicModule } from './modules/public/public.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { buildPgOptions } from './db.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: +(process.env.DB_PORT || 5432),
-      username: process.env.DB_USER || 'mentorflow',
-      password: process.env.DB_PASSWORD || 'mentorflow',
-      database: process.env.DB_NAME || 'mentorflow',
+      ...buildPgOptions(),
       autoLoadEntities: true,
       synchronize: process.env.DB_SYNCHRONIZE === 'true',
       logging: process.env.DB_LOGGING === 'true',
