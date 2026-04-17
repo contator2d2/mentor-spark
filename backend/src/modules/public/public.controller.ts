@@ -2,7 +2,10 @@ import { Body, Controller, Get, NotFoundException, Param, Post, Query } from '@n
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserStatus } from '../../entities/user.entity';
+import { TestTemplate } from '../../entities/test-template.entity';
+import { Lead } from '../../entities/lead.entity';
 import { LeadsService } from '../leads/leads.service';
+import { TestsService } from '../tests/tests.service';
 import { ApiTags } from '@nestjs/swagger';
 import * as QRCode from 'qrcode';
 
@@ -11,7 +14,10 @@ import * as QRCode from 'qrcode';
 export class PublicController {
   constructor(
     @InjectRepository(User) private users: Repository<User>,
+    @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
+    @InjectRepository(Lead) private leads: Repository<Lead>,
     private leadsService: LeadsService,
+    private testsService: TestsService,
   ) {}
 
   /** Resolve tenant pelo host (subdomínio ou domínio próprio).
