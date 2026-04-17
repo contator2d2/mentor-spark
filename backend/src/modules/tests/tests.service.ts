@@ -31,7 +31,7 @@ export class TestsService {
   async createTemplate(mentorId: string, dto: { title: string; description?: string; category?: any; aiAnalysisPrompt?: string; questions?: any[] }) {
     const t = this.templates.create({ mentorId, title: dto.title, description: dto.description, category: dto.category, aiAnalysisPrompt: dto.aiAnalysisPrompt });
     if (dto.questions?.length) {
-      t.questions = dto.questions.map((q, i) => this.questions.create({ ...q, order: i }));
+      t.questions = dto.questions.map((q, i) => this.questions.create({ ...q, order: i } as Partial<TestQuestion>) as TestQuestion);
     }
     return this.templates.save(t);
   }
