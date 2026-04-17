@@ -15,6 +15,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { AiModule } from './modules/ai/ai.module';
 import { PublicModule } from './modules/public/public.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { MentorModule } from './modules/mentor/mentor.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { buildPgOptions } from './db.config';
 
@@ -41,6 +42,7 @@ import { buildPgOptions } from './db.config';
     AiModule,
     PublicModule,
     AdminModule,
+    MentorModule,
     DashboardModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
