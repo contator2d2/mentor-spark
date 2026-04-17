@@ -20,6 +20,7 @@ import LeadsPage from "./pages/app/LeadsPage";
 import CaptureSettings from "./pages/app/CaptureSettings";
 import AiAssistant from "./pages/app/AiAssistant";
 import AdminPage from "./pages/app/AdminPage";
+import AiProvidersPage from "./pages/app/AiProvidersPage";
 import PlaceholderPage from "./pages/app/PlaceholderPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
@@ -68,6 +69,7 @@ const App = () => (
               <Route path="capture" element={<CaptureSettings />} />
               <Route path="settings" element={<PlaceholderPage title="Configurações" description="Branding, perfil, integrações." />} />
               <Route path="admin" element={<AdminPage />} />
+              <Route path="admin/ai-providers" element={<AiProvidersPage />} />
             </Route>
 
             {/* App do prospect/mentorado */}
