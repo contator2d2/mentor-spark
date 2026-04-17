@@ -17,6 +17,8 @@ import { PublicModule } from './modules/public/public.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { MentorModule } from './modules/mentor/mentor.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { PlansModule } from './modules/plans/plans.module';
+import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { buildPgOptions } from './db.config';
 
 @Module({
@@ -44,6 +46,8 @@ import { buildPgOptions } from './db.config';
     AdminModule,
     MentorModule,
     DashboardModule,
+    PlansModule,
+    IntegrationsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
