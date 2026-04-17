@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Meeting } from '../../entities/meeting.entity';
@@ -6,6 +7,10 @@ import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 import { AiService } from '../ai/ai.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { MeetingsService } from './meetings.service';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import * as fs from 'fs';
 
 @ApiTags('meetings')
 @ApiBearerAuth()
@@ -14,6 +19,7 @@ export class MeetingsController {
   constructor(
     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
     private ai: AiService,
+    private service: MeetingsService,
   ) {}
 
   @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
@@ -26,8 +32,11 @@ export class MeetingsController {
 
   @Auth('mentor', 'super_admin')
   @Post()
-  create(@TenantId() mentorId: string, @Body() dto: any) {
-    return this.meetings.save(this.meetings.create({ ...dto, mentorId }));
+  async create(@TenantId() mentorId: string, @Body() dto: any) {
+    const m = await this.meetings.save(this.meetings.create({ ...dto, mentorId }));
+    // Tenta criar evento no Google Calendar (não bloqueia se falhar)
+    this.service.createGoogleEvent(mentorId, (m as any).id).catch(() => {});
+    return m;
   }
 
   @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
@@ -43,6 +52,42 @@ export class MeetingsController {
     return this.meetings.findOne({ where: { id, mentorId } });
   }
 
+  /** Upload de áudio da reunião — dispara transcrição em background */
+  @Auth('mentor', 'super_admin')
+  @Post(':id/upload-audio')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req, file, cb) => {
+          const dir = path.resolve(process.cwd(), 'uploads', 'meetings');
+          if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+          cb(null, dir);
+        },
+        filename: (req, file, cb) => {
+          const id = (req.params as any).id;
+          const ext = path.extname(file.originalname) || '.mp3';
+          cb(null, `${id}-${Date.now()}${ext}`);
+        },
+      }),
+      limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
+    }),
+  )
+  async uploadAudio(
+    @TenantId() mentorId: string,
+    @Param('id') id: string,
+    @UploadedFile() file: any,
+  ) {
+    if (!file) throw new BadRequestException('Arquivo obrigatório');
+    const m = await this.meetings.findOne({ where: { id, mentorId } });
+    if (!m) throw new BadRequestException('Reunião não encontrada');
+    m.audioUrl = `/uploads/meetings/${file.filename}`;
+    m.status = 'transcribing';
+    await this.meetings.save(m);
+    // Dispara transcrição em background
+    this.service.transcribeAndSummarize(mentorId, id, file.path).catch(() => {});
+    return { ok: true, status: m.status, audioUrl: m.audioUrl };
+  }
+
   @Auth('mentor', 'super_admin')
   @Post(':id/summarize')
   async summarize(@TenantId() mentorId: string, @Param('id') id: string) {
@@ -51,6 +96,7 @@ export class MeetingsController {
     const { summary, insights } = await this.ai.summarizeMeeting(mentorId, m.transcript);
     m.aiSummary = summary;
     m.aiInsights = insights;
+    m.status = 'done';
     await this.meetings.save(m);
     return m;
   }
