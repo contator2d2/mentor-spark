@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD } from '@nestjs/core';
 
 import { AuthModule } from './modules/auth/auth.module';
@@ -20,6 +21,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { DossierModule } from './modules/dossier/dossier.module';
+import { PromptsModule } from './modules/prompts/prompts.module';
 import { buildPgOptions } from './db.config';
 
 @Module({
@@ -34,6 +36,7 @@ import { buildPgOptions } from './db.config';
       logging: process.env.DB_LOGGING === 'true',
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     LeadsModule,
@@ -50,6 +53,7 @@ import { buildPgOptions } from './db.config';
     PlansModule,
     IntegrationsModule,
     DossierModule,
+    PromptsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

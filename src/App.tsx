@@ -33,6 +33,9 @@ import AdminPlans from "./pages/app/AdminPlans";
 import TestsListPage from "./pages/app/TestsListPage";
 import TestBuilder from "./pages/app/TestBuilder";
 import LeadDossier from "./pages/app/LeadDossier";
+import PromptsPage from "./pages/app/PromptsPage";
+import TasksKanban from "./pages/app/TasksKanban";
+import ContentsPage from "./pages/app/ContentsPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -43,7 +46,6 @@ function HomeRedirect() {
   if (loading) return null;
   if (!user) return <Landing />;
   if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
-  // Mentor sem onboarding → wizard
   if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
   return <Navigate to="/app" replace />;
 }
@@ -80,9 +82,10 @@ const App = () => (
                 <Route path="tests/new" element={<TestBuilder />} />
                 <Route path="tests/:id" element={<TestBuilder />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Cards de reunião com transcrição + IA." endpoint="/meetings" />} />
-                <Route path="tasks" element={<PlaceholderPage title="Tarefas" description="Kanban de tarefas dos mentorados." endpoint="/tasks" />} />
-                <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Biblioteca enviada aos mentorados/prospects." endpoint="/contents" />} />
+                <Route path="tasks" element={<TasksKanban />} />
+                <Route path="contents" element={<ContentsPage />} />
                 <Route path="ai" element={<AiAssistant />} />
+                <Route path="prompts" element={<PromptsPage />} />
                 <Route path="capture" element={<CaptureSettings />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
                 <Route path="integrations" element={<IntegrationsPage />} />

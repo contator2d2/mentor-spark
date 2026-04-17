@@ -39,6 +39,7 @@ const NAV: NavItem[] = [
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
+  { to: "/app/prompts", label: "Prompts", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
   { to: "/app/integrations", label: "Integrações", icon: Plug, roles: ["mentor", "super_admin"] },
   { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin"] },
