@@ -38,11 +38,19 @@ export default function CapturePage() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      await api(`/public/mentor/${slug}/lead`, {
+      const r = await api<{ leadId: string }>(`/public/mentor/${slug}/lead`, {
         method: "POST",
         auth: false,
         body: { ...form, revenue: form.revenue ? Number(form.revenue) : undefined, source: "capture-page" },
       });
+      // Busca testes ativos — se houver, redireciona pro primeiro com leadId
+      try {
+        const tests = await api<any[]>(`/public/mentor/${slug}/tests`, { auth: false });
+        if (tests.length > 0) {
+          window.location.href = `/c/${slug}/test/${tests[0].id}?lead=${r.leadId}`;
+          return;
+        }
+      } catch {}
       setDone(true);
     } catch (e: any) {
       toast.error(e.message || "Erro ao enviar");
