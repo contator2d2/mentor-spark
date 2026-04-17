@@ -5,7 +5,7 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, { cors: false });
+  const app = await NestFactory.create(AppModule, { cors: false, rawBody: true });
   const logger = new Logger('Bootstrap');
 
   app.use(helmet());

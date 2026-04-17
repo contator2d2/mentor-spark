@@ -29,6 +29,9 @@ export class Meeting {
   @Column({ nullable: true })
   meetingUrl?: string; // Meet/Zoom link
 
+  @Column({ nullable: true })
+  audioUrl?: string; // Caminho do áudio (uploads/meetings/...)
+
   @Column({ type: 'text', nullable: true })
   transcript?: string;
 
@@ -39,7 +42,11 @@ export class Meeting {
   aiInsights?: { keyPoints: string[]; decisions: string[]; nextActions: string[] };
 
   @Column({ default: 'scheduled' })
-  status: string; // scheduled | done | cancelled
+  status: string; // scheduled | transcribing | done | cancelled
+
+  /** ID do evento criado no Google Calendar do mentor */
+  @Column({ nullable: true })
+  googleCalendarEventId?: string;
 
   @CreateDateColumn()
   createdAt: Date;
