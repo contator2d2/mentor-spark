@@ -50,6 +50,22 @@ export class User {
   @Column({ nullable: true })
   brandLogoUrl?: string;
 
+  /** Cor primária HSL ou hex usada no white-label (ex: '222 47% 18%' ou '#1e3a8a') */
+  @Column({ nullable: true })
+  brandPrimaryColor?: string;
+
+  /** Cor de destaque/acento do tema do mentor */
+  @Column({ nullable: true })
+  brandAccentColor?: string;
+
+  /** Domínio customizado (ex: 'app.joaomentor.com.br') resolvido por host */
+  @Column({ unique: true, nullable: true })
+  customDomain?: string;
+
+  /** Onboarding concluído (mentor já configurou branding mínimo) */
+  @Column({ default: false })
+  onboardingCompleted: boolean;
+
   /** Para PROSPECT/MENTORADO: id do mentor dono (multi-tenant) */
   @Column({ type: 'uuid', nullable: true })
   mentorId?: string;
