@@ -84,6 +84,14 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   planExpiresAt?: Date;
 
+  /** Stripe customer ID — criado no primeiro checkout */
+  @Column({ nullable: true })
+  stripeCustomerId?: string;
+
+  /** Tokens OAuth Google Calendar do mentor (criptografar idealmente) */
+  @Column({ type: 'jsonb', nullable: true, select: false })
+  googleTokens?: { access_token: string; refresh_token?: string; expiry_date?: number };
+
   @CreateDateColumn()
   createdAt: Date;
 
