@@ -106,7 +106,7 @@ export default function IntegrationsPage() {
             <h2 className="text-xl font-semibold flex items-center gap-2">
               WhatsApp
               {data.status === "connected" ? (
-                <Badge className="bg-green-600"><CheckCircle2 className="h-3 w-3 mr-1" />Conectado</Badge>
+                <Badge className="bg-emerald-600 hover:bg-emerald-600"><CheckCircle2 className="h-3 w-3 mr-1" />Conectado</Badge>
               ) : (
                 <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />{data.status}</Badge>
               )}
