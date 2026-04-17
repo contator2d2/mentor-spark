@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { BrandingProvider } from "@/contexts/BrandingContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Landing from "./pages/Landing";
@@ -20,8 +21,12 @@ import LeadsPage from "./pages/app/LeadsPage";
 import CaptureSettings from "./pages/app/CaptureSettings";
 import AiAssistant from "./pages/app/AiAssistant";
 import AdminPage from "./pages/app/AdminPage";
+import AdminTenants from "./pages/app/AdminTenants";
 import AiProvidersPage from "./pages/app/AiProvidersPage";
 import PlaceholderPage from "./pages/app/PlaceholderPage";
+import Onboarding from "./pages/app/Onboarding";
+import BrandingSettings from "./pages/app/BrandingSettings";
+import MentoradosPage from "./pages/app/MentoradosPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -32,6 +37,8 @@ function HomeRedirect() {
   if (loading) return null;
   if (!user) return <Landing />;
   if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
+  // Mentor sem onboarding → wizard
+  if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
   return <Navigate to="/app" replace />;
 }
 
@@ -41,55 +48,68 @@ const App = () => (
       <Toaster />
       <Sonner position="top-right" />
       <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<HomeRedirect />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/c/:slug" element={<CapturePage />} />
+        <BrandingProvider>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<HomeRedirect />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/c/:slug" element={<CapturePage />} />
 
-            {/* Painel do mentor */}
-            <Route
-              path="/app"
-              element={
-                <ProtectedRoute roles={["mentor", "super_admin"]}>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="leads" element={<LeadsPage />} />
-              <Route path="leads/:id" element={<PlaceholderPage title="Prontuário do mentorado" description="Histórico unificado: testes, reuniões, tarefas, anotações." />} />
-              <Route path="mentorados" element={<PlaceholderPage title="Mentorados" description="Mentorados ativos." endpoint="/leads?stage=client" />} />
-              <Route path="tests" element={<PlaceholderPage title="Testes & Diagnósticos" description="Builder de testes." endpoint="/tests/templates" />} />
-              <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Cards de reunião com transcrição + IA." endpoint="/meetings" />} />
-              <Route path="tasks" element={<PlaceholderPage title="Tarefas" description="Kanban de tarefas dos mentorados." endpoint="/tasks" />} />
-              <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Biblioteca enviada aos mentorados/prospects." endpoint="/contents" />} />
-              <Route path="ai" element={<AiAssistant />} />
-              <Route path="capture" element={<CaptureSettings />} />
-              <Route path="settings" element={<PlaceholderPage title="Configurações" description="Branding, perfil, integrações." />} />
-              <Route path="admin" element={<AdminPage />} />
-              <Route path="admin/ai-providers" element={<AiProvidersPage />} />
-            </Route>
+              {/* Painel do mentor */}
+              <Route
+                path="/app"
+                element={
+                  <ProtectedRoute roles={["mentor", "super_admin"]}>
+                    <AppLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="leads" element={<LeadsPage />} />
+                <Route path="leads/:id" element={<PlaceholderPage title="Prontuário do mentorado" description="Histórico unificado: testes, reuniões, tarefas, anotações." />} />
+                <Route path="mentorados" element={<MentoradosPage />} />
+                <Route path="tests" element={<PlaceholderPage title="Testes & Diagnósticos" description="Builder de testes." endpoint="/tests/templates" />} />
+                <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Cards de reunião com transcrição + IA." endpoint="/meetings" />} />
+                <Route path="tasks" element={<PlaceholderPage title="Tarefas" description="Kanban de tarefas dos mentorados." endpoint="/tasks" />} />
+                <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Biblioteca enviada aos mentorados/prospects." endpoint="/contents" />} />
+                <Route path="ai" element={<AiAssistant />} />
+                <Route path="capture" element={<CaptureSettings />} />
+                <Route path="settings/branding" element={<BrandingSettings />} />
+                <Route path="admin" element={<AdminPage />} />
+                <Route path="admin/tenants" element={<AdminTenants />} />
+                <Route path="admin/ai-providers" element={<AiProvidersPage />} />
+              </Route>
 
-            {/* App do prospect/mentorado */}
-            <Route
-              path="/me"
-              element={
-                <ProtectedRoute roles={["prospect", "mentorado"]}>
-                  <MentoradoLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<MentoradoHome />} />
-              <Route path="tests" element={<PlaceholderPage title="Meus testes" description="Testes recebidos do seu mentor." endpoint="/tests/responses" />} />
-              <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
-              <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
-            </Route>
+              {/* Onboarding (full-screen, mas exige auth) */}
+              <Route
+                path="/app/onboarding"
+                element={
+                  <ProtectedRoute roles={["mentor", "super_admin"]}>
+                    <Onboarding />
+                  </ProtectedRoute>
+                }
+              />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
+              {/* App do prospect/mentorado */}
+              <Route
+                path="/me"
+                element={
+                  <ProtectedRoute roles={["prospect", "mentorado"]}>
+                    <MentoradoLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<MentoradoHome />} />
+                <Route path="tests" element={<PlaceholderPage title="Meus testes" description="Testes recebidos do seu mentor." endpoint="/tests/responses" />} />
+                <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
+                <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrandingProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

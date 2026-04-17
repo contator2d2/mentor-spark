@@ -17,6 +17,7 @@ import {
   Cpu,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -37,8 +38,9 @@ const NAV: NavItem[] = [
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
-  { to: "/app/settings", label: "Configurações", icon: Settings, roles: ["mentor", "super_admin"] },
+  { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin"] },
   { to: "/app/admin", label: "Admin", icon: ShieldCheck, roles: ["super_admin"] },
+  { to: "/app/admin/tenants", label: "Tenants", icon: Users, roles: ["super_admin"] },
   { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
 ];
 
