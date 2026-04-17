@@ -22,6 +22,10 @@ export class Plan {
   @Column({ type: 'numeric', precision: 10, scale: 2, default: 0 })
   priceMonthly: number;
 
+  /** Stripe Price ID (price_xxx) — se não informado, plano não é cobrável online */
+  @Column({ nullable: true })
+  stripePriceId?: string;
+
   /** -1 = ilimitado */
   @Column({ type: 'int', default: 10 })
   maxMentorados: number;
@@ -43,6 +47,12 @@ export class Plan {
 
   @Column({ default: false })
   allowMeetings: boolean;
+
+  @Column({ default: false })
+  allowAutomations: boolean;
+
+  @Column({ default: false })
+  allowLandingBuilder: boolean;
 
   @Column({ default: true })
   isActive: boolean;
