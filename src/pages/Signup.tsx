@@ -1,46 +1,36 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 export default function Signup() {
   const { signupMentor } = useAuth();
+  const nav = useNavigate();
   const [data, setData] = useState({ name: "", email: "", password: "", brandName: "" });
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     try {
-      await signupMentor(data);
-      setSubmitted(true);
+      const res = await signupMentor(data);
+      if (res.access_token) {
+        toast.success("Conta criada! Vamos configurar sua marca.");
+        nav("/app/onboarding");
+      } else {
+        toast.success(res.message || "Cadastro recebido");
+        nav("/login");
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao cadastrar");
     } finally {
       setLoading(false);
     }
   }
-
-  if (submitted)
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-6">
-        <div className="bg-card border border-border rounded-xl p-10 max-w-md text-center shadow-elegant">
-          <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-4" />
-          <h2 className="font-display text-2xl font-bold mb-2">Solicitação enviada</h2>
-          <p className="text-muted-foreground mb-6">
-            Seu cadastro está aguardando aprovação manual do administrador. Você receberá um email assim que for liberado.
-          </p>
-          <Link to="/">
-            <Button variant="outline">Voltar para o início</Button>
-          </Link>
-        </div>
-      </div>
-    );
 
   return (
     <div className="min-h-screen grid md:grid-cols-2">

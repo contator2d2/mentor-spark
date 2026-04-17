@@ -17,6 +17,7 @@ import {
   Cpu,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
@@ -37,24 +38,30 @@ const NAV: NavItem[] = [
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
-  { to: "/app/settings", label: "Configurações", icon: Settings, roles: ["mentor", "super_admin"] },
+  { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin"] },
   { to: "/app/admin", label: "Admin", icon: ShieldCheck, roles: ["super_admin"] },
+  { to: "/app/admin/tenants", label: "Tenants", icon: Users, roles: ["super_admin"] },
   { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
 ];
 
 export default function AppLayout() {
   const { user, logout } = useAuth();
+  const { brand } = useBranding();
   const loc = useLocation();
   const items = NAV.filter((i) => !i.roles || i.roles.includes(user?.role || ""));
+  const displayName = brand?.brandName || user?.brandName || "MentorFlow";
 
   return (
     <div className="flex h-screen bg-background">
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="px-6 py-6 border-b border-sidebar-border">
-          <div className="font-display text-xl text-white tracking-tight">
-            {user?.brandName || "MentorFlow"}
+        <div className="px-6 py-6 border-b border-sidebar-border flex items-center gap-3">
+          {brand?.brandLogoUrl ? (
+            <img src={brand.brandLogoUrl} alt={displayName} className="h-9 w-9 rounded object-contain bg-white/5 p-1" />
+          ) : null}
+          <div className="min-w-0">
+            <div className="font-display text-lg text-white tracking-tight truncate">{displayName}</div>
+            <div className="text-xs text-sidebar-foreground/60 mt-0.5">Mentoria Inteligente</div>
           </div>
-          <div className="text-xs text-sidebar-foreground/60 mt-1">Mentoria Inteligente</div>
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
