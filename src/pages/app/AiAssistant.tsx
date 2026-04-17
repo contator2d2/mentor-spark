@@ -4,18 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Loader2, Sparkles, Send } from "lucide-react";
+import { Loader2, Sparkles, Send, BookMarked } from "lucide-react";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+
+interface PromptItem { id: string; title: string; body: string; category?: string; }
 
 export default function AiAssistant() {
   const [config, setConfig] = useState<any>(null);
   const [messages, setMessages] = useState<{ role: "user" | "assistant"; content: string }[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  const [prompts, setPrompts] = useState<PromptItem[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     api("/ai/config").then(setConfig);
+    api<PromptItem[]>("/prompts").then(setPrompts).catch(() => {});
   }, []);
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -26,9 +31,9 @@ export default function AiAssistant() {
     toast.success("Configuração salva");
   }
 
-  async function send() {
-    if (!input.trim()) return;
-    const msg = input;
+  async function send(text?: string) {
+    const msg = (text || input).trim();
+    if (!msg) return;
     setMessages((m) => [...m, { role: "user", content: msg }]);
     setInput("");
     setSending(true);
@@ -72,8 +77,27 @@ export default function AiAssistant() {
           <div ref={endRef} />
         </div>
         <div className="p-3 border-t border-border flex gap-2">
+          {prompts.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" title="Usar prompt salvo"><BookMarked className="h-4 w-4" /></Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-64 p-2 max-h-60 overflow-y-auto" align="start">
+                {prompts.map((p) => (
+                  <button
+                    key={p.id}
+                    className="w-full text-left px-3 py-2 rounded-md text-sm hover:bg-muted transition-colors"
+                    onClick={() => { setInput(p.body); }}
+                  >
+                    <div className="font-medium">{p.title}</div>
+                    {p.category && <div className="text-[10px] text-muted-foreground">{p.category}</div>}
+                  </button>
+                ))}
+              </PopoverContent>
+            </Popover>
+          )}
           <Input placeholder="Pergunte algo..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === "Enter" && send()} />
-          <Button onClick={send} disabled={sending}><Send className="h-4 w-4" /></Button>
+          <Button onClick={() => send()} disabled={sending}><Send className="h-4 w-4" /></Button>
         </div>
       </div>
     </div>

@@ -35,6 +35,10 @@ export class Content {
   @Column({ default: true })
   published: boolean;
 
+  /** Data de publicação agendada — se null, fica disponível imediatamente */
+  @Column({ type: 'timestamptz', nullable: true })
+  scheduledAt?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 }
