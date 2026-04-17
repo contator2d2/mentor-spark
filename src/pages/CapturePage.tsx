@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "@/lib/api";
+import { useBranding } from "@/contexts/BrandingContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,6 +11,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 
 export default function CapturePage() {
   const { slug } = useParams();
+  const { setBrand } = useBranding();
   const [mentor, setMentor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -18,10 +20,19 @@ export default function CapturePage() {
 
   useEffect(() => {
     api(`/public/mentor/${slug}`, { auth: false })
-      .then(setMentor)
+      .then((m: any) => {
+        setMentor(m);
+        setBrand({
+          brandName: m.brandName,
+          brandLogoUrl: m.brandLogoUrl,
+          brandPrimaryColor: m.brandPrimaryColor,
+          brandAccentColor: m.brandAccentColor,
+          slug: m.slug,
+        });
+      })
       .catch(() => toast.error("Mentor não encontrado"))
       .finally(() => setLoading(false));
-  }, [slug]);
+  }, [slug, setBrand]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
