@@ -24,7 +24,9 @@ import { buildPgOptions } from './db.config';
     TypeOrmModule.forRoot({
       ...buildPgOptions(),
       autoLoadEntities: true,
-      synchronize: process.env.DB_SYNCHRONIZE === 'true',
+      // synchronize cria/atualiza tabelas automaticamente no boot.
+      // Default: TRUE (até termos migrations). Para desligar: DB_SYNCHRONIZE=false
+      synchronize: process.env.DB_SYNCHRONIZE !== 'false',
       logging: process.env.DB_LOGGING === 'true',
     }),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),

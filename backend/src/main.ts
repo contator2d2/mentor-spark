@@ -10,9 +10,26 @@ async function bootstrap() {
 
   app.use(helmet());
 
+  // CORS robusto: aceita lista CSV, ignora barras finais/espaços, libera *.easypanel.host
+  const allowList = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173')
+    .split(',')
+    .map((s) => s.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+
   app.enableCors({
-    origin: (process.env.CORS_ORIGIN || 'http://localhost:8080').split(',').map((s) => s.trim()),
+    origin: (origin, cb) => {
+      if (!origin) return cb(null, true); // curl/healthchecks
+      const clean = origin.replace(/\/+$/, '');
+      const ok =
+        allowList.includes('*') ||
+        allowList.includes(clean) ||
+        /\.easypanel\.host$/i.test(new URL(clean).hostname) ||
+        /^http:\/\/localhost(:\d+)?$/i.test(clean);
+      cb(ok ? null : new Error(`CORS bloqueado para origem: ${origin}`), ok);
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
   });
 
   app.setGlobalPrefix('api');
