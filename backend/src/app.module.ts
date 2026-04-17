@@ -19,6 +19,7 @@ import { MentorModule } from './modules/mentor/mentor.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
+import { DossierModule } from './modules/dossier/dossier.module';
 import { buildPgOptions } from './db.config';
 
 @Module({
@@ -48,6 +49,7 @@ import { buildPgOptions } from './db.config';
     DashboardModule,
     PlansModule,
     IntegrationsModule,
+    DossierModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

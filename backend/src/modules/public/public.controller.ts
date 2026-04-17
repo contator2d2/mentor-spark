@@ -2,7 +2,10 @@ import { Body, Controller, Get, NotFoundException, Param, Post, Query } from '@n
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserStatus } from '../../entities/user.entity';
+import { TestTemplate } from '../../entities/test-template.entity';
+import { Lead } from '../../entities/lead.entity';
 import { LeadsService } from '../leads/leads.service';
+import { TestsService } from '../tests/tests.service';
 import { ApiTags } from '@nestjs/swagger';
 import * as QRCode from 'qrcode';
 
@@ -11,7 +14,10 @@ import * as QRCode from 'qrcode';
 export class PublicController {
   constructor(
     @InjectRepository(User) private users: Repository<User>,
+    @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
+    @InjectRepository(Lead) private leads: Repository<Lead>,
     private leadsService: LeadsService,
+    private testsService: TestsService,
   ) {}
 
   /** Resolve tenant pelo host (subdomínio ou domínio próprio).
@@ -85,5 +91,55 @@ export class PublicController {
       ...body,
     });
     return { ok: true, leadId: result.lead.id, accountCreated: result.accountCreated };
+  }
+
+  /** Lista pública de testes ativos do mentor (para o lead escolher após capturar) */
+  @Get('mentor/:slug/tests')
+  async listTests(@Param('slug') slug: string) {
+    const mentor = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
+    if (!mentor) throw new NotFoundException('Mentor não encontrado');
+    const list = await this.templates.find({
+      where: { mentorId: mentor.id, active: true },
+      order: { createdAt: 'DESC' },
+    });
+    return list.map((t) => ({ id: t.id, title: t.title, description: t.description, category: t.category }));
+  }
+
+  /** Detalhes de um teste para o player conversacional (público) */
+  @Get('mentor/:slug/tests/:id')
+  async getTest(@Param('slug') slug: string, @Param('id') id: string) {
+    const mentor = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
+    if (!mentor) throw new NotFoundException('Mentor não encontrado');
+    const t = await this.templates.findOne({ where: { id, mentorId: mentor.id, active: true }, relations: ['questions'] });
+    if (!t) throw new NotFoundException('Teste não encontrado');
+    t.questions = (t.questions || []).sort((a, b) => a.order - b.order);
+    return {
+      id: t.id,
+      title: t.title,
+      description: t.description,
+      category: t.category,
+      questions: t.questions.map((q) => ({ id: q.id, type: q.type, text: q.text, config: q.config, order: q.order })),
+    };
+  }
+
+  /** Submissão pública de respostas de teste por um lead (já capturado).
+   *  Não retorna a análise IA (apenas score) — IA é privilégio do mentor. */
+  @Post('mentor/:slug/tests/:id/responses')
+  async submitTest(
+    @Param('slug') slug: string,
+    @Param('id') templateId: string,
+    @Body() body: { leadId: string; answers: Array<{ questionId: string; answer: any }> },
+  ) {
+    const mentor = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
+    if (!mentor) throw new NotFoundException('Mentor não encontrado');
+    const lead = await this.leads.findOne({ where: { id: body.leadId, mentorId: mentor.id } });
+    if (!lead) throw new NotFoundException('Lead não encontrado');
+    const r = await this.testsService.submitResponse({
+      mentorId: mentor.id,
+      templateId,
+      leadId: lead.id,
+      answers: body.answers,
+    });
+    return { ok: true, responseId: r.id, scorePct: Number(r.scorePct), classification: r.classification };
   }
 }

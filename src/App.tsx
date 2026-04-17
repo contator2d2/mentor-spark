@@ -11,6 +11,7 @@ import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import CapturePage from "./pages/CapturePage";
+import TestPlayer from "./pages/TestPlayer";
 import NotFound from "./pages/NotFound";
 
 import AppLayout from "./components/layouts/AppLayout";
@@ -29,6 +30,9 @@ import BrandingSettings from "./pages/app/BrandingSettings";
 import MentoradosPage from "./pages/app/MentoradosPage";
 import IntegrationsPage from "./pages/app/IntegrationsPage";
 import AdminPlans from "./pages/app/AdminPlans";
+import TestsListPage from "./pages/app/TestsListPage";
+import TestBuilder from "./pages/app/TestBuilder";
+import LeadDossier from "./pages/app/LeadDossier";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -57,6 +61,7 @@ const App = () => (
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/c/:slug" element={<CapturePage />} />
+              <Route path="/c/:slug/test/:testId" element={<TestPlayer />} />
 
               {/* Painel do mentor */}
               <Route
@@ -69,9 +74,11 @@ const App = () => (
               >
                 <Route index element={<Dashboard />} />
                 <Route path="leads" element={<LeadsPage />} />
-                <Route path="leads/:id" element={<PlaceholderPage title="Prontuário do mentorado" description="Histórico unificado: testes, reuniões, tarefas, anotações." />} />
+                <Route path="leads/:id" element={<LeadDossier />} />
                 <Route path="mentorados" element={<MentoradosPage />} />
-                <Route path="tests" element={<PlaceholderPage title="Testes & Diagnósticos" description="Builder de testes." endpoint="/tests/templates" />} />
+                <Route path="tests" element={<TestsListPage />} />
+                <Route path="tests/new" element={<TestBuilder />} />
+                <Route path="tests/:id" element={<TestBuilder />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Cards de reunião com transcrição + IA." endpoint="/meetings" />} />
                 <Route path="tasks" element={<PlaceholderPage title="Tarefas" description="Kanban de tarefas dos mentorados." endpoint="/tasks" />} />
                 <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Biblioteca enviada aos mentorados/prospects." endpoint="/contents" />} />
