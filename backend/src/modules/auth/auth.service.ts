@@ -35,11 +35,30 @@ export class AuthService {
       name: dto.name,
       brandName: dto.brandName || dto.name,
       role: UserRole.MENTOR,
-      status: UserStatus.PENDING, // aguarda aprovação manual do super admin
+      // Auto-ativa o mentor — onboarding define o resto do branding
+      status: UserStatus.ACTIVE,
+      onboardingCompleted: false,
       slug,
     });
     await this.users.save(user);
-    return { id: user.id, status: user.status, message: 'Cadastro recebido. Aguarde aprovação do administrador.' };
+    const payload = { sub: user.id, email: user.email, role: user.role };
+    const access_token = await this.jwt.signAsync(payload);
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        slug: user.slug,
+        brandName: user.brandName,
+        brandLogoUrl: user.brandLogoUrl,
+        brandPrimaryColor: user.brandPrimaryColor,
+        brandAccentColor: user.brandAccentColor,
+        onboardingCompleted: user.onboardingCompleted,
+      },
+      message: 'Cadastro concluído. Bem-vindo!',
+    };
   }
 
   async login(email: string, password: string) {
@@ -64,6 +83,10 @@ export class AuthService {
         role: user.role,
         slug: user.slug,
         brandName: user.brandName,
+        brandLogoUrl: user.brandLogoUrl,
+        brandPrimaryColor: user.brandPrimaryColor,
+        brandAccentColor: user.brandAccentColor,
+        onboardingCompleted: user.onboardingCompleted,
         mentorId: user.mentorId,
       },
     };
