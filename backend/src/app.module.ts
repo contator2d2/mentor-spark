@@ -22,6 +22,13 @@ import { PlansModule } from './modules/plans/plans.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { DossierModule } from './modules/dossier/dossier.module';
 import { PromptsModule } from './modules/prompts/prompts.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { PushModule } from './modules/push/push.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
+import { LandingModule } from './modules/landing/landing.module';
+import { TestAssignmentsModule } from './modules/test-assignments/test-assignments.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 import { buildPgOptions } from './db.config';
 
 @Module({
@@ -54,6 +61,15 @@ import { buildPgOptions } from './db.config';
     IntegrationsModule,
     DossierModule,
     PromptsModule,
+    BillingModule,
+    PushModule,
+    GamificationModule,
+    LandingModule,
+    TestAssignmentsModule,
+    ServeStaticModule.forRoot({
+      rootPath: join(process.cwd(), 'uploads'),
+      serveRoot: '/uploads',
+    }),
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

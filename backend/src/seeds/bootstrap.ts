@@ -99,10 +99,10 @@ async function run() {
   // Seed de planos default (idempotente)
   const plansRepo = ds.getRepository(Plan);
   const defaults = [
-    { slug: 'free', name: 'Free', description: 'Para começar', priceMonthly: 0, maxMentorados: 3, maxLeads: 50, maxAiMessagesMonth: 30, allowWhatsapp: false, allowAi: true, allowCustomDomain: false, allowMeetings: false, sortOrder: 1 },
-    { slug: 'starter', name: 'Starter', description: 'Mentor solo', priceMonthly: 97, maxMentorados: 25, maxLeads: 500, maxAiMessagesMonth: 500, allowWhatsapp: true, allowAi: true, allowCustomDomain: false, allowMeetings: false, sortOrder: 2 },
-    { slug: 'pro', name: 'Pro', description: 'Mentoria escalada', priceMonthly: 297, maxMentorados: 100, maxLeads: 2000, maxAiMessagesMonth: 2000, allowWhatsapp: true, allowAi: true, allowCustomDomain: true, allowMeetings: true, sortOrder: 3 },
-    { slug: 'enterprise', name: 'Enterprise', description: 'Sem limites', priceMonthly: 997, maxMentorados: -1, maxLeads: -1, maxAiMessagesMonth: -1, allowWhatsapp: true, allowAi: true, allowCustomDomain: true, allowMeetings: true, sortOrder: 4 },
+    { slug: 'free', name: 'Free', description: 'Para começar', priceMonthly: 0, maxMentorados: 3, maxLeads: 50, maxAiMessagesMonth: 30, allowWhatsapp: false, allowAi: true, allowCustomDomain: false, allowMeetings: false, allowAutomations: false, allowLandingBuilder: false, sortOrder: 1 },
+    { slug: 'starter', name: 'Starter', description: 'Mentor solo', priceMonthly: 97, maxMentorados: 25, maxLeads: 500, maxAiMessagesMonth: 500, allowWhatsapp: true, allowAi: true, allowCustomDomain: false, allowMeetings: false, allowAutomations: false, allowLandingBuilder: true, sortOrder: 2 },
+    { slug: 'pro', name: 'Pro', description: 'Mentoria escalada', priceMonthly: 297, maxMentorados: 100, maxLeads: 2000, maxAiMessagesMonth: 2000, allowWhatsapp: true, allowAi: true, allowCustomDomain: true, allowMeetings: true, allowAutomations: true, allowLandingBuilder: true, sortOrder: 3 },
+    { slug: 'enterprise', name: 'Enterprise', description: 'Sem limites', priceMonthly: 997, maxMentorados: -1, maxLeads: -1, maxAiMessagesMonth: -1, allowWhatsapp: true, allowAi: true, allowCustomDomain: true, allowMeetings: true, allowAutomations: true, allowLandingBuilder: true, sortOrder: 4 },
   ];
   for (const p of defaults) {
     const existingPlan = await plansRepo.findOne({ where: { slug: p.slug } });
