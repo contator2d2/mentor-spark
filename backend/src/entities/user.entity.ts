@@ -76,6 +76,14 @@ export class User {
   @Column({ type: 'numeric', precision: 14, scale: 2, nullable: true })
   revenue?: number;
 
+  /** Plano atual do mentor (FK para plans.id). Null = sem plano (free implícito) */
+  @Column({ type: 'uuid', nullable: true })
+  planId?: string;
+
+  /** Data de expiração do plano (renovação manual por enquanto) */
+  @Column({ type: 'timestamptz', nullable: true })
+  planExpiresAt?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

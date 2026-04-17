@@ -27,6 +27,8 @@ import PlaceholderPage from "./pages/app/PlaceholderPage";
 import Onboarding from "./pages/app/Onboarding";
 import BrandingSettings from "./pages/app/BrandingSettings";
 import MentoradosPage from "./pages/app/MentoradosPage";
+import IntegrationsPage from "./pages/app/IntegrationsPage";
+import AdminPlans from "./pages/app/AdminPlans";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -76,7 +78,9 @@ const App = () => (
                 <Route path="ai" element={<AiAssistant />} />
                 <Route path="capture" element={<CaptureSettings />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
+                <Route path="integrations" element={<IntegrationsPage />} />
                 <Route path="admin" element={<AdminPage />} />
+                <Route path="admin/plans" element={<AdminPlans />} />
                 <Route path="admin/tenants" element={<AdminTenants />} />
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
               </Route>
