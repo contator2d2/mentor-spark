@@ -3,16 +3,27 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
+import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { CurrentUser, TenantId } from '../auth/current-user.decorator';
 import { MailService } from '../../shared/mail.service';
 
 class CreateMentoradoDto {
+  @IsString()
+  @MinLength(2)
   name: string;
+
+  @IsEmail()
   email: string;
+
+  @IsOptional() @IsString()
   phone?: string;
+
+  @IsOptional() @IsString()
   company?: string;
+
+  @IsOptional() @IsString()
   password?: string;
 }
 
