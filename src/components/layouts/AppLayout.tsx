@@ -14,6 +14,7 @@ import {
   LogOut,
   ShieldCheck,
   QrCode,
+  Cpu,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const NAV: NavItem[] = [
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
   { to: "/app/settings", label: "Configurações", icon: Settings, roles: ["mentor", "super_admin"] },
   { to: "/app/admin", label: "Admin", icon: ShieldCheck, roles: ["super_admin"] },
+  { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
 ];
 
 export default function AppLayout() {
