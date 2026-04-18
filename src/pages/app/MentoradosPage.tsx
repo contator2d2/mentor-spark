@@ -108,17 +108,58 @@ export default function MentoradosPage() {
                 <Plus className="mr-2 h-4 w-4" />Convidar mentorado
               </Button>
             </DialogTrigger>
-            <DialogContent className="glass-card border-border/60">
+            <DialogContent className="glass-card border-border/60 max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-display">Convidar novo mentorado</DialogTitle>
+                <DialogDescription>
+                  Preencha os dados abaixo. Uma senha temporária será gerada automaticamente.
+                </DialogDescription>
               </DialogHeader>
-              <div className="space-y-3">
-                <div><Label>Nome *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-                <div><Label>Email *</Label><Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-                <div><Label>WhatsApp</Label><Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></div>
-                <div><Label>Empresa</Label><Input value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-2">
+                <div className="md:col-span-2 space-y-1.5">
+                  <Label htmlFor="m-name">Nome completo *</Label>
+                  <Input
+                    id="m-name"
+                    placeholder="Ex: Maria Silva"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+                <div className="md:col-span-2 space-y-1.5">
+                  <Label htmlFor="m-email">Email *</Label>
+                  <Input
+                    id="m-email"
+                    type="email"
+                    placeholder="nome@empresa.com"
+                    value={form.email}
+                    onChange={(e) => setForm({ ...form, email: e.target.value.toLowerCase().trim() })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-phone">WhatsApp</Label>
+                  <MaskedInput
+                    id="m-phone"
+                    mask="(00) 00000-0000"
+                    inputMode="tel"
+                    placeholder="(11) 98765-4321"
+                    value={form.phone}
+                    onAccept={(v) => setForm({ ...form, phone: v })}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="m-company">Empresa</Label>
+                  <Input
+                    id="m-company"
+                    placeholder="Nome da empresa"
+                    value={form.company}
+                    onChange={(e) => setForm({ ...form, company: e.target.value })}
+                  />
+                </div>
               </div>
               <DialogFooter>
+                <Button variant="ghost" onClick={() => setOpen(false)} disabled={saving}>
+                  Cancelar
+                </Button>
                 <Button onClick={invite} disabled={saving || !form.name || !form.email} className="bg-gradient-primary hover:opacity-90">
                   {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   Enviar convite
