@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, KeyRound, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react";
+import { Loader2, KeyRound, CheckCircle2, AlertCircle, ExternalLink, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface GoogleCreds {
@@ -15,16 +15,30 @@ interface GoogleCreds {
   redirectUri: string;
 }
 
+interface UazapiCreds {
+  configured: boolean;
+  adminUrl: string;
+  hasToken: boolean;
+}
+
 export default function AdminCredentials() {
   const [google, setGoogle] = useState<GoogleCreds | null>(null);
+  const [uazapi, setUazapi] = useState<UazapiCreds | null>(null);
   const [form, setForm] = useState({ clientId: "", clientSecret: "", redirectUri: "" });
+  const [uazForm, setUazForm] = useState({ adminUrl: "", adminToken: "" });
   const [saving, setSaving] = useState(false);
+  const [savingUaz, setSavingUaz] = useState(false);
 
   async function load() {
     try {
-      const g = await api<GoogleCreds>("/admin/app-settings/google");
+      const [g, u] = await Promise.all([
+        api<GoogleCreds>("/admin/app-settings/google"),
+        api<UazapiCreds>("/admin/app-settings/uazapi"),
+      ]);
       setGoogle(g);
+      setUazapi(u);
       setForm({ clientId: g.clientId, clientSecret: "", redirectUri: g.redirectUri });
+      setUazForm({ adminUrl: u.adminUrl || "https://api.uazapi.com", adminToken: "" });
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -45,7 +59,21 @@ export default function AdminCredentials() {
     }
   }
 
-  if (!google) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
+  async function saveUazapi() {
+    setSavingUaz(true);
+    try {
+      await api("/admin/app-settings/uazapi", { method: "POST", body: uazForm });
+      toast.success("uazapi configurado");
+      setUazForm((f) => ({ ...f, adminToken: "" }));
+      load();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setSavingUaz(false);
+    }
+  }
+
+  if (!google || !uazapi) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
 
   const suggestedRedirect = `${window.location.origin.replace(/:\d+$/, ":3000").replace("5173", "3000")}/integrations/google/callback`;
 
@@ -55,10 +83,11 @@ export default function AdminCredentials() {
         <KeyRound className="h-6 w-6 text-accent" />
         <div>
           <h1 className="font-display text-3xl font-bold">Credenciais de Integrações</h1>
-          <p className="text-muted-foreground">Configure as chaves OAuth globais usadas por todos os mentores.</p>
+          <p className="text-muted-foreground">Configure as chaves globais usadas por todos os mentores.</p>
         </div>
       </div>
 
+      {/* Google */}
       <div className="bg-card border border-border rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -104,9 +133,6 @@ export default function AdminCredentials() {
             placeholder={suggestedRedirect}
             className="font-mono text-xs"
           />
-          <p className="text-xs text-muted-foreground mt-1">
-            Em produção use a URL pública do backend, ex: https://api.seudominio.com/integrations/google/callback
-          </p>
         </div>
 
         <div>
@@ -134,12 +160,64 @@ export default function AdminCredentials() {
         </Button>
       </div>
 
+      {/* uazapi */}
+      <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold flex items-center gap-2">
+              <MessageCircle className="h-5 w-5 text-emerald-400" />
+              WhatsApp (uazapi)
+              {uazapi.configured ? (
+                <Badge className="bg-emerald-600 hover:bg-emerald-600">
+                  <CheckCircle2 className="h-3 w-3 mr-1" />Configurado
+                </Badge>
+              ) : (
+                <Badge variant="outline"><AlertCircle className="h-3 w-3 mr-1" />Não configurado</Badge>
+              )}
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Token admin global. Cada mentor cria sua própria instância automaticamente.
+            </p>
+          </div>
+          <a
+            href="https://docs.uazapi.com" target="_blank" rel="noreferrer"
+            className="text-sm text-primary inline-flex items-center gap-1 hover:underline"
+          >
+            docs.uazapi.com <ExternalLink className="h-3 w-3" />
+          </a>
+        </div>
+
+        <div>
+          <Label>URL base do uazapi</Label>
+          <Input
+            value={uazForm.adminUrl}
+            onChange={(e) => setUazForm({ ...uazForm, adminUrl: e.target.value })}
+            placeholder="https://api.uazapi.com"
+            className="font-mono text-xs"
+          />
+        </div>
+
+        <div>
+          <Label>Admin Token {uazapi.hasToken && <span className="text-xs text-muted-foreground">(deixe em branco para manter o atual)</span>}</Label>
+          <Input
+            type="password"
+            value={uazForm.adminToken}
+            onChange={(e) => setUazForm({ ...uazForm, adminToken: e.target.value })}
+            placeholder={uazapi.hasToken ? "••••••••••" : "uazapi-admin-token"}
+          />
+        </div>
+
+        <Button onClick={saveUazapi} disabled={savingUaz || !uazForm.adminUrl}>
+          {savingUaz && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          Salvar uazapi
+        </Button>
+      </div>
+
       <div className="bg-card/50 border border-dashed border-border rounded-xl p-6">
         <h3 className="font-semibold mb-2">Outras integrações</h3>
         <p className="text-sm text-muted-foreground">
           • <b>OpenAI / Whisper:</b> configurado em <a href="/app/admin/ai-providers" className="text-primary hover:underline">Provedores de IA</a><br/>
-          • <b>WhatsApp (uazapi):</b> cada mentor configura a própria instância em Integrações<br/>
-          • <b>Stripe:</b> configurado via variável de ambiente STRIPE_SECRET_KEY no backend
+          • <b>Stripe:</b> via variável de ambiente STRIPE_SECRET_KEY no backend
         </p>
       </div>
     </div>

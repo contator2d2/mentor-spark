@@ -2,24 +2,19 @@ import { Body, Controller, Get, Post, Query, Res, Delete } from '@nestjs/common'
 import { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { IsOptional, IsString } from 'class-validator';
 import { MentorIntegration, IntegrationType } from '../../entities/mentor-integration.entity';
+import { User } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 import { WhatsappService } from './whatsapp.service';
 import { GoogleCalendarService } from './google-calendar.service';
 import { PlansService } from '../plans/plans.service';
 
-class UpsertWhatsappDto {
-  @IsOptional() @IsString() baseUrl?: string;
-  @IsOptional() @IsString() token?: string;
-  @IsOptional() @IsString() instanceName?: string;
-}
-
 @Controller('integrations')
 export class IntegrationsController {
   constructor(
     @InjectRepository(MentorIntegration) private repo: Repository<MentorIntegration>,
+    @InjectRepository(User) private users: Repository<User>,
     private whatsapp: WhatsappService,
     private gcal: GoogleCalendarService,
     private plans: PlansService,
@@ -62,20 +57,21 @@ export class IntegrationsController {
   @Get()
   async list(@TenantId() mentorId: string) {
     const items = await this.repo.find({ where: { mentorId } });
-    // não retorna token
     return items.map((i) => ({ ...i, token: undefined }));
   }
 
+  // ===== WhatsApp (uazapi) =====
   @Auth('mentor', 'super_admin')
   @Get('whatsapp')
   async getWhatsapp(@TenantId() mentorId: string) {
     const integ = await this.repo.findOne({ where: { mentorId, type: IntegrationType.WHATSAPP } });
     const allowed = await this.plans.hasFeature(mentorId, 'allowWhatsapp');
+    const adminConfigured = await this.whatsapp.isAdminConfigured();
     return {
       allowed,
-      configured: !!integ?.baseUrl,
+      adminConfigured,
+      provisioned: !!integ?.instanceName,
       provider: integ?.provider || 'uazapi',
-      baseUrl: integ?.baseUrl || null,
       instanceName: integ?.instanceName || null,
       status: integ?.status || 'disconnected',
       phoneNumber: integ?.phoneNumber || null,
@@ -83,15 +79,21 @@ export class IntegrationsController {
     };
   }
 
+  /** Cria a instância no uazapi (chama com admin token) */
   @Auth('mentor', 'super_admin')
-  @Post('whatsapp')
-  async saveWhatsapp(@TenantId() mentorId: string, @Body() dto: UpsertWhatsappDto) {
+  @Post('whatsapp/provision')
+  async provision(@TenantId() mentorId: string) {
     const allowed = await this.plans.hasFeature(mentorId, 'allowWhatsapp');
-    if (!allowed) {
-      return { ok: false, error: 'Seu plano atual não inclui WhatsApp. Faça upgrade.' };
-    }
-    await this.whatsapp.upsertConfig(mentorId, dto);
-    return { ok: true };
+    if (!allowed) return { ok: false, error: 'Seu plano atual não inclui WhatsApp.' };
+    const user = await this.users.findOne({ where: { id: mentorId } });
+    return this.whatsapp.provisionInstance(mentorId, user?.brandName || user?.name || 'MentorFlow');
+  }
+
+  /** Retorna o QR code da instância */
+  @Auth('mentor', 'super_admin')
+  @Get('whatsapp/qrcode')
+  qrcode(@TenantId() mentorId: string) {
+    return this.whatsapp.getQrCode(mentorId);
   }
 
   @Auth('mentor', 'super_admin')
@@ -100,10 +102,11 @@ export class IntegrationsController {
     return this.whatsapp.getStatus(mentorId);
   }
 
+  /** Desconecta e remove a instância */
   @Auth('mentor', 'super_admin')
-  @Post('whatsapp/connect')
-  connect(@TenantId() mentorId: string) {
-    return this.whatsapp.getQrCode(mentorId);
+  @Delete('whatsapp')
+  disconnect(@TenantId() mentorId: string) {
+    return this.whatsapp.disconnect(mentorId);
   }
 
   @Auth('mentor', 'super_admin')
