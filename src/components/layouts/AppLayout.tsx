@@ -60,6 +60,7 @@ const NAV: NavItem[] = [
   { to: "/app/community", label: "Comunidade", icon: Users, roles: ["mentor", "super_admin"], feature: "allowCommunity" },
   { to: "/app/analytics", label: "Analytics", icon: Sparkles, roles: ["mentor", "super_admin"], feature: "allowAdvancedAnalytics" },
   { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"], feature: "allowMessaging" },
+  { to: "/app/whatsapp/groups", label: "Grupos WhatsApp", icon: Users, roles: ["mentor", "super_admin"], feature: "allowWhatsapp" },
   { to: "/app/automations", label: "Automações", icon: Zap, roles: ["mentor", "super_admin"], feature: "allowAutomations" },
   { to: "/app/team", label: "Equipe", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
