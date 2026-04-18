@@ -16,7 +16,7 @@ import {
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
   Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder, Settings,
-  Link2, UserPlus, FileSignature, Copy, Download, Building2,
+  Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProntuarioPayload, MentoredRecord, STAGE_META } from "./types";
@@ -34,6 +34,7 @@ import { AlertasTab } from "./tabs/AlertasTab";
 import { MateriaisTab } from "./tabs/MateriaisTab";
 import { IATab } from "./tabs/IATab";
 import { PersonalizacaoTab } from "./tabs/PersonalizacaoTab";
+import { FinanceiroTab } from "./tabs/FinanceiroTab";
 
 export default function ProntuarioPage() {
   const { id } = useParams();
