@@ -218,7 +218,8 @@ export class MessagesController {
       name: string;
       channel: MessageChannel;
       sequence: BroadcastSequenceStep[];
-      leadIds: string[];
+      leadIds?: string[];
+      groupTargets?: { jid: string; name?: string; isChannel?: boolean }[];
       perRecipientDelaySeconds?: number;
       jitter?: number;
       scheduledAt?: string;
@@ -231,6 +232,7 @@ export class MessagesController {
       channel: dto.channel,
       sequence: dto.sequence,
       leadIds: dto.leadIds,
+      groupTargets: dto.groupTargets,
       perRecipientDelaySeconds: dto.perRecipientDelaySeconds,
       jitter: dto.jitter,
       scheduledAt: dto.scheduledAt ? new Date(dto.scheduledAt) : null,
