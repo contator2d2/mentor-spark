@@ -7,9 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import {
-  ArrowLeft, RefreshCw, Download, FileText, AlertCircle, CheckCircle2, Loader2, Mic, Sparkles, Users,
+  ArrowLeft, RefreshCw, Download, FileText, AlertCircle, CheckCircle2, Loader2, Mic, Sparkles, Users, Paperclip, X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { MediaUpload, UploadedMedia } from "@/components/MediaUpload";
 
 type Meeting = any;
 type Session = { id: string; status: string; totalChunks: number; completedChunks: number; durationSeconds: number; errorMessage?: string; createdAt: string };
@@ -148,6 +149,7 @@ export default function MeetingDetailPage() {
         <TabsList>
           <TabsTrigger value="summary">Resumo</TabsTrigger>
           <TabsTrigger value="participants">Participantes ({participants.length})</TabsTrigger>
+          <TabsTrigger value="attachments">Anexos ({(meeting.attachments || []).length})</TabsTrigger>
           <TabsTrigger value="capture">Captura & transcrição</TabsTrigger>
           <TabsTrigger value="logs">Logs técnicos</TabsTrigger>
         </TabsList>
