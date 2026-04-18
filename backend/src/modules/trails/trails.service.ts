@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Trail } from '../../entities/trail.entity';
@@ -8,6 +8,8 @@ import { TrailProgress } from '../../entities/trail-progress.entity';
 
 @Injectable()
 export class TrailsService {
+  private readonly logger = new Logger(TrailsService.name);
+
   constructor(
     @InjectRepository(Trail) private trails: Repository<Trail>,
     @InjectRepository(TrailModuleEntity) private modules: Repository<TrailModuleEntity>,
@@ -17,7 +19,16 @@ export class TrailsService {
 
   // ---------- Mentor: CRUD ----------
   async listForMentor(mentorId: string) {
-    return this.trails.find({ where: { mentorId }, order: { createdAt: 'DESC' } });
+    if (!mentorId) {
+      this.logger.warn('listForMentor chamado sem mentorId — retornando []');
+      return [];
+    }
+    try {
+      return await this.trails.find({ where: { mentorId }, order: { createdAt: 'DESC' } });
+    } catch (e: any) {
+      this.logger.warn(`listForMentor falhou: ${e?.message}. Retornando lista vazia.`);
+      return [];
+    }
   }
 
   async getOne(mentorId: string, id: string) {
