@@ -29,6 +29,11 @@ interface Plan {
   allowAutomations: boolean;
   allowLandingBuilder: boolean;
   allowMessaging: boolean;
+  allowScheduling: boolean;
+  allowMentorBilling: boolean;
+  allowTrails: boolean;
+  allowCommunity: boolean;
+  allowAdvancedAnalytics: boolean;
   isActive: boolean;
   sortOrder: number;
 }
@@ -51,6 +56,11 @@ const empty: Partial<Plan> = {
   allowAutomations: false,
   allowLandingBuilder: false,
   allowMessaging: true,
+  allowScheduling: false,
+  allowMentorBilling: false,
+  allowTrails: false,
+  allowCommunity: false,
+  allowAdvancedAnalytics: false,
   isActive: true,
   sortOrder: 0,
 };
@@ -61,6 +71,11 @@ const MODULES: Array<{ key: keyof Plan; label: string; help?: string }> = [
   { key: "allowMessaging", label: "Mensagens (broadcasts/templates)" },
   { key: "allowMeetings", label: "Reuniões + transcrição" },
   { key: "allowGoogleCalendar", label: "Google Calendar (sync)" },
+  { key: "allowScheduling", label: "Agenda pública (Calendly-like)" },
+  { key: "allowMentorBilling", label: "Cobrança de mentorados (Asaas)" },
+  { key: "allowTrails", label: "Trilhas de conteúdo / cursos" },
+  { key: "allowCommunity", label: "Comunidade (feed de membros)" },
+  { key: "allowAdvancedAnalytics", label: "Analytics avançado (MRR/LTV)" },
   { key: "allowAutomations", label: "Automações (gatilhos)" },
   { key: "allowLandingBuilder", label: "Landing pages" },
   { key: "allowCustomDomain", label: "Domínio próprio" },
