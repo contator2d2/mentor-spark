@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TestAssignment } from '../../entities/test-assignment.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
+import { User } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { CurrentUser, TenantId } from '../auth/current-user.decorator';
 
@@ -11,6 +12,7 @@ export class TestAssignmentsController {
   constructor(
     @InjectRepository(TestAssignment) private assigns: Repository<TestAssignment>,
     @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
+    @InjectRepository(User) private users: Repository<User>,
   ) {}
 
   @Auth('mentor', 'super_admin')
@@ -36,20 +38,37 @@ export class TestAssignmentsController {
   @Auth('mentorado', 'prospect')
   @Get('me')
   async me(@CurrentUser() u: any) {
-    // O lead vinculado ao user → buscar via TenantId? Temos mentorId em u.mentorId
-    // Aqui usamos uma sub-query: listamos assignments cujo leadId pertence a um lead com userId=u.sub
+    // Lista assignments cujo leadId pertence a um lead com userId=u.sub
     const list = await this.assigns
       .createQueryBuilder('a')
       .innerJoin('leads', 'l', 'l.id = a.leadId')
       .where('l.userId = :userId', { userId: u.sub })
       .orderBy('a.createdAt', 'DESC')
       .getMany();
+
+    if (!list.length) return [];
+
     // Hidrata templates
     const templateIds = Array.from(new Set(list.map((a) => a.templateId)));
     const tps = templateIds.length
       ? await this.templates.find({ where: templateIds.map((id) => ({ id })) as any })
       : [];
-    const map = new Map(tps.map((t) => [t.id, { id: t.id, title: t.title, description: t.description, category: t.category }]));
-    return list.map((a) => ({ ...a, template: map.get(a.templateId) }));
+    const templateMap = new Map(
+      tps.map((t) => [t.id, { id: t.id, title: t.title, description: t.description, category: t.category }]),
+    );
+
+    // Hidrata mentores (para slug)
+    const mentorIds = Array.from(new Set(list.map((a) => a.mentorId)));
+    const mentors = mentorIds.length
+      ? await this.users.find({ where: mentorIds.map((id) => ({ id })) as any })
+      : [];
+    const mentorMap = new Map(mentors.map((m) => [m.id, { slug: m.slug, brandName: m.brandName }]));
+
+    return list.map((a) => ({
+      ...a,
+      template: templateMap.get(a.templateId),
+      mentorSlug: mentorMap.get(a.mentorId)?.slug || null,
+      mentorBrandName: mentorMap.get(a.mentorId)?.brandName || null,
+    }));
   }
 }
