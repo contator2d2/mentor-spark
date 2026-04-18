@@ -8,7 +8,7 @@ import { TenantId } from '../auth/current-user.decorator';
 import { MentoredRecord } from '../../entities/mentored-record.entity';
 import { MentoredObjective } from '../../entities/mentored-objective.entity';
 import { MentoredPain } from '../../entities/mentored-pain.entity';
-import { MentoredMetric, MentoredMetricExtras } from '../../entities/mentored-metric.entity';
+import { MentoredMetric } from '../../entities/mentored-metric.entity';
 
 type AnyDto = Record<string, any>;
 
