@@ -3,9 +3,11 @@ import { JwtAuthGuard } from '../auth/jwt.strategy';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { MentorBillingService } from './mentor-billing.service';
 import { ChargeStatus } from '../../entities/charge.entity';
+import { FeatureGuard, RequireFeature } from '../plans/feature.guard';
 
 @Controller('mentor-billing')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequireFeature('allowMentorBilling')
 export class MentorBillingController {
   constructor(private svc: MentorBillingService) {}
 

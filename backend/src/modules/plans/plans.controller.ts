@@ -5,6 +5,8 @@ import { IsBoolean, IsInt, IsNumber, IsOptional, IsString, Min } from 'class-val
 import { Plan } from '../../entities/plan.entity';
 import { User } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
+import { CurrentUser } from '../auth/current-user.decorator';
+import { PlansService } from './plans.service';
 
 class UpsertPlanDto {
   @IsString() slug: string;
@@ -27,7 +29,65 @@ export class PlansController {
   constructor(
     @InjectRepository(Plan) private plans: Repository<Plan>,
     @InjectRepository(User) private users: Repository<User>,
+    private plansSvc: PlansService,
   ) {}
+
+  /** Features do plano do mentor logado (para gating de UI) */
+  @Auth('mentor', 'super_admin', 'mentor_team', 'mentorado', 'prospect')
+  @Get('me/features')
+  async myFeatures(@CurrentUser() u: any) {
+    // super_admin e mentorado/team usam o mentorId apropriado
+    const mentorId = u.role === 'mentor' ? u.sub : u.mentorId || u.sub;
+    if (u.role === 'super_admin') {
+      // super admin vê tudo liberado
+      return {
+        plan: null,
+        isExpired: false,
+        features: this.allFeaturesTrue(),
+      };
+    }
+    const { plan, isExpired } = await this.plansSvc.getMentorPlan(mentorId);
+    const features = this.computeFeatures(plan, isExpired);
+    return {
+      plan: plan ? { id: plan.id, slug: plan.slug, name: plan.name } : null,
+      isExpired,
+      features,
+    };
+  }
+
+  private allFeaturesTrue() {
+    return {
+      allowAi: true, allowWhatsapp: true, allowMeetings: true, allowCommunity: true,
+      allowTrails: true, allowScheduling: true, allowMentorBilling: true,
+      allowAutomations: true, allowLandingBuilder: true, allowAdvancedAnalytics: true,
+      allowMessaging: true, allowGoogleCalendar: true, allowCustomDomain: true,
+    };
+  }
+
+  private computeFeatures(plan: Plan | null, isExpired: boolean) {
+    if (!plan) {
+      // sem plano = trial liberado (alinhar com PlansService.hasFeature)
+      return this.allFeaturesTrue();
+    }
+    if (isExpired) {
+      return Object.fromEntries(Object.keys(this.allFeaturesTrue()).map((k) => [k, false]));
+    }
+    return {
+      allowAi: !!plan.allowAi,
+      allowWhatsapp: !!plan.allowWhatsapp,
+      allowMeetings: !!plan.allowMeetings,
+      allowCommunity: !!plan.allowCommunity,
+      allowTrails: !!plan.allowTrails,
+      allowScheduling: !!plan.allowScheduling,
+      allowMentorBilling: !!plan.allowMentorBilling,
+      allowAutomations: !!plan.allowAutomations,
+      allowLandingBuilder: !!plan.allowLandingBuilder,
+      allowAdvancedAnalytics: !!plan.allowAdvancedAnalytics,
+      allowMessaging: !!plan.allowMessaging,
+      allowGoogleCalendar: !!plan.allowGoogleCalendar,
+      allowCustomDomain: !!plan.allowCustomDomain,
+    };
+  }
 
   /** Público: lista de planos ativos (para landing/pricing) */
   @Get('public')

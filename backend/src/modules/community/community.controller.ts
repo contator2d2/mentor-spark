@@ -2,9 +2,11 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { JwtAuthGuard } from '../auth/jwt.strategy';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { CommunityService } from './community.service';
+import { FeatureGuard, RequireFeature } from '../plans/feature.guard';
 
 @Controller('community')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequireFeature('allowCommunity')
 export class CommunityController {
   constructor(private svc: CommunityService) {}
 

@@ -2,9 +2,11 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@n
 import { JwtAuthGuard } from '../auth/jwt.strategy';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { TrailsService } from './trails.service';
+import { FeatureGuard, RequireFeature } from '../plans/feature.guard';
 
 @Controller('trails')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequireFeature('allowTrails')
 export class TrailsController {
   constructor(private svc: TrailsService) {}
 

@@ -73,6 +73,7 @@ import CommunityPage from "./pages/app/CommunityPage";
 import AnalyticsPage from "./pages/app/AnalyticsPage";
 import MentoradoCommunity from "./pages/me/MentoradoCommunity";
 import { PwaPrompts } from "./components/PwaPrompts";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -206,6 +207,7 @@ const App = () => (
               <Route path="*" element={<NotFound />} />
             </Routes>
             <PwaPrompts />
+            <OfflineIndicator />
             </AuthProvider>
           </BrandingProvider>
         </BrowserRouter>

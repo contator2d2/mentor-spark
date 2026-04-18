@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
+import { usePlanFeatures, type PlanFeatures } from "@/hooks/usePlanFeatures";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -42,6 +43,7 @@ interface NavItem {
   label: string;
   icon: typeof LayoutDashboard;
   roles?: string[];
+  feature?: keyof PlanFeatures;
 }
 
 const NAV: NavItem[] = [
@@ -50,19 +52,19 @@ const NAV: NavItem[] = [
   { to: "/app/boards", label: "Meus Kanbans", icon: KanbanSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/tests", label: "Testes", icon: ClipboardList, roles: ["mentor", "super_admin"] },
-  { to: "/app/meetings", label: "Reuniões", icon: Calendar, roles: ["mentor", "super_admin"] },
-  { to: "/app/scheduling", label: "Agenda Pública", icon: CalendarClock, roles: ["mentor", "super_admin"] },
+  { to: "/app/meetings", label: "Reuniões", icon: Calendar, roles: ["mentor", "super_admin"], feature: "allowMeetings" },
+  { to: "/app/scheduling", label: "Agenda Pública", icon: CalendarClock, roles: ["mentor", "super_admin"], feature: "allowScheduling" },
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
-  { to: "/app/billing", label: "Cobranças", icon: DollarSign, roles: ["mentor", "super_admin"] },
-  { to: "/app/trails", label: "Trilhas", icon: GraduationCap, roles: ["mentor", "super_admin"] },
-  { to: "/app/community", label: "Comunidade", icon: Users, roles: ["mentor", "super_admin"] },
-  { to: "/app/analytics", label: "Analytics", icon: Sparkles, roles: ["mentor", "super_admin"] },
-  { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"] },
-  { to: "/app/automations", label: "Automações", icon: Zap, roles: ["mentor", "super_admin"] },
+  { to: "/app/billing", label: "Cobranças", icon: DollarSign, roles: ["mentor", "super_admin"], feature: "allowMentorBilling" },
+  { to: "/app/trails", label: "Trilhas", icon: GraduationCap, roles: ["mentor", "super_admin"], feature: "allowTrails" },
+  { to: "/app/community", label: "Comunidade", icon: Users, roles: ["mentor", "super_admin"], feature: "allowCommunity" },
+  { to: "/app/analytics", label: "Analytics", icon: Sparkles, roles: ["mentor", "super_admin"], feature: "allowAdvancedAnalytics" },
+  { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"], feature: "allowMessaging" },
+  { to: "/app/automations", label: "Automações", icon: Zap, roles: ["mentor", "super_admin"], feature: "allowAutomations" },
   { to: "/app/team", label: "Equipe", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
-  { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
-  { to: "/app/prompts", label: "Prompts", icon: BookOpen, roles: ["mentor", "super_admin"] },
+  { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"], feature: "allowAi" },
+  { to: "/app/prompts", label: "Prompts", icon: BookOpen, roles: ["mentor", "super_admin"], feature: "allowAi" },
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
   { to: "/app/events", label: "Eventos", icon: CalendarDays, roles: ["mentor", "super_admin"] },
   { to: "/app/contracts/templates", label: "Contratos", icon: FileText, roles: ["mentor", "super_admin"] },
@@ -87,10 +89,17 @@ const MOBILE_QUICK = [
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const { brand } = useBranding();
+  const { features } = usePlanFeatures();
   const loc = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const items = NAV.filter((i) => !i.roles || i.roles.includes(user?.role || ""));
+  const items = NAV.filter((i) => {
+    if (i.roles && !i.roles.includes(user?.role || "")) return false;
+    // super_admin sempre vê tudo
+    if (user?.role === "super_admin") return true;
+    if (i.feature && !features[i.feature]) return false;
+    return true;
+  });
   const displayName = brand?.brandName || user?.brandName || "MentorFlow";
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
