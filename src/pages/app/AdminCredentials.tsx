@@ -37,7 +37,11 @@ export default function AdminCredentials() {
       ]);
       setGoogle(g);
       setUazapi(u);
-      setForm({ clientId: g.clientId, clientSecret: "", redirectUri: g.redirectUri });
+      const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+      const suggestedRedirect = isLocalDev
+        ? `http://localhost:3001/api/integrations/google/callback`
+        : `${window.location.origin}/api/integrations/google/callback`;
+      setForm({ clientId: g.clientId, clientSecret: "", redirectUri: g.redirectUri || suggestedRedirect });
       setUazForm({ adminUrl: u.adminUrl || "https://api.uazapi.com", adminToken: "" });
     } catch (e: any) {
       toast.error(e.message);
@@ -48,10 +52,17 @@ export default function AdminCredentials() {
   async function save() {
     setSaving(true);
     try {
-      await api("/admin/app-settings/google", { method: "POST", body: form });
+      await api("/admin/app-settings/google", {
+        method: "POST",
+        body: {
+          clientId: form.clientId.trim(),
+          clientSecret: form.clientSecret.trim(),
+          redirectUri: (form.redirectUri || suggestedRedirect).trim(),
+        },
+      });
       toast.success("Credenciais salvas");
       setForm((f) => ({ ...f, clientSecret: "" }));
-      load();
+      await load();
     } catch (e: any) {
       toast.error(e.message);
     } finally {
@@ -75,12 +86,12 @@ export default function AdminCredentials() {
 
   if (!google || !uazapi) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
 
-  // Em produção, o backend responde no mesmo domínio (atrás do nginx, ex.: https://mentor.gleego.com.br/integrations/google/callback)
-  // Em dev local (Vite em :5173), o backend NestJS roda em :3000
+  // Em produção, o backend responde no mesmo domínio atrás de /api.
+  // Em dev local, o NestJS roda em :3001 com prefixo /api.
   const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
   const suggestedRedirect = isLocalDev
-    ? `http://localhost:3000/integrations/google/callback`
-    : `${window.location.origin}/integrations/google/callback`;
+    ? `http://localhost:3001/api/integrations/google/callback`
+    : `${window.location.origin}/api/integrations/google/callback`;
 
   return (
     <div className="space-y-6 max-w-3xl">
