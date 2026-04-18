@@ -2,11 +2,17 @@ import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { MentorIntegration, IntegrationProvider, IntegrationStatus, IntegrationType } from '../../entities/mentor-integration.entity';
+import { AppSettingsService } from '../admin/app-settings.service';
 
 interface UazapiCreds {
   baseUrl: string;
   token: string;
   instanceName?: string;
+}
+
+interface UazapiAdmin {
+  baseUrl: string;
+  adminToken: string;
 }
 
 export interface WhatsappAttachment {
@@ -20,7 +26,8 @@ export interface WhatsappAttachment {
 
 /**
  * Serviço de WhatsApp via uazapi (https://docs.uazapi.com).
- * Resolve credenciais por mentor (multi-tenant) com fallback nas envs globais.
+ * O super-admin configura URL + admin token globais. Cada mentor possui
+ * uma instância criada/destruída automaticamente — não precisa lidar com tokens.
  */
 @Injectable()
 export class WhatsappService {
@@ -28,13 +35,21 @@ export class WhatsappService {
 
   constructor(
     @InjectRepository(MentorIntegration) private repo: Repository<MentorIntegration>,
+    private settings: AppSettingsService,
   ) {}
 
-  private getGlobalFallback(): UazapiCreds | null {
-    const baseUrl = process.env.UAZAPI_URL;
-    const token = process.env.UAZAPI_TOKEN;
-    if (!baseUrl || !token) return null;
-    return { baseUrl, token, instanceName: process.env.UAZAPI_INSTANCE };
+  /** Busca config admin: prioriza app_settings, fallback env. */
+  private async getAdmin(): Promise<UazapiAdmin | null> {
+    const dbUrl = await this.settings.get('uazapi.adminUrl');
+    const dbToken = await this.settings.get('uazapi.adminToken');
+    const baseUrl = dbUrl || process.env.UAZAPI_URL || null;
+    const adminToken = dbToken || process.env.UAZAPI_TOKEN || null;
+    if (!baseUrl || !adminToken) return null;
+    return { baseUrl: baseUrl.replace(/\/$/, ''), adminToken };
+  }
+
+  async isAdminConfigured(): Promise<boolean> {
+    return !!(await this.getAdmin());
   }
 
   async getCreds(mentorId: string): Promise<UazapiCreds | null> {
@@ -46,68 +61,155 @@ export class WhatsappService {
     if (integ?.baseUrl && integ?.token) {
       return { baseUrl: integ.baseUrl, token: integ.token, instanceName: integ.instanceName };
     }
-    return this.getGlobalFallback();
+    return null;
   }
 
-  /** Cria/atualiza configuração do mentor */
-  async upsertConfig(mentorId: string, dto: { baseUrl?: string; token?: string; instanceName?: string; provider?: IntegrationProvider }) {
+  /** Cria/atualiza configuração do mentor (uso interno) */
+  async upsertConfig(mentorId: string, dto: { baseUrl?: string; token?: string; instanceName?: string; provider?: IntegrationProvider; status?: IntegrationStatus; phoneNumber?: string }) {
     let integ = await this.repo.findOne({ where: { mentorId, type: IntegrationType.WHATSAPP } });
     if (!integ) {
       integ = this.repo.create({
         mentorId,
         type: IntegrationType.WHATSAPP,
         provider: dto.provider || IntegrationProvider.UAZAPI,
-        status: IntegrationStatus.PENDING,
+        status: dto.status || IntegrationStatus.PENDING,
       });
     }
     if (dto.baseUrl !== undefined) integ.baseUrl = dto.baseUrl;
     if (dto.token !== undefined) integ.token = dto.token;
     if (dto.instanceName !== undefined) integ.instanceName = dto.instanceName;
     if (dto.provider) integ.provider = dto.provider;
+    if (dto.status) integ.status = dto.status;
+    if (dto.phoneNumber !== undefined) integ.phoneNumber = dto.phoneNumber;
     return this.repo.save(integ);
+  }
+
+  /**
+   * Provisiona uma instância no uazapi para o mentor (chama /instance/init com admin token).
+   * Salva token retornado e nome da instância na MentorIntegration.
+   */
+  async provisionInstance(mentorId: string, mentorLabel: string): Promise<{ ok: boolean; error?: string }> {
+    const admin = await this.getAdmin();
+    if (!admin) return { ok: false, error: 'WhatsApp ainda não foi configurado pelo administrador da plataforma.' };
+
+    const existing = await this.repo
+      .createQueryBuilder('i')
+      .addSelect('i.token')
+      .where('i.mentorId = :mentorId AND i.type = :type', { mentorId, type: IntegrationType.WHATSAPP })
+      .getOne();
+    if (existing?.token && existing?.instanceName) {
+      return { ok: true };
+    }
+
+    const instanceName = `mentor-${mentorId.slice(0, 8)}-${Date.now().toString(36)}`;
+    try {
+      const res = await fetch(`${admin.baseUrl}/instance/init`, {
+        method: 'POST',
+        headers: { adminToken: admin.adminToken, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: instanceName, systemName: mentorLabel || 'MentorFlow' }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return { ok: false, error: data?.message || data?.error || `HTTP ${res.status}` };
+      }
+      const instanceToken = data?.token || data?.instance?.token || data?.instanceToken;
+      const finalName = data?.instance?.name || data?.name || instanceName;
+      if (!instanceToken) {
+        return { ok: false, error: 'Resposta do uazapi sem token da instância' };
+      }
+      await this.upsertConfig(mentorId, {
+        baseUrl: admin.baseUrl,
+        token: instanceToken,
+        instanceName: finalName,
+        provider: IntegrationProvider.UAZAPI,
+        status: IntegrationStatus.PENDING,
+      });
+      return { ok: true };
+    } catch (e: any) {
+      this.logger.error(`provisionInstance falhou: ${e.message}`);
+      return { ok: false, error: e.message };
+    }
+  }
+
+  /** Remove a instância no uazapi e limpa registros locais. */
+  async disconnect(mentorId: string): Promise<{ ok: boolean; error?: string }> {
+    const admin = await this.getAdmin();
+    const integ = await this.repo
+      .createQueryBuilder('i')
+      .addSelect('i.token')
+      .where('i.mentorId = :mentorId AND i.type = :type', { mentorId, type: IntegrationType.WHATSAPP })
+      .getOne();
+    if (!integ) return { ok: true };
+
+    if (admin && integ.instanceName) {
+      try {
+        await fetch(`${admin.baseUrl}/instance/delete`, {
+          method: 'POST',
+          headers: { adminToken: admin.adminToken, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: integ.instanceName }),
+        });
+      } catch (e: any) {
+        this.logger.warn(`uazapi delete falhou (seguindo): ${e.message}`);
+      }
+    }
+    await this.repo.delete(integ.id);
+    return { ok: true };
   }
 
   async getStatus(mentorId: string) {
     const creds = await this.getCreds(mentorId);
-    if (!creds) return { configured: false, status: 'no_creds' };
+    if (!creds) return { configured: false, status: 'no_creds', connected: false };
     try {
       const url = `${creds.baseUrl.replace(/\/$/, '')}/instance/status`;
       const res = await fetch(url, {
         headers: { token: creds.token, 'Content-Type': 'application/json' },
       });
       const data = await res.json().catch(() => ({}));
-      const connected = res.ok && (data.status === 'connected' || data.connected === true || data.instance?.status === 'open');
+      const connected = res.ok && (data.status === 'connected' || data.connected === true || data.instance?.status === 'open' || data.instance?.status === 'connected');
+      const phone = data?.instance?.owner || data?.owner || data?.instance?.phone || data?.phone || null;
       const integ = await this.repo.findOne({ where: { mentorId, type: IntegrationType.WHATSAPP } });
       if (integ) {
         integ.status = connected ? IntegrationStatus.CONNECTED : IntegrationStatus.PENDING;
         if (connected) integ.connectedAt = new Date();
+        if (phone) integ.phoneNumber = String(phone).replace(/\D/g, '');
         integ.metadata = data;
         await this.repo.save(integ);
       }
-      return { configured: true, connected, raw: data };
+      return { configured: true, connected, phoneNumber: phone, raw: data };
     } catch (e: any) {
       this.logger.warn(`uazapi status falhou: ${e.message}`);
       return { configured: true, connected: false, error: e.message };
     }
   }
 
-  async getQrCode(mentorId: string) {
+  /** Solicita o QR Code da instância do mentor */
+  async getQrCode(mentorId: string): Promise<{ ok: boolean; qrcode?: string; connected?: boolean; error?: string }> {
     const creds = await this.getCreds(mentorId);
-    if (!creds) throw new Error('WhatsApp não configurado');
-    const url = `${creds.baseUrl.replace(/\/$/, '')}/instance/connect`;
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { token: creds.token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ instanceName: creds.instanceName }),
-    });
-    return res.json().catch(() => ({}));
+    if (!creds) return { ok: false, error: 'Instância não provisionada' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    try {
+      const res = await fetch(`${base}/instance/connect`, {
+        method: 'POST',
+        headers: { token: creds.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data?.message || `HTTP ${res.status}` };
+      const qrRaw = data?.qrcode || data?.qr || data?.instance?.qrcode || data?.base64 || null;
+      const qrcode = qrRaw && !String(qrRaw).startsWith('data:')
+        ? `data:image/png;base64,${String(qrRaw).replace(/^data:image\/png;base64,/, '')}`
+        : qrRaw;
+      const connected = data?.connected === true || data?.instance?.status === 'connected' || data?.instance?.status === 'open';
+      return { ok: true, qrcode, connected };
+    } catch (e: any) {
+      return { ok: false, error: e.message };
+    }
   }
 
   /** Normaliza para somente dígitos com DDI (Brasil 55 default). */
   private normalizePhone(raw: string): string {
     let phone = (raw || '').replace(/\D/g, '');
     if (!phone) return '';
-    // Se vier sem DDI e tiver 10/11 dígitos => Brasil
     if (phone.length === 10 || phone.length === 11) phone = '55' + phone;
     return phone;
   }
@@ -119,7 +221,6 @@ export class WhatsappService {
     const phone = this.normalizePhone(raw);
     if (!phone) return { ok: false, error: 'Telefone inválido' };
     const base = creds.baseUrl.replace(/\/$/, '');
-    // uazapi tem dois formatos comuns: /chat/check ou /contact/exists
     const tryEndpoints = [
       { url: `${base}/chat/check`, body: { numbers: [phone] } },
       { url: `${base}/contact/exists`, body: { number: phone } },
@@ -133,7 +234,6 @@ export class WhatsappService {
         });
         if (!res.ok) continue;
         const data: any = await res.json().catch(() => ({}));
-        // Formatos possíveis de resposta
         const arr = data?.numbers || data?.result || data;
         const first = Array.isArray(arr) ? arr[0] : arr;
         const isWhatsapp = !!(first?.exists ?? first?.isWhatsapp ?? first?.isInWhatsapp ?? data?.exists);
@@ -179,7 +279,6 @@ export class WhatsappService {
     try {
       const phone = this.normalizePhone(to);
       const base = creds.baseUrl.replace(/\/$/, '');
-      // Resolve URL absoluta caso venha relativa (/uploads/...)
       let mediaUrl = att.url;
       if (mediaUrl.startsWith('/') && publicBaseUrl) {
         mediaUrl = publicBaseUrl.replace(/\/$/, '') + mediaUrl;
