@@ -10,7 +10,7 @@ import { Subscription, SubscriptionStatus } from '../../entities/subscription.en
 import { Charge, ChargeStatus, ChargeMethod } from '../../entities/charge.entity';
 import { Auth } from '../auth/auth.decorators';
 import { AuthService } from '../auth/auth.service';
-import { MentorBillingService } from '../billing/mentor-billing.service';
+import { AsaasService } from '../billing/asaas.service';
 
 @Controller('admin')
 export class AdminController {
@@ -23,7 +23,7 @@ export class AdminController {
     @InjectRepository(Subscription) private subs: Repository<Subscription>,
     @InjectRepository(Charge) private charges: Repository<Charge>,
     private authService: AuthService,
-    private billing: MentorBillingService,
+    private asaas: AsaasService,
   ) {}
 
   /** Lista mentores com plano resolvido e métricas básicas para a tela de aprovação. */
