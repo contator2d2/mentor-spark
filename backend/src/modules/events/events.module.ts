@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CaptureEvent } from '../../entities/capture-event.entity';
 import { EventRegistration } from '../../entities/event-registration.entity';
@@ -11,9 +11,14 @@ import { Company } from '../../entities/company.entity';
 import { MentorIntegration } from '../../entities/mentor-integration.entity';
 import { PushSubscription } from '../../entities/push-subscription.entity';
 import { Notification } from '../../entities/notification.entity';
+import { EventTicketTier } from '../../entities/event-ticket-tier.entity';
+import { EventPayment } from '../../entities/event-payment.entity';
+import { MentorPaymentProvider } from '../../entities/mentor-payment-provider.entity';
 import { EventsController } from './events.controller';
 import { PublicEventsController } from './public-events.controller';
 import { EventsService } from './events.service';
+import { EventPaymentsService } from './event-payments.service';
+import { EventPaymentsController, PublicEventPaymentsController } from './event-payments.controller';
 import { MailService } from '../../shared/mail.service';
 import { WhatsappService } from '../integrations/whatsapp.service';
 import { PushService } from '../push/push.service';
@@ -26,13 +31,14 @@ import { AiModule } from '../ai/ai.module';
     TypeOrmModule.forFeature([
       CaptureEvent, EventRegistration, EventAction, Lead, TestTemplate, TestAssignment,
       User, Company, MentorIntegration, PushSubscription, Notification,
+      EventTicketTier, EventPayment, MentorPaymentProvider,
     ]),
     NotificationsModule,
     LeadsModule,
     AiModule,
   ],
-  controllers: [EventsController, PublicEventsController],
-  providers: [EventsService, MailService, WhatsappService, PushService],
-  exports: [EventsService],
+  controllers: [EventsController, PublicEventsController, EventPaymentsController, PublicEventPaymentsController],
+  providers: [EventsService, EventPaymentsService, MailService, WhatsappService, PushService],
+  exports: [EventsService, EventPaymentsService],
 })
 export class EventsModule {}
