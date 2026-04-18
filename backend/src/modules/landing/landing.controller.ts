@@ -1,7 +1,7 @@
 import { Body, Controller, Get, NotFoundException, Param, Put } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { LandingPage } from '../../entities/landing-page.entity';
+import { LandingPage, LandingBlock } from '../../entities/landing-page.entity';
 import { User, UserStatus } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
@@ -48,7 +48,7 @@ export class LandingController {
   }
 }
 
-function defaultBlocks() {
+function defaultBlocks(): LandingBlock[] {
   return [
     { id: 'b1', type: 'hero', data: { title: 'Sua transformação começa aqui', subtitle: 'Mentoria estratégica para resultados reais.', ctaText: 'Começar agora' } },
     { id: 'b2', type: 'features', data: { items: [
