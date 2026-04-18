@@ -8,10 +8,80 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus, KanbanSquare, Settings, Trash2 } from "lucide-react";
+import { Loader2, Plus, KanbanSquare, Settings, Trash2, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  rectSortingStrategy,
+  useSortable,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface Board { id: string; name: string; type: string; isDefault: boolean; color?: string; description?: string; }
+
+function SortableBoardCard({
+  b,
+  onOpen,
+  onSettings,
+  onRemove,
+}: {
+  b: Board;
+  onOpen: () => void;
+  onSettings: () => void;
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: b.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto" as const,
+  };
+
+  return (
+    <Card
+      ref={setNodeRef}
+      style={style}
+      className="p-5 hover:border-primary/40 transition-colors cursor-pointer relative group"
+      onClick={onOpen}
+    >
+      <button
+        {...attributes}
+        {...listeners}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground"
+        aria-label="Reordenar"
+      >
+        <GripVertical className="h-4 w-4" />
+      </button>
+      <div className="h-2 w-12 rounded-full mb-3 ml-6" style={{ backgroundColor: b.color || "#6366f1" }} />
+      <div className="flex items-center gap-2 mb-1 ml-6">
+        <h3 className="font-semibold">{b.name}</h3>
+        {b.isDefault && <Badge variant="outline" className="text-xs">Padrão</Badge>}
+      </div>
+      <p className="text-xs text-muted-foreground line-clamp-2 ml-6">{b.description || `Tipo: ${b.type}`}</p>
+      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+        <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onSettings(); }}>
+          <Settings className="h-3 w-3" />
+        </Button>
+        {!b.isDefault && (
+          <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); onRemove(); }}>
+            <Trash2 className="h-3 w-3 text-rose-400" />
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+}
 
 export default function BoardsListPage() {
   const [boards, setBoards] = useState<Board[] | null>(null);
@@ -19,6 +89,8 @@ export default function BoardsListPage() {
   const [form, setForm] = useState({ name: "", type: "custom" as const, useTemplate: "" as "" | "leads" | "tasks", color: "#6366f1", description: "" });
   const [saving, setSaving] = useState(false);
   const nav = useNavigate();
+
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   async function load() { try { setBoards(await api<Board[]>("/kanban/boards")); } catch (e: any) { toast.error(e.message); } }
   useEffect(() => { load(); }, []);
@@ -40,6 +112,21 @@ export default function BoardsListPage() {
     try { await api(`/kanban/boards/${id}`, { method: "DELETE" }); load(); } catch (e: any) { toast.error(e.message); }
   }
 
+  async function handleDragEnd(e: DragEndEvent) {
+    if (!boards || !e.over || e.active.id === e.over.id) return;
+    const oldIdx = boards.findIndex((b) => b.id === e.active.id);
+    const newIdx = boards.findIndex((b) => b.id === e.over!.id);
+    if (oldIdx < 0 || newIdx < 0) return;
+    const next = arrayMove(boards, oldIdx, newIdx);
+    setBoards(next); // otimista
+    try {
+      await api("/kanban/boards/reorder", { method: "POST", body: { ids: next.map((b) => b.id) } });
+    } catch (err: any) {
+      toast.error(err.message);
+      load();
+    }
+  }
+
   if (!boards) return <div className="flex justify-center py-24"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
 
   return (
@@ -47,7 +134,7 @@ export default function BoardsListPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-display flex items-center gap-2"><KanbanSquare className="h-7 w-7 text-primary" />Meus Kanbans</h1>
-          <p className="text-muted-foreground mt-1">Crie quantos boards quiser, com colunas e cores próprias.</p>
+          <p className="text-muted-foreground mt-1">Crie quantos boards quiser. Arraste pelo canto esquerdo para reordenar.</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild><Button className="bg-gradient-primary"><Plus className="h-4 w-4 mr-2" />Novo board</Button></DialogTrigger>
@@ -74,22 +161,21 @@ export default function BoardsListPage() {
         </Dialog>
       </div>
 
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {boards.map((b) => (
-          <Card key={b.id} className="p-5 hover:border-primary/40 transition-colors cursor-pointer relative group" onClick={() => nav(`/app/boards/${b.id}`)}>
-            <div className="h-2 w-12 rounded-full mb-3" style={{ backgroundColor: b.color || "#6366f1" }} />
-            <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold">{b.name}</h3>
-              {b.isDefault && <Badge variant="outline" className="text-xs">Padrão</Badge>}
-            </div>
-            <p className="text-xs text-muted-foreground line-clamp-2">{b.description || `Tipo: ${b.type}`}</p>
-            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-              <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); nav(`/app/boards/${b.id}/settings`); }}><Settings className="h-3 w-3" /></Button>
-              {!b.isDefault && <Button size="icon" variant="ghost" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); remove(b.id); }}><Trash2 className="h-3 w-3 text-rose-400" /></Button>}
-            </div>
-          </Card>
-        ))}
-      </div>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={boards.map((b) => b.id)} strategy={rectSortingStrategy}>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {boards.map((b) => (
+              <SortableBoardCard
+                key={b.id}
+                b={b}
+                onOpen={() => nav(`/app/boards/${b.id}`)}
+                onSettings={() => nav(`/app/boards/${b.id}/settings`)}
+                onRemove={() => remove(b.id)}
+              />
+            ))}
+          </div>
+        </SortableContext>
+      </DndContext>
     </div>
   );
 }
