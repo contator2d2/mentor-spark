@@ -1,21 +1,23 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, IsNull } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CaptureEvent, EventStatus } from '../../entities/capture-event.entity';
-import { EventRegistration, RegistrationStatus } from '../../entities/event-registration.entity';
+import { EventRegistration, RegistrationStatus, RegistrationPaymentStatus } from '../../entities/event-registration.entity';
 import { EventAction, EventActionType } from '../../entities/event-action.entity';
 import { Lead, LeadStage } from '../../entities/lead.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
 import { TestAssignment } from '../../entities/test-assignment.entity';
 import { User } from '../../entities/user.entity';
 import { Company } from '../../entities/company.entity';
+import { EventTicketTier } from '../../entities/event-ticket-tier.entity';
 import { MailService } from '../../shared/mail.service';
 import { WhatsappService } from '../integrations/whatsapp.service';
 import { PushService } from '../push/push.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { LeadsService } from '../leads/leads.service';
 import { AiService } from '../ai/ai.service';
+import { EventPaymentsService } from './event-payments.service';
 
 function makeSlug(name: string) {
   const base = name
@@ -47,12 +49,14 @@ export class EventsService {
     @InjectRepository(TestAssignment) private assignments: Repository<TestAssignment>,
     @InjectRepository(User) private users: Repository<User>,
     @InjectRepository(Company) private companies: Repository<Company>,
+    @InjectRepository(EventTicketTier) private tiers: Repository<EventTicketTier>,
     private mail: MailService,
     private whatsapp: WhatsappService,
     private push: PushService,
     private notifications: NotificationsService,
     private leadsService: LeadsService,
     private ai: AiService,
+    @Inject(forwardRef(() => EventPaymentsService)) private paymentsSvc: EventPaymentsService,
   ) {}
 
   // ==================== CRUD ====================
@@ -97,6 +101,10 @@ export class EventsService {
       defaultTestTemplateId: dto.defaultTestTemplateId,
       coverImageUrl: dto.coverImageUrl,
       isActive: dto.isActive ?? true,
+      isPaid: dto.isPaid ?? false,
+      paymentMode: dto.paymentMode || 'optional',
+      paymentProviderId: dto.paymentProviderId || null,
+      currency: dto.currency || 'BRL',
       slug: makeSlug(dto.name),
     });
     return this.events.save(ev);
@@ -127,7 +135,10 @@ export class EventsService {
   }
 
   /** Inscrição via formulário público */
-  async publicRegister(eventSlug: string, dto: { name: string; email: string; phone?: string; company?: string; role?: string }) {
+  async publicRegister(
+    eventSlug: string,
+    dto: { name: string; email: string; phone?: string; company?: string; role?: string; tierId?: string; cpfCnpj?: string },
+  ) {
     const event = await this.events.findOne({ where: { slug: eventSlug } });
     if (!event) throw new NotFoundException('Evento não encontrado');
     if (!event.isActive || event.status === EventStatus.CANCELLED) {
@@ -137,12 +148,39 @@ export class EventsService {
       const count = await this.regs.count({ where: { eventId: event.id } });
       if (count >= event.capacity) throw new BadRequestException('Evento lotado');
     }
+
+    // Resolve lote (se evento pago)
+    let tier: EventTicketTier | null = null;
+    if (event.isPaid) {
+      const allTiers = await this.tiers.find({ where: { eventId: event.id, isActive: true }, order: { position: 'ASC' } });
+      if (dto.tierId) {
+        tier = allTiers.find((t) => t.id === dto.tierId) || null;
+        if (!tier) throw new BadRequestException('Lote inválido');
+      } else if (allTiers.length > 0) {
+        tier = allTiers[0];
+      }
+      if (tier?.quantity && tier.sold >= tier.quantity) {
+        throw new BadRequestException('Lote esgotado');
+      }
+      if (tier?.availableUntil && new Date(tier.availableUntil) < new Date()) {
+        throw new BadRequestException('Lote expirado');
+      }
+    }
+
     const email = dto.email.trim().toLowerCase();
     let reg = await this.regs.findOne({ where: { eventId: event.id, email } });
     if (reg) {
-      // já inscrito → retorna ticket existente (idempotente)
-      return { event, registration: reg };
+      // já inscrito → retorna ticket existente (idempotente). Se evento pago e ainda não pago,
+      // tenta gerar checkout novamente.
+      let payment = null;
+      if (event.isPaid && tier && reg.paymentStatus !== RegistrationPaymentStatus.PAID) {
+        payment = await this.paymentsSvc
+          .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+          .catch((e) => ({ error: e.message }));
+      }
+      return { event, registration: reg, tier, payment };
     }
+
     reg = this.regs.create({
       eventId: event.id,
       mentorId: event.mentorId,
@@ -153,13 +191,29 @@ export class EventsService {
       role: dto.role,
       ticketCode: makeTicketCode(),
       status: RegistrationStatus.REGISTERED,
+      tierId: tier?.id,
+      currency: tier?.currency || event.currency || 'BRL',
+      paymentStatus: event.isPaid && tier && tier.priceCents > 0
+        ? RegistrationPaymentStatus.PENDING
+        : RegistrationPaymentStatus.NOT_REQUIRED,
     });
     await this.regs.save(reg);
+
+    // Gera cobrança se for pago
+    let payment = null;
+    if (event.isPaid && tier && tier.priceCents > 0) {
+      payment = await this.paymentsSvc
+        .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+        .catch((e) => {
+          this.logger.warn(`Checkout falhou: ${e.message}`);
+          return { error: e.message };
+        });
+    }
 
     // dispara confirmação em background (sem bloquear UI)
     this.sendConfirmation(event, reg).catch((e) => this.logger.warn(`confirmação falhou: ${e.message}`));
 
-    return { event, registration: reg };
+    return { event, registration: reg, tier, payment };
   }
 
   async getRegistrationByTicket(ticketCode: string) {

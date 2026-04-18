@@ -8,6 +8,8 @@ class PublicRegisterDto {
   @IsOptional() @IsString() phone?: string;
   @IsOptional() @IsString() company?: string;
   @IsOptional() @IsString() role?: string;
+  @IsOptional() @IsString() tierId?: string;
+  @IsOptional() @IsString() cpfCnpj?: string;
 }
 
 class NpsSubmitDto {
@@ -22,16 +24,20 @@ export class PublicEventsController {
 
   @Get(':slug')
   async info(@Param('slug') slug: string) {
-    // Reaproveita publicRegister (sem efeito) — mas precisamos de método dedicado:
     const event = await this.svc['events'].findOne({ where: { slug } });
     if (!event) return { ok: false };
     const count = await this.svc['regs'].count({ where: { eventId: event.id } });
+    const tiers = event.isPaid
+      ? await this.svc['tiers'].find({ where: { eventId: event.id, isActive: true }, order: { position: 'ASC' } })
+      : [];
     return {
       id: event.id, name: event.name, description: event.description, slug: event.slug,
       location: event.location, virtualUrl: event.virtualUrl, modality: event.modality,
       startsAt: event.startsAt, endsAt: event.endsAt, capacity: event.capacity,
       coverImageUrl: event.coverImageUrl, isActive: event.isActive, status: event.status,
+      isPaid: event.isPaid, paymentMode: event.paymentMode, currency: event.currency,
       registrations: count,
+      tiers,
     };
   }
 

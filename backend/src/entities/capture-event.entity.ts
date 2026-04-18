@@ -85,6 +85,28 @@ export class CaptureEvent {
   @Column({ default: true })
   isActive: boolean;
 
+  // ==================== Pagamento ====================
+  /** Evento cobra pelo ingresso? Se false → tudo grátis (compatibilidade retro). */
+  @Column({ default: false })
+  isPaid: boolean;
+
+  /**
+   * Modo de pagamento:
+   *  - free: sempre grátis
+   *  - optional: ticket sempre liberado, pagamento é uma contribuição opcional
+   *  - required: ticket só fica `confirmed` após pagamento
+   */
+  @Column({ default: 'optional' })
+  paymentMode: string;
+
+  /** Provedor de pagamento escolhido pelo mentor para este evento (FK MentorPaymentProvider). */
+  @Column({ type: 'uuid', nullable: true })
+  paymentProviderId?: string;
+
+  /** Moeda padrão do evento (lotes podem sobrescrever). */
+  @Column({ default: 'BRL' })
+  currency: string;
+
   @CreateDateColumn()
   createdAt: Date;
 
