@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Post, Body, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Body, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
@@ -22,7 +22,7 @@ export class AdminController {
     @InjectRepository(Plan) private plans: Repository<Plan>,
     @InjectRepository(Subscription) private subs: Repository<Subscription>,
     @InjectRepository(Charge) private charges: Repository<Charge>,
-    private authService: AuthService,
+    @Inject(forwardRef(() => AuthService)) private authService: AuthService,
     private asaas: AsaasService,
   ) {}
 
