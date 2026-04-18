@@ -18,8 +18,8 @@ import {
 
 const NAV = [
   { to: "/me", label: "Início", icon: Home, end: true },
+  { to: "/me/tests", label: "Testes", icon: ClipboardList },
   { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
-  { to: "/me/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/me/community", label: "Comunidade", icon: Users },
 ];
 

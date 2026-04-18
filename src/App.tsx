@@ -79,6 +79,7 @@ import { OfflineIndicator } from "./components/OfflineIndicator";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 import MentoradoFinanceiro from "./pages/me/MentoradoFinanceiro";
+import MentoradoTests from "./pages/me/MentoradoTests";
 
 const queryClient = new QueryClient();
 
@@ -201,7 +202,7 @@ const App = () => (
                 }
               >
                 <Route index element={<MentoradoHome />} />
-                <Route path="tests" element={<PlaceholderPage title="Meus testes" description="Testes recebidos do seu mentor." endpoint="/tests/responses" />} />
+                <Route path="tests" element={<MentoradoTests />} />
                 <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
                 <Route path="trails" element={<MentoradoTrailsList />} />
