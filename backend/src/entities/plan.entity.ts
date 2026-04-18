@@ -54,6 +54,18 @@ export class Plan {
   @Column({ default: false })
   allowLandingBuilder: boolean;
 
+  /** -1 = ilimitado. 0 = nenhum (apenas o próprio mentor). */
+  @Column({ type: 'int', default: 0 })
+  maxTeamMembers: number;
+
+  /** Quantos kanbans o mentor pode criar. -1 = ilimitado. */
+  @Column({ type: 'int', default: 1 })
+  maxKanbanBoards: number;
+
+  /** Permite envio multicanal (WhatsApp/Email). */
+  @Column({ default: true })
+  allowMessaging: boolean;
+
   @Column({ default: true })
   isActive: boolean;
 
