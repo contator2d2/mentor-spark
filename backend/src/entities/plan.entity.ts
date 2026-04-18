@@ -49,6 +49,9 @@ export class Plan {
   allowMeetings: boolean;
 
   @Column({ default: false })
+  allowGoogleCalendar: boolean;
+
+  @Column({ default: false })
   allowAutomations: boolean;
 
   @Column({ default: false })

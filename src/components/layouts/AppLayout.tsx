@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   QrCode,
   Cpu,
+  KeyRound,
   Plug,
   Layers,
   Wallet,
@@ -63,6 +64,7 @@ const NAV: NavItem[] = [
   { to: "/app/admin/plans", label: "Planos", icon: Layers, roles: ["super_admin"] },
   { to: "/app/admin/tenants", label: "Tenants", icon: Users, roles: ["super_admin"] },
   { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
+  { to: "/app/admin/credentials", label: "Credenciais OAuth", icon: KeyRound, roles: ["super_admin"] },
 ];
 
 // Atalhos rápidos para a bottom nav mobile

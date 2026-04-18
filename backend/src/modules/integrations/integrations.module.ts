@@ -6,9 +6,10 @@ import { IntegrationsController } from './integrations.controller';
 import { WhatsappService } from './whatsapp.service';
 import { GoogleCalendarService } from './google-calendar.service';
 import { PlansModule } from '../plans/plans.module';
+import { AdminModule } from '../admin/admin.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MentorIntegration, User]), PlansModule],
+  imports: [TypeOrmModule.forFeature([MentorIntegration, User]), PlansModule, AdminModule],
   controllers: [IntegrationsController],
   providers: [WhatsappService, GoogleCalendarService],
   exports: [WhatsappService, GoogleCalendarService],
