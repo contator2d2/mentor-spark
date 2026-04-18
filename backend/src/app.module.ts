@@ -27,6 +27,7 @@ import { PushModule } from './modules/push/push.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { LandingModule } from './modules/landing/landing.module';
 import { TestAssignmentsModule } from './modules/test-assignments/test-assignments.module';
+import { UploadsModule } from './modules/uploads/uploads.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { buildPgOptions } from './db.config';
@@ -66,6 +67,7 @@ import { buildPgOptions } from './db.config';
     GamificationModule,
     LandingModule,
     TestAssignmentsModule,
+    UploadsModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
