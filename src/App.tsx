@@ -33,6 +33,7 @@ import IntegrationsPage from "./pages/app/IntegrationsPage";
 import AdminPlans from "./pages/app/AdminPlans";
 import TestsListPage from "./pages/app/TestsListPage";
 import TestBuilder from "./pages/app/TestBuilder";
+import TestsLibraryPage from "./pages/app/TestsLibraryPage";
 import ProntuarioPage from "./pages/app/prontuario/ProntuarioPage";
 import LeadCreatePage from "./pages/app/LeadCreatePage";
 import CompanyDossier from "./pages/app/CompanyDossier";
@@ -96,6 +97,7 @@ const App = () => (
                 <Route path="companies/:id" element={<CompanyDossier />} />
                 <Route path="mentorados" element={<MentoradosPage />} />
                 <Route path="tests" element={<TestsListPage />} />
+                <Route path="tests/library" element={<TestsLibraryPage />} />
                 <Route path="tests/new" element={<TestBuilder />} />
                 <Route path="tests/:id" element={<TestBuilder />} />
                 <Route path="meetings" element={<MeetingsListPage />} />
