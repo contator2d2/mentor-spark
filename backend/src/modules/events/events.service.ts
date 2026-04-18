@@ -135,7 +135,10 @@ export class EventsService {
   }
 
   /** Inscrição via formulário público */
-  async publicRegister(eventSlug: string, dto: { name: string; email: string; phone?: string; company?: string; role?: string }) {
+  async publicRegister(
+    eventSlug: string,
+    dto: { name: string; email: string; phone?: string; company?: string; role?: string; tierId?: string; cpfCnpj?: string },
+  ) {
     const event = await this.events.findOne({ where: { slug: eventSlug } });
     if (!event) throw new NotFoundException('Evento não encontrado');
     if (!event.isActive || event.status === EventStatus.CANCELLED) {
@@ -145,12 +148,39 @@ export class EventsService {
       const count = await this.regs.count({ where: { eventId: event.id } });
       if (count >= event.capacity) throw new BadRequestException('Evento lotado');
     }
+
+    // Resolve lote (se evento pago)
+    let tier: EventTicketTier | null = null;
+    if (event.isPaid) {
+      const allTiers = await this.tiers.find({ where: { eventId: event.id, isActive: true }, order: { position: 'ASC' } });
+      if (dto.tierId) {
+        tier = allTiers.find((t) => t.id === dto.tierId) || null;
+        if (!tier) throw new BadRequestException('Lote inválido');
+      } else if (allTiers.length > 0) {
+        tier = allTiers[0];
+      }
+      if (tier?.quantity && tier.sold >= tier.quantity) {
+        throw new BadRequestException('Lote esgotado');
+      }
+      if (tier?.availableUntil && new Date(tier.availableUntil) < new Date()) {
+        throw new BadRequestException('Lote expirado');
+      }
+    }
+
     const email = dto.email.trim().toLowerCase();
     let reg = await this.regs.findOne({ where: { eventId: event.id, email } });
     if (reg) {
-      // já inscrito → retorna ticket existente (idempotente)
-      return { event, registration: reg };
+      // já inscrito → retorna ticket existente (idempotente). Se evento pago e ainda não pago,
+      // tenta gerar checkout novamente.
+      let payment = null;
+      if (event.isPaid && tier && reg.paymentStatus !== RegistrationPaymentStatus.PAID) {
+        payment = await this.paymentsSvc
+          .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+          .catch((e) => ({ error: e.message }));
+      }
+      return { event, registration: reg, tier, payment };
     }
+
     reg = this.regs.create({
       eventId: event.id,
       mentorId: event.mentorId,
@@ -161,13 +191,29 @@ export class EventsService {
       role: dto.role,
       ticketCode: makeTicketCode(),
       status: RegistrationStatus.REGISTERED,
+      tierId: tier?.id,
+      currency: tier?.currency || event.currency || 'BRL',
+      paymentStatus: event.isPaid && tier && tier.priceCents > 0
+        ? RegistrationPaymentStatus.PENDING
+        : RegistrationPaymentStatus.NOT_REQUIRED,
     });
     await this.regs.save(reg);
+
+    // Gera cobrança se for pago
+    let payment = null;
+    if (event.isPaid && tier && tier.priceCents > 0) {
+      payment = await this.paymentsSvc
+        .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+        .catch((e) => {
+          this.logger.warn(`Checkout falhou: ${e.message}`);
+          return { error: e.message };
+        });
+    }
 
     // dispara confirmação em background (sem bloquear UI)
     this.sendConfirmation(event, reg).catch((e) => this.logger.warn(`confirmação falhou: ${e.message}`));
 
-    return { event, registration: reg };
+    return { event, registration: reg, tier, payment };
   }
 
   async getRegistrationByTicket(ticketCode: string) {
