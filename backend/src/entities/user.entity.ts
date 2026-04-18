@@ -101,6 +101,26 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   planExpiresAt?: Date;
 
+  /** Tipo de cobrança do plano SaaS: 'monthly' (mensal recorrente) | 'upfront' (à vista, lump-sum) */
+  @Column({ nullable: true })
+  planBillingType?: string;
+
+  /** Métodos de pagamento aceitos para a cobrança do plano. Ex: ['pix','boleto','credit_card'] */
+  @Column({ type: 'jsonb', nullable: true })
+  planPaymentMethods?: string[];
+
+  /** Dia do mês para vencimento da mensalidade (1-28). Usado quando billingType=monthly. */
+  @Column({ type: 'int', nullable: true })
+  planDueDay?: number;
+
+  /** Valor combinado para o plano (override do preço padrão do plano). Null = usa priceMonthly do plano. */
+  @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true })
+  planAmount?: number;
+
+  /** Observação interna do super admin sobre a cobrança do plano deste mentor */
+  @Column({ type: 'text', nullable: true })
+  planNotes?: string;
+
   /** Stripe customer ID — criado no primeiro checkout */
   @Column({ nullable: true })
   stripeCustomerId?: string;
