@@ -96,9 +96,16 @@ export class MeetingsController {
     const { summary, insights } = await this.ai.summarizeMeeting(mentorId, m.transcript);
     m.aiSummary = summary;
     m.aiInsights = insights;
-    m.status = 'done';
+    m.status = 'completed';
     await this.meetings.save(m);
     return m;
+  }
+
+  /** Alias REST do spec: POST /meetings/:id/generate-summary */
+  @Auth('mentor', 'super_admin')
+  @Post(':id/generate-summary')
+  generateSummary(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.summarize(mentorId, id);
   }
 
   @Auth('mentor', 'super_admin')
