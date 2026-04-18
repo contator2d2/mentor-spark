@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { ClipboardList, Loader2, Plus, Pencil, Trash2, ExternalLink } from "lucide-react";
+import { ClipboardList, Loader2, Plus, Pencil, Trash2, ExternalLink, Library } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -35,7 +35,7 @@ export default function TestsListPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
           <ClipboardList className="h-6 w-6 text-accent" />
           <div>
@@ -43,14 +43,29 @@ export default function TestsListPage() {
             <p className="text-muted-foreground">Crie testes que classificam seus prospects automaticamente.</p>
           </div>
         </div>
-        <Button onClick={() => nav("/app/tests/new")}>
-          <Plus className="h-4 w-4 mr-2" />Novo teste
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => nav("/app/tests/library")}>
+            <Library className="h-4 w-4 mr-2" />Biblioteca
+          </Button>
+          <Button onClick={() => nav("/app/tests/new")}>
+            <Plus className="h-4 w-4 mr-2" />Novo teste
+          </Button>
+        </div>
       </div>
 
       {items.length === 0 ? (
-        <Card className="p-10 text-center text-muted-foreground">
-          Nenhum teste ainda. Crie o primeiro para começar a qualificar leads automaticamente com IA.
+        <Card className="p-10 text-center space-y-4">
+          <p className="text-muted-foreground">
+            Nenhum teste ainda. Comece pela biblioteca ou crie do zero.
+          </p>
+          <div className="flex gap-2 justify-center">
+            <Button variant="outline" onClick={() => nav("/app/tests/library")}>
+              <Library className="h-4 w-4 mr-2" />Explorar biblioteca
+            </Button>
+            <Button onClick={() => nav("/app/tests/new")}>
+              <Plus className="h-4 w-4 mr-2" />Criar do zero
+            </Button>
+          </div>
         </Card>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -61,7 +76,14 @@ export default function TestsListPage() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-display text-lg font-bold">{t.title}</h3>
-                    <Badge variant="outline" className="mt-1 capitalize">{t.category}</Badge>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      <Badge variant="outline" className="capitalize">{t.category}</Badge>
+                      {t.sourceLibraryId && (
+                        <Badge variant="outline" className="bg-accent/10 text-accent border-accent/30">
+                          <Library className="h-3 w-3 mr-1" />Da biblioteca
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                   {t.active && <Badge>Ativo</Badge>}
                 </div>
