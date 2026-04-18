@@ -36,6 +36,9 @@ import LeadDossier from "./pages/app/LeadDossier";
 import PromptsPage from "./pages/app/PromptsPage";
 import TasksKanban from "./pages/app/TasksKanban";
 import ContentsPage from "./pages/app/ContentsPage";
+import MeetingsListPage from "./pages/app/MeetingsListPage";
+import MeetingPreparePage from "./pages/app/MeetingPreparePage";
+import MeetingDetailPage from "./pages/app/MeetingDetailPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -81,7 +84,9 @@ const App = () => (
                 <Route path="tests" element={<TestsListPage />} />
                 <Route path="tests/new" element={<TestBuilder />} />
                 <Route path="tests/:id" element={<TestBuilder />} />
-                <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Cards de reunião com transcrição + IA." endpoint="/meetings" />} />
+                <Route path="meetings" element={<MeetingsListPage />} />
+                <Route path="meetings/:id" element={<MeetingDetailPage />} />
+                <Route path="meetings/:id/prepare" element={<MeetingPreparePage />} />
                 <Route path="tasks" element={<TasksKanban />} />
                 <Route path="contents" element={<ContentsPage />} />
                 <Route path="ai" element={<AiAssistant />} />
