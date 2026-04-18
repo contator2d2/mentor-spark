@@ -44,11 +44,23 @@ export default function ContractTemplatesPage() {
     objective: "",
     durationMonths: "12",
     priceMonthly: "",
-    paymentTerms: "Mensal via PIX/cartão",
+    totalPrice: "",
+    paymentCondition: "mensal" as "a_vista" | "parcelado" | "mensal",
+    installments: "12",
+    paymentMethods: ["pix", "cartao"] as string[],
     jurisdiction: "",
     extraClauses: "",
     tone: "formal" as "formal" | "acessivel",
   });
+
+  function togglePaymentMethod(m: string) {
+    setAiForm((f) => ({
+      ...f,
+      paymentMethods: f.paymentMethods.includes(m)
+        ? f.paymentMethods.filter((x) => x !== m)
+        : [...f.paymentMethods, m],
+    }));
+  }
 
   async function load() {
     try { setItems(await api<Tpl[]>("/contracts/templates")); }
@@ -59,7 +71,7 @@ export default function ContractTemplatesPage() {
   function openNew() { setEditing(null); setForm({ name: "", body: "", isActive: true }); setOpen(true); }
   function openEdit(t: Tpl) { setEditing(t); setForm({ name: t.name, body: t.body, isActive: t.isActive }); setOpen(true); }
   function openAi() {
-    setAiForm({ contractType: "mentoria", segment: "", objective: "", durationMonths: "12", priceMonthly: "", paymentTerms: "Mensal via PIX/cartão", jurisdiction: "", extraClauses: "", tone: "formal" });
+    setAiForm({ contractType: "mentoria", segment: "", objective: "", durationMonths: "12", priceMonthly: "", totalPrice: "", paymentCondition: "mensal", installments: "12", paymentMethods: ["pix", "cartao"], jurisdiction: "", extraClauses: "", tone: "formal" });
     setAiOpen(true);
   }
 
@@ -195,8 +207,8 @@ export default function ContractTemplatesPage() {
                 <Input type="number" value={aiForm.durationMonths} onChange={(e) => setAiForm({ ...aiForm, durationMonths: e.target.value })} />
               </div>
               <div>
-                <Label>Valor mensal (R$)</Label>
-                <Input placeholder="2500.00" value={aiForm.priceMonthly} onChange={(e) => setAiForm({ ...aiForm, priceMonthly: e.target.value })} />
+                <Label>Foro / comarca</Label>
+                <Input placeholder="Ex: São Paulo - SP" value={aiForm.jurisdiction} onChange={(e) => setAiForm({ ...aiForm, jurisdiction: e.target.value })} />
               </div>
               <div>
                 <Label>Tom</Label>
@@ -209,14 +221,75 @@ export default function ContractTemplatesPage() {
                 </Select>
               </div>
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
-              <div>
-                <Label>Forma de pagamento</Label>
-                <Input value={aiForm.paymentTerms} onChange={(e) => setAiForm({ ...aiForm, paymentTerms: e.target.value })} />
+
+            <div className="rounded-xl border border-border/60 bg-muted/20 p-4 space-y-3">
+              <Label className="text-sm font-semibold">Condições de pagamento</Label>
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div>
+                  <Label className="text-xs">Condição</Label>
+                  <Select value={aiForm.paymentCondition} onValueChange={(v: any) => setAiForm({ ...aiForm, paymentCondition: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="a_vista">À vista</SelectItem>
+                      <SelectItem value="parcelado">Parcelado</SelectItem>
+                      <SelectItem value="mensal">Mensalidade recorrente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {aiForm.paymentCondition === "a_vista" && (
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs">Valor total (R$)</Label>
+                    <Input placeholder="15000.00" value={aiForm.totalPrice} onChange={(e) => setAiForm({ ...aiForm, totalPrice: e.target.value })} />
+                  </div>
+                )}
+                {aiForm.paymentCondition === "parcelado" && (
+                  <>
+                    <div>
+                      <Label className="text-xs">Nº parcelas</Label>
+                      <Input type="number" value={aiForm.installments} onChange={(e) => setAiForm({ ...aiForm, installments: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Valor da parcela (R$)</Label>
+                      <Input placeholder="1250.00" value={aiForm.priceMonthly} onChange={(e) => setAiForm({ ...aiForm, priceMonthly: e.target.value })} />
+                    </div>
+                    <div className="sm:col-span-3">
+                      <Label className="text-xs">Valor total (R$) — opcional</Label>
+                      <Input placeholder="15000.00" value={aiForm.totalPrice} onChange={(e) => setAiForm({ ...aiForm, totalPrice: e.target.value })} />
+                    </div>
+                  </>
+                )}
+                {aiForm.paymentCondition === "mensal" && (
+                  <div className="sm:col-span-2">
+                    <Label className="text-xs">Valor mensal (R$)</Label>
+                    <Input placeholder="2500.00" value={aiForm.priceMonthly} onChange={(e) => setAiForm({ ...aiForm, priceMonthly: e.target.value })} />
+                  </div>
+                )}
               </div>
               <div>
-                <Label>Foro / comarca</Label>
-                <Input placeholder="Ex: São Paulo - SP" value={aiForm.jurisdiction} onChange={(e) => setAiForm({ ...aiForm, jurisdiction: e.target.value })} />
+                <Label className="text-xs mb-2 block">Métodos aceitos</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { v: "cartao", label: "Cartão" },
+                    { v: "boleto", label: "Boleto" },
+                    { v: "pix", label: "PIX" },
+                  ].map((m) => {
+                    const active = aiForm.paymentMethods.includes(m.v);
+                    return (
+                      <button
+                        key={m.v}
+                        type="button"
+                        onClick={() => togglePaymentMethod(m.v)}
+                        className={`px-3 py-1.5 rounded-full text-xs border transition ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/30 text-muted-foreground border-border hover:bg-muted/50"
+                        }`}
+                      >
+                        {m.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </div>
             <div>
