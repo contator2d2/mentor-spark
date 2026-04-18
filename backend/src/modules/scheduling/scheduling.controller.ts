@@ -3,9 +3,11 @@ import { JwtAuthGuard } from '../auth/jwt.strategy';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { SchedulingService } from './scheduling.service';
 import { BookingStatus } from '../../entities/booking.entity';
+import { FeatureGuard, RequireFeature } from '../plans/feature.guard';
 
 @Controller('scheduling')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, FeatureGuard)
+@RequireFeature('allowScheduling')
 export class SchedulingController {
   constructor(private svc: SchedulingService) {}
 
