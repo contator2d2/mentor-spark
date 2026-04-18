@@ -37,9 +37,13 @@ export class MessageBroadcast {
   @Column({ type: 'jsonb' })
   sequence: BroadcastSequenceStep[];
 
-  /** Lista de leadIds destinatários */
+  /** Lista leadIds destinatários (envio individual) */
   @Column({ type: 'jsonb' })
   leadIds: string[];
+
+  /** Lista de JIDs de grupos/canais WhatsApp (envio em grupo). Se preenchido, leadIds é ignorado. */
+  @Column({ type: 'jsonb', nullable: true })
+  groupTargets?: { jid: string; name?: string; isChannel?: boolean }[];
 
   /** Delay (segundos) entre destinatários para evitar bloqueio. Ex: 8 */
   @Column({ type: 'int', default: 8 })
