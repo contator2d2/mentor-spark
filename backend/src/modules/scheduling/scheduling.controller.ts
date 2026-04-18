@@ -4,6 +4,7 @@ import { CurrentUser } from '../auth/current-user.decorator';
 import { SchedulingService } from './scheduling.service';
 import { BookingStatus } from '../../entities/booking.entity';
 import { FeatureGuard, RequireFeature } from '../plans/feature.guard';
+import { userId } from '../auth/user-id.util';
 
 @Controller('scheduling')
 @UseGuards(JwtAuthGuard, FeatureGuard)
@@ -12,27 +13,27 @@ export class SchedulingController {
   constructor(private svc: SchedulingService) {}
 
   @Get('availabilities')
-  list(@CurrentUser() u: any) { return this.svc.listForMentor(u.id); }
+  list(@CurrentUser() u: any) { return this.svc.listForMentor(userId(u)); }
 
   @Post('availabilities')
-  create(@CurrentUser() u: any, @Body() body: any) { return this.svc.createAvailability(u.id, body); }
+  create(@CurrentUser() u: any, @Body() body: any) { return this.svc.createAvailability(userId(u), body); }
 
   @Patch('availabilities/:id')
   update(@CurrentUser() u: any, @Param('id') id: string, @Body() body: any) {
-    return this.svc.updateAvailability(u.id, id, body);
+    return this.svc.updateAvailability(userId(u), id, body);
   }
 
   @Delete('availabilities/:id')
-  remove(@CurrentUser() u: any, @Param('id') id: string) { return this.svc.deleteAvailability(u.id, id); }
+  remove(@CurrentUser() u: any, @Param('id') id: string) { return this.svc.deleteAvailability(userId(u), id); }
 
   @Get('bookings')
   bookings(@CurrentUser() u: any, @Query() q: any) {
-    return this.svc.listBookings(u.id, { from: q.from, to: q.to, status: q.status });
+    return this.svc.listBookings(userId(u), { from: q.from, to: q.to, status: q.status });
   }
 
   @Patch('bookings/:id/status')
   setStatus(@CurrentUser() u: any, @Param('id') id: string, @Body() body: { status: BookingStatus }) {
-    return this.svc.updateBookingStatus(u.id, id, body.status);
+    return this.svc.updateBookingStatus(userId(u), id, body.status);
   }
 }
 
