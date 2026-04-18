@@ -22,7 +22,9 @@ import { ProntuarioPrivateController } from './prontuario-private.controller';
 import { ProntuarioAlertsService } from './prontuario-alerts.service';
 import { ProntuarioAiController } from './prontuario-ai.controller';
 import { ProntuarioAiService } from './prontuario-ai.service';
+import { ProntuarioAccessController } from './prontuario-access.controller';
 import { AiModule } from '../ai/ai.module';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
