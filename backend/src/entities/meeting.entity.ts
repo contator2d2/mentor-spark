@@ -1,8 +1,22 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { Lead } from './lead.entity';
 
+export type MeetingStatus =
+  | 'scheduled'
+  | 'confirmed'
+  | 'ready'
+  | 'in_progress'
+  | 'ended'
+  | 'processing'
+  | 'completed'
+  | 'cancelled'
+  | 'failed';
+
+export type MeetingPlatform = 'google_meet' | 'zoom' | 'teams' | 'external' | 'in_person';
+
 @Entity('meetings')
 @Index(['mentorId'])
+@Index(['mentorId', 'scheduledAt'])
 export class Meeting {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -10,27 +24,37 @@ export class Meeting {
   @Column({ type: 'uuid' })
   mentorId: string;
 
-  @Column({ type: 'uuid' })
-  leadId: string;
+  @Column({ type: 'uuid', nullable: true })
+  leadId?: string;
 
-  @ManyToOne(() => Lead, { onDelete: 'CASCADE' })
+  @ManyToOne(() => Lead, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'leadId' })
-  lead: Lead;
+  lead?: Lead;
 
   @Column()
   title: string;
 
+  /** Tipo livre: discovery, follow-up, mentoria, fechamento... */
+  @Column({ nullable: true })
+  meetingType?: string;
+
   @Column({ type: 'timestamptz' })
   scheduledAt: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  scheduledEnd?: Date;
 
   @Column({ type: 'int', nullable: true })
   durationMinutes?: number;
 
-  @Column({ nullable: true })
-  meetingUrl?: string; // Meet/Zoom link
+  @Column({ default: 'external' })
+  platform: MeetingPlatform;
 
   @Column({ nullable: true })
-  audioUrl?: string; // Caminho do áudio (uploads/meetings/...)
+  meetingUrl?: string;
+
+  @Column({ nullable: true })
+  audioUrl?: string;
 
   @Column({ type: 'text', nullable: true })
   transcript?: string;
@@ -42,7 +66,21 @@ export class Meeting {
   aiInsights?: { keyPoints: string[]; decisions: string[]; nextActions: string[] };
 
   @Column({ default: 'scheduled' })
-  status: string; // scheduled | transcribing | done | cancelled
+  status: MeetingStatus;
+
+  /** Se a reunião deve ter captura de áudio */
+  @Column({ default: true })
+  captureEnabled: boolean;
+
+  /** Se está previsto compartilhamento de tela com áudio */
+  @Column({ default: false })
+  screenShareExpected: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  preMeetingNotes?: string;
+
+  @Column({ type: 'text', nullable: true })
+  postMeetingNotes?: string;
 
   /** ID do evento criado no Google Calendar do mentor */
   @Column({ nullable: true })
