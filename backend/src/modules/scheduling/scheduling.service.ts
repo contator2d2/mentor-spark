@@ -25,7 +25,12 @@ export class SchedulingService {
 
   // ---------- Availability CRUD ----------
   async listForMentor(mentorId: string) {
-    return this.avail.find({ where: { mentorId }, order: { createdAt: 'DESC' } });
+    try {
+      return await this.avail.find({ where: { mentorId }, order: { createdAt: 'DESC' } });
+    } catch (e: any) {
+      this.logger.warn(`listForMentor falhou: ${e?.message}. Retornando lista vazia.`);
+      return [];
+    }
   }
 
   async createAvailability(mentorId: string, dto: Partial<Availability>) {
