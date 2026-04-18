@@ -44,11 +44,23 @@ export default function ContractTemplatesPage() {
     objective: "",
     durationMonths: "12",
     priceMonthly: "",
-    paymentTerms: "Mensal via PIX/cartão",
+    totalPrice: "",
+    paymentCondition: "mensal" as "a_vista" | "parcelado" | "mensal",
+    installments: "12",
+    paymentMethods: ["pix", "cartao"] as string[],
     jurisdiction: "",
     extraClauses: "",
     tone: "formal" as "formal" | "acessivel",
   });
+
+  function togglePaymentMethod(m: string) {
+    setAiForm((f) => ({
+      ...f,
+      paymentMethods: f.paymentMethods.includes(m)
+        ? f.paymentMethods.filter((x) => x !== m)
+        : [...f.paymentMethods, m],
+    }));
+  }
 
   async function load() {
     try { setItems(await api<Tpl[]>("/contracts/templates")); }
