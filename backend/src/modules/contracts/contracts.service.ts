@@ -69,13 +69,32 @@ export class ContractsService {
     return this.contracts.save(c);
   }
 
-  renderPdf(c: Contract): Promise<Buffer> {
-    return new Promise((resolve, reject) => {
+  renderPdf(c: Contract, mentor?: User): Promise<Buffer> {
+    return new Promise(async (resolve, reject) => {
       const doc = new PDFDocument({ size: 'A4', margins: { top: 60, bottom: 60, left: 60, right: 60 } });
       const chunks: Buffer[] = [];
       doc.on('data', (b) => chunks.push(b as Buffer));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
+
+      // Cabeçalho com logo da marca, se disponível
+      if (mentor?.brandLogoUrl) {
+        try {
+          const logoBuf = await this.fetchLogo(mentor.brandLogoUrl);
+          if (logoBuf) {
+            doc.image(logoBuf, { fit: [120, 60], align: 'center' });
+            doc.moveDown(0.5);
+          }
+        } catch {
+          // segue sem logo
+        }
+      }
+      if (mentor?.brandName) {
+        doc.font('Helvetica-Bold').fontSize(11).fillColor('#444444')
+          .text(mentor.brandName, { align: 'center' });
+        doc.moveDown(0.5);
+      }
+      doc.fillColor('#000000');
 
       doc.font('Helvetica-Bold').fontSize(18).text(c.title, { align: 'center' });
       doc.moveDown(1.5);
@@ -98,5 +117,21 @@ export class ContractsService {
       }
       doc.end();
     });
+  }
+
+  private async fetchLogo(url: string): Promise<Buffer | null> {
+    try {
+      let absolute = url;
+      if (url.startsWith('/uploads/')) {
+        const base = process.env.PUBLIC_BACKEND_URL || `http://localhost:${process.env.PORT || 3000}`;
+        absolute = `${base.replace(/\/$/, '')}${url}`;
+      }
+      const r = await fetch(absolute);
+      if (!r.ok) return null;
+      const ab = await r.arrayBuffer();
+      return Buffer.from(ab);
+    } catch {
+      return null;
+    }
   }
 }
