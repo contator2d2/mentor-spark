@@ -114,12 +114,15 @@ export default function MessageBroadcastsPage() {
 function ComposerDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [channel, setChannel] = useState<Channel>("whatsapp");
+  const [mode, setMode] = useState<Mode>("leads");
   const [delay, setDelay] = useState(8);
   const [jitter, setJitter] = useState(0.3);
   const [scheduledAt, setScheduledAt] = useState("");
   const [steps, setSteps] = useState<Step[]>([{ body: "", delaySeconds: 0 }]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [validating, setValidating] = useState(false);
   const [validation, setValidation] = useState<Record<string, { isWhatsapp?: boolean; error?: string }>>({});
@@ -131,17 +134,40 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
     api<Template[]>("/messages/templates/all").then(setTemplates).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (mode !== "groups" || channel !== "whatsapp") return;
+    api<{ ok: boolean; groups?: Group[] }>("/integrations/whatsapp/groups")
+      .then((r) => setGroups(r.groups || []))
+      .catch(() => {});
+  }, [mode, channel]);
+
+  // Se trocar para canal != whatsapp, força modo leads
+  useEffect(() => { if (channel !== "whatsapp") setMode("leads"); }, [channel]);
+
   const filteredLeads = useMemo(() => {
     const q = search.toLowerCase();
     return leads.filter((l) => !q || l.name?.toLowerCase().includes(q) || l.email?.toLowerCase().includes(q) || l.phone?.includes(q));
   }, [leads, search]);
 
+  const filteredGroups = useMemo(() => {
+    const q = search.toLowerCase();
+    return groups.filter((g) => !q || g.name?.toLowerCase().includes(q));
+  }, [groups, search]);
+
   function toggleAll() {
-    if (selected.size === filteredLeads.length) setSelected(new Set());
-    else setSelected(new Set(filteredLeads.map((l) => l.id)));
+    if (mode === "leads") {
+      if (selected.size === filteredLeads.length) setSelected(new Set());
+      else setSelected(new Set(filteredLeads.map((l) => l.id)));
+    } else {
+      if (selectedGroups.size === filteredGroups.length) setSelectedGroups(new Set());
+      else setSelectedGroups(new Set(filteredGroups.map((g) => g.jid)));
+    }
   }
   function toggleLead(id: string) {
     const ns = new Set(selected); ns.has(id) ? ns.delete(id) : ns.add(id); setSelected(ns);
+  }
+  function toggleGroup(jid: string) {
+    const ns = new Set(selectedGroups); ns.has(jid) ? ns.delete(jid) : ns.add(jid); setSelectedGroups(ns);
   }
 
   function addStep() { setSteps([...steps, { body: "", delaySeconds: 30 }]); }
@@ -180,18 +206,25 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
   async function save() {
     if (!name) return toast.error("Dê um nome ao disparo");
     if (steps.some((s) => !s.body)) return toast.error("Todas as mensagens precisam de conteúdo");
-    if (selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+    const isGroupMode = mode === "groups";
+    if (!isGroupMode && selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+    if (isGroupMode && selectedGroups.size === 0) return toast.error("Selecione ao menos um grupo/canal");
     setSaving(true);
     try {
-      await api("/messages/broadcasts", {
-        method: "POST",
-        body: {
-          name, channel, sequence: steps,
-          leadIds: Array.from(selected),
-          perRecipientDelaySeconds: delay, jitter,
-          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-        },
-      });
+      const body: any = {
+        name, channel, sequence: steps,
+        perRecipientDelaySeconds: delay, jitter,
+        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+      };
+      if (isGroupMode) {
+        body.groupTargets = Array.from(selectedGroups).map((jid) => {
+          const g = groups.find((x) => x.jid === jid);
+          return { jid, name: g?.name, isChannel: g?.isChannel };
+        });
+      } else {
+        body.leadIds = Array.from(selected);
+      }
+      await api("/messages/broadcasts", { method: "POST", body });
       toast.success(scheduledAt ? "Disparo agendado!" : "Disparo iniciado!");
       onClose();
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
