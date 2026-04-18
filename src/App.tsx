@@ -56,6 +56,8 @@ import BoardSettingsPage from "./pages/app/BoardSettingsPage";
 import TeamPage from "./pages/app/TeamPage";
 import MessageTemplatesPage from "./pages/app/MessageTemplatesPage";
 import MessageBroadcastsPage from "./pages/app/MessageBroadcastsPage";
+import QuizHostPage from "./pages/app/QuizHostPage";
+import QuizPlayerPage from "./pages/QuizPlayerPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
@@ -89,6 +91,8 @@ const App = () => (
               <Route path="/e/:slug" element={<EventPublicPage />} />
               <Route path="/e/:slug/ticket/:ticketCode" element={<EventTicketPage />} />
               <Route path="/e/:slug/nps/:ticketCode" element={<EventNpsPage />} />
+              <Route path="/quiz/:pin" element={<QuizPlayerPage />} />
+              <Route path="/quiz" element={<QuizPlayerPage />} />
 
               {/* Painel do mentor */}
               <Route
@@ -126,6 +130,7 @@ const App = () => (
                 <Route path="capture" element={<CaptureSettings />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="events/:id" element={<EventDetailPage />} />
+                <Route path="quiz/host/:sessionId" element={<QuizHostPage />} />
                 <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
                 <Route path="integrations" element={<IntegrationsPage />} />

@@ -15,10 +15,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Loader2, ArrowLeft, QrCode, Users, ScanLine, Send, ClipboardList, Calendar,
-  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2
+  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2, Zap
 } from "lucide-react";
 import { toast } from "sonner";
 import CheckinScanner from "@/components/events/CheckinScanner";
+import StartQuizDialog from "@/components/quiz/StartQuizDialog";
 
 const STATUS_LABELS: Record<string, string> = {
   registered: "Inscrito",
@@ -44,6 +45,7 @@ export default function EventDetailPage() {
   const [nps, setNps] = useState<any>(null);
   const [tests, setTests] = useState<any[]>([]);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const [quizOpen, setQuizOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [broadcastOpen, setBroadcastOpen] = useState(false);
   const [bForm, setBForm] = useState({ subject: "", message: "", channels: ["email", "whatsapp"], onlyStatus: [] as string[] });
@@ -144,6 +146,7 @@ export default function EventDetailPage() {
         <Button variant="ghost" asChild><Link to="/app/events"><ArrowLeft className="h-4 w-4 mr-2" />Eventos</Link></Button>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => setShareOpen(true)}><QrCode className="h-4 w-4 mr-2" />Compartilhar / QR</Button>
+          <Button variant="outline" onClick={() => setQuizOpen(true)}><Zap className="h-4 w-4 mr-2" />Quiz PVP</Button>
           <Button onClick={() => setScannerOpen(true)} className="bg-gradient-primary hover:opacity-90 shadow-glow">
             <ScanLine className="h-4 w-4 mr-2" />Check-in
           </Button>
@@ -315,6 +318,9 @@ export default function EventDetailPage() {
 
       {/* Scanner */}
       <CheckinScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onCheckedIn={load} />
+
+      {/* Quiz PVP */}
+      <StartQuizDialog open={quizOpen} onClose={() => setQuizOpen(false)} eventId={id} />
 
       {/* Compartilhar */}
       <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} url={publicSignupUrl()} eventName={event.name} />
