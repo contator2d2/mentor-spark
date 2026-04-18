@@ -34,6 +34,8 @@ interface Provider {
   model: string;
   enabled: boolean;
   isDefault: boolean;
+  useForTranscription: boolean;
+  transcriptionModel?: string;
   createdAt: string;
 }
 
@@ -59,6 +61,8 @@ const emptyForm: Partial<Provider> = {
   model: "gpt-4o-mini",
   enabled: true,
   isDefault: false,
+  useForTranscription: false,
+  transcriptionModel: "whisper-1",
 };
 
 export default function AiProvidersPage() {
