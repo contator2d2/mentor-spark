@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +41,7 @@ const STATUS_META: Record<string, { label: string; cls: string; dot: string }> =
 };
 
 export default function MentoradosPage() {
+  const navigate = useNavigate();
   const [items, setItems] = useState<Mentorado[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -221,6 +223,7 @@ export default function MentoradosPage() {
             return (
               <Card
                 key={m.id}
+                onClick={() => navigate(`/app/leads/${m.id}`)}
                 className={`glass-card glass-card-hover border-border/60 group cursor-pointer animate-fade-in anim-delay-${Math.min((i + 1) * 100, 600)}`}
               >
                 <CardContent className="p-5 space-y-4">
