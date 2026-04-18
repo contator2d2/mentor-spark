@@ -7,9 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Pencil, Trash2, FileText, Video, Link2, FileDown, Clock } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, FileText, Video, Image as ImageIcon, FileDown, Music, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { MediaUpload, UploadKind } from "@/components/MediaUpload";
 
 interface Content {
   id: string;
@@ -23,7 +24,14 @@ interface Content {
   createdAt: string;
 }
 
-const TYPE_ICONS: Record<string, any> = { article: FileText, video: Video, pdf: FileDown, link: Link2 };
+const TYPE_ICONS: Record<string, any> = { article: FileText, video: Video, pdf: FileDown, image: ImageIcon, audio: Music };
+const TYPE_TO_UPLOAD: Record<string, UploadKind | null> = {
+  article: null,
+  video: "video",
+  pdf: "document",
+  image: "image",
+  audio: "audio",
+};
 
 export default function ContentsPage() {
   const [items, setItems] = useState<Content[]>([]);
@@ -135,13 +143,14 @@ export default function ContentsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Tipo</Label>
-                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v, url: "" })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="article">Artigo</SelectItem>
+                    <SelectItem value="article">Artigo (texto)</SelectItem>
                     <SelectItem value="video">Vídeo</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="link">Link</SelectItem>
+                    <SelectItem value="audio">Áudio</SelectItem>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="pdf">Documento (PDF / DOCX)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -157,8 +166,16 @@ export default function ContentsPage() {
                 </Select>
               </div>
             </div>
-            {(form.type === "video" || form.type === "pdf" || form.type === "link") && (
-              <div className="space-y-2"><Label>URL</Label><Input placeholder="https://..." value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} /></div>
+            {TYPE_TO_UPLOAD[form.type] && (
+              <div className="space-y-2">
+                <Label>Arquivo</Label>
+                <MediaUpload
+                  accept={[TYPE_TO_UPLOAD[form.type] as UploadKind]}
+                  value={form.url}
+                  onChange={(m) => setForm({ ...form, url: m?.url || "" })}
+                  hint={`Envie um arquivo do tipo ${form.type} do seu computador`}
+                />
+              </div>
             )}
             <div className="space-y-2"><Label>Corpo / Descrição</Label><Textarea rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
             <div className="space-y-2">

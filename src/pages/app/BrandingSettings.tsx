@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2, Palette } from "lucide-react";
+import { MediaUpload } from "@/components/MediaUpload";
 
 export default function BrandingSettings() {
   const { user, refreshUser } = useAuth();
@@ -61,9 +62,15 @@ export default function BrandingSettings() {
           <p className="text-xs text-muted-foreground">Página: /c/{form.slug || "seu-slug"}</p>
         </div>
         <div className="space-y-2 md:col-span-2">
-          <Label>URL do logotipo</Label>
-          <Input value={form.brandLogoUrl} onChange={(e) => onChange({ brandLogoUrl: e.target.value })} placeholder="https://..." />
-          {form.brandLogoUrl && <img src={form.brandLogoUrl} alt="logo" className="h-12 mt-2" />}
+          <Label>Logotipo</Label>
+          <MediaUpload
+            accept={["image"]}
+            value={form.brandLogoUrl}
+            onChange={(m) => onChange({ brandLogoUrl: m?.url || "" })}
+            hint="PNG, JPG ou SVG • até 5MB"
+            maxSizeMB={5}
+            compact={!!form.brandLogoUrl}
+          />
         </div>
         <div className="space-y-2">
           <Label>Cor primária</Label>
