@@ -309,7 +309,7 @@ export default function BrandingSettings() {
             <Input
               value={form.customDomain}
               onChange={(e) => onChange({ customDomain: e.target.value })}
-              placeholder="app.seudominio.com.br"
+              placeholder="mento.gleego.com.br"
               className="font-mono"
             />
             <Button variant="outline" onClick={checkDomain} disabled={!form.customDomain || domainStatus === "checking"}>
