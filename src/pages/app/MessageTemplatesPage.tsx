@@ -205,9 +205,11 @@ export default function MessageTemplatesPage() {
 
       {/* EDITOR */}
       <Dialog open={editorOpen} onOpenChange={setEditorOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{editing ? "Editar template" : "Novo template"}</DialogTitle></DialogHeader>
-          <div className="space-y-3">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="p-6 pb-3 border-b">
+            <DialogTitle>{editing ? "Editar template" : "Novo template"}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 overflow-y-auto px-6 py-4 flex-1">
             <div className="grid grid-cols-3 gap-3">
               <div className="col-span-2"><Label className="text-xs">Nome *</Label><Input value={form.name || ""} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
               <div>
@@ -236,8 +238,16 @@ export default function MessageTemplatesPage() {
             )}
             <div>
               <Label className="text-xs">Mensagem *</Label>
-              <Textarea rows={8} value={form.body || ""} onChange={(e) => setForm({ ...form, body: e.target.value })}
-                placeholder="Olá {{primeiro_nome}}, tudo bem? ..." />
+              <Textarea
+                rows={6}
+                value={form.body || ""}
+                onChange={(e) => setForm({ ...form, body: e.target.value })}
+                placeholder="Olá {{primeiro_nome}}, tudo bem? ..."
+                className="max-h-[40vh] resize-y"
+              />
+              <div className="text-[10px] text-muted-foreground mt-1">
+                {(form.body || "").length} caracteres
+              </div>
             </div>
 
             <div>
@@ -255,7 +265,12 @@ export default function MessageTemplatesPage() {
               </div>
             </div>
           </div>
-          <DialogFooter><Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Salvar</Button></DialogFooter>
+          <DialogFooter className="p-4 border-t bg-background">
+            <Button variant="ghost" onClick={() => setEditorOpen(false)}>Cancelar</Button>
+            <Button onClick={save} disabled={saving} className="bg-gradient-primary">
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Salvar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
