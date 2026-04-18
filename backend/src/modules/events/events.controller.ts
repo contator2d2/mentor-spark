@@ -1,92 +1,153 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { IsBoolean, IsOptional, IsString } from 'class-validator';
-import { CaptureEvent } from '../../entities/capture-event.entity';
-import { Lead } from '../../entities/lead.entity';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { IsArray, IsBoolean, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
+import { EventsService } from './events.service';
+import { RegistrationStatus } from '../../entities/event-registration.entity';
 
 class UpsertEventDto {
-  @IsString() name: string;
+  @IsOptional() @IsString() name?: string;
+  @IsOptional() @IsString() description?: string;
   @IsOptional() @IsString() location?: string;
+  @IsOptional() @IsString() virtualUrl?: string;
+  @IsOptional() @IsString() modality?: string;
+  @IsOptional() @IsString() status?: string;
   @IsOptional() @IsString() startsAt?: string;
   @IsOptional() @IsString() endsAt?: string;
   @IsOptional() @IsString() notes?: string;
+  @IsOptional() @IsInt() capacity?: number;
+  @IsOptional() @IsBoolean() npsEnabled?: boolean;
+  @IsOptional() @IsInt() @Min(0) @Max(168) npsDelayHours?: number;
+  @IsOptional() @IsString() npsQuestion?: string;
+  @IsOptional() @IsString() defaultTestTemplateId?: string;
+  @IsOptional() @IsString() coverImageUrl?: string;
   @IsOptional() @IsBoolean() isActive?: boolean;
 }
 
-function makeSlug(name: string) {
-  const base = name
-    .toLowerCase()
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '')
-    .slice(0, 40);
-  const rand = Math.random().toString(36).slice(2, 7);
-  return `${base || 'evento'}-${rand}`;
+class BroadcastDto {
+  @IsString() subject: string;
+  @IsString() message: string;
+  @IsArray() channels: string[];
+  @IsOptional() @IsArray() onlyStatus?: RegistrationStatus[];
+}
+
+class SendTestDto {
+  @IsString() testTemplateId: string;
+  @IsOptional() @IsBoolean() onlyCheckedIn?: boolean;
+}
+
+class SendMeetingDto {
+  @IsOptional() @IsBoolean() onlyCheckedIn?: boolean;
+  @IsOptional() @IsString() bookingUrl?: string;
 }
 
 @Controller('events')
 export class EventsController {
-  constructor(
-    @InjectRepository(CaptureEvent) private events: Repository<CaptureEvent>,
-    @InjectRepository(Lead) private leads: Repository<Lead>,
-  ) {}
+  constructor(private svc: EventsService) {}
 
   @Auth('mentor', 'super_admin')
   @Get()
-  async list(@TenantId() mentorId: string) {
-    const list = await this.events.find({ where: { mentorId }, order: { createdAt: 'DESC' } });
-    // contagem de leads por evento
-    return Promise.all(
-      list.map(async (e) => {
-        const total = await this.leads.count({ where: { eventId: e.id } });
-        const converted = await this.leads
-          .createQueryBuilder('l')
-          .where('l.eventId = :id', { id: e.id })
-          .andWhere('l.stage = :s', { s: 'client' })
-          .getCount();
-        return { ...e, leadsCount: total, convertedCount: converted };
-      }),
-    );
+  list(@TenantId() mentorId: string) {
+    return this.svc.list(mentorId);
   }
 
   @Auth('mentor', 'super_admin')
   @Post()
-  async create(@TenantId() mentorId: string, @Body() dto: UpsertEventDto) {
-    const ev = this.events.create({
-      mentorId,
-      name: dto.name,
-      location: dto.location,
-      startsAt: dto.startsAt ? new Date(dto.startsAt) : null,
-      endsAt: dto.endsAt ? new Date(dto.endsAt) : null,
-      notes: dto.notes,
-      isActive: dto.isActive ?? true,
-      slug: makeSlug(dto.name),
-    });
-    return this.events.save(ev);
+  create(@TenantId() mentorId: string, @Body() dto: UpsertEventDto) {
+    return this.svc.create(mentorId, dto);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Get(':id')
+  get(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.get(mentorId, id);
   }
 
   @Auth('mentor', 'super_admin')
   @Patch(':id')
-  async update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: Partial<UpsertEventDto>) {
-    const e = await this.events.findOne({ where: { id, mentorId } });
-    if (!e) return { ok: false };
-    const patch: any = { ...dto };
-    if (dto.startsAt !== undefined) patch.startsAt = dto.startsAt ? new Date(dto.startsAt) : null;
-    if (dto.endsAt !== undefined) patch.endsAt = dto.endsAt ? new Date(dto.endsAt) : null;
-    await this.events.update(id, patch);
-    return this.events.findOne({ where: { id } });
+  update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: UpsertEventDto) {
+    return this.svc.update(mentorId, id, dto);
   }
 
   @Auth('mentor', 'super_admin')
   @Delete(':id')
-  async remove(@TenantId() mentorId: string, @Param('id') id: string) {
-    const e = await this.events.findOne({ where: { id, mentorId } });
-    if (!e) return { ok: false };
-    await this.events.delete(id);
-    return { ok: true };
+  remove(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.remove(mentorId, id);
+  }
+
+  // -------- Inscrições --------
+  @Auth('mentor', 'super_admin')
+  @Get(':id/registrations')
+  listRegs(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.listRegistrations(mentorId, id);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Patch(':id/registrations/:regId/status')
+  setStatus(@TenantId() mentorId: string, @Param('id') id: string, @Param('regId') regId: string, @Body() body: { status: RegistrationStatus }) {
+    return this.svc.setRegistrationStatus(mentorId, id, regId, body.status);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Delete(':id/registrations/:regId')
+  removeReg(@TenantId() mentorId: string, @Param('id') id: string, @Param('regId') regId: string) {
+    return this.svc.deleteRegistration(mentorId, id, regId);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Post(':id/registrations/:regId/convert')
+  convert(@TenantId() mentorId: string, @Param('id') id: string, @Param('regId') regId: string) {
+    return this.svc.convertToLead(mentorId, id, regId);
+  }
+
+  // -------- Check-in (mentor escaneia) --------
+  @Auth('mentor', 'super_admin')
+  @Post('checkin/:ticketCode')
+  checkIn(@TenantId() mentorId: string, @Param('ticketCode') ticketCode: string) {
+    return this.svc.checkIn(mentorId, ticketCode);
+  }
+
+  // -------- Broadcasts --------
+  @Auth('mentor', 'super_admin')
+  @Post(':id/broadcast')
+  broadcast(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: BroadcastDto) {
+    return this.svc.broadcast(mentorId, id, dto);
+  }
+
+  // -------- Pós-evento --------
+  @Auth('mentor', 'super_admin')
+  @Post(':id/nps/send')
+  sendNps(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.sendNpsManual(mentorId, id);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Get(':id/nps/summary')
+  npsSummary(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.npsSummary(mentorId, id);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Post(':id/send-test')
+  sendTest(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: SendTestDto) {
+    return this.svc.sendTestToAll(mentorId, id, dto.testTemplateId, { onlyCheckedIn: dto.onlyCheckedIn });
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Post(':id/send-meeting')
+  sendMeeting(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: SendMeetingDto) {
+    return this.svc.sendMeetingLinkToAll(mentorId, id, dto);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Post(':id/send-company-analysis')
+  sendAnalysis(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.sendCompanyAnalysisToAll(mentorId, id);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Get(':id/actions')
+  actions(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.svc.listActions(mentorId, id);
   }
 }
