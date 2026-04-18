@@ -1,21 +1,23 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThanOrEqual, IsNull } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { CaptureEvent, EventStatus } from '../../entities/capture-event.entity';
-import { EventRegistration, RegistrationStatus } from '../../entities/event-registration.entity';
+import { EventRegistration, RegistrationStatus, RegistrationPaymentStatus } from '../../entities/event-registration.entity';
 import { EventAction, EventActionType } from '../../entities/event-action.entity';
 import { Lead, LeadStage } from '../../entities/lead.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
 import { TestAssignment } from '../../entities/test-assignment.entity';
 import { User } from '../../entities/user.entity';
 import { Company } from '../../entities/company.entity';
+import { EventTicketTier } from '../../entities/event-ticket-tier.entity';
 import { MailService } from '../../shared/mail.service';
 import { WhatsappService } from '../integrations/whatsapp.service';
 import { PushService } from '../push/push.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { LeadsService } from '../leads/leads.service';
 import { AiService } from '../ai/ai.service';
+import { EventPaymentsService } from './event-payments.service';
 
 function makeSlug(name: string) {
   const base = name
@@ -47,12 +49,14 @@ export class EventsService {
     @InjectRepository(TestAssignment) private assignments: Repository<TestAssignment>,
     @InjectRepository(User) private users: Repository<User>,
     @InjectRepository(Company) private companies: Repository<Company>,
+    @InjectRepository(EventTicketTier) private tiers: Repository<EventTicketTier>,
     private mail: MailService,
     private whatsapp: WhatsappService,
     private push: PushService,
     private notifications: NotificationsService,
     private leadsService: LeadsService,
     private ai: AiService,
+    @Inject(forwardRef(() => EventPaymentsService)) private paymentsSvc: EventPaymentsService,
   ) {}
 
   // ==================== CRUD ====================
