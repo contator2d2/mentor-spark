@@ -53,6 +53,11 @@ export class AdminController {
         planName: plan?.name || null,
         planPriceMonthly: plan ? Number(plan.priceMonthly) : 0,
         planExpiresAt: m.planExpiresAt || null,
+        planBillingType: m.planBillingType || null,
+        planPaymentMethods: m.planPaymentMethods || [],
+        planDueDay: m.planDueDay || null,
+        planAmount: m.planAmount != null ? Number(m.planAmount) : null,
+        planNotes: m.planNotes || null,
         isExpired,
       };
     });
