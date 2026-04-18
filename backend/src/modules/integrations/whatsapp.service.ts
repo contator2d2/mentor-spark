@@ -267,6 +267,173 @@ export class WhatsappService {
     }
   }
 
+  // ============== GRUPOS & CANAIS ==============
+
+  /** Lista grupos / comunidades / canais já existentes na instância. */
+  async listGroups(mentorId: string): Promise<{ ok: boolean; groups?: any[]; error?: string }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    // tenta endpoints comuns no uazapi
+    const urls = [`${base}/group/list`, `${base}/groups`, `${base}/group/all`];
+    for (const u of urls) {
+      try {
+        const res = await fetch(u, { headers: { token: creds.token } });
+        if (!res.ok) continue;
+        const data: any = await res.json().catch(() => ({}));
+        const list = Array.isArray(data) ? data : (data?.groups || data?.result || data?.data || []);
+        const normalized = (list || []).map((g: any) => ({
+          jid: g.id || g.jid || g.group_id || g.groupJid,
+          name: g.subject || g.name || g.title || 'Sem nome',
+          isChannel: !!(g.isChannel || g.channel || g.type === 'channel' || g.newsletter),
+          participants: g.participants?.length || g.size || g.participantsCount || 0,
+          raw: g,
+        })).filter((g: any) => !!g.jid);
+        return { ok: true, groups: normalized };
+      } catch { continue; }
+    }
+    return { ok: false, error: 'Endpoint de grupos indisponível' };
+  }
+
+  /** Cria um grupo no WhatsApp com participantes iniciais. */
+  async createGroup(mentorId: string, name: string, participants: string[]): Promise<{ ok: boolean; jid?: string; error?: string; raw?: any }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    const phones = (participants || []).map((p) => this.normalizePhone(p)).filter(Boolean);
+    try {
+      const res = await fetch(`${base}/group/create`, {
+        method: 'POST',
+        headers: { token: creds.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, subject: name, participants: phones, numbers: phones }),
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data?.message || `HTTP ${res.status}`, raw: data };
+      const jid = data?.jid || data?.id || data?.group?.id || data?.groupJid;
+      return { ok: true, jid, raw: data };
+    } catch (e: any) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  /** Cria um canal (newsletter) — depende de suporte do uazapi. */
+  async createChannel(mentorId: string, name: string, description?: string): Promise<{ ok: boolean; jid?: string; error?: string; raw?: any }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    const tries = [
+      { url: `${base}/channel/create`, body: { name, description } },
+      { url: `${base}/newsletter/create`, body: { name, description } },
+    ];
+    for (const t of tries) {
+      try {
+        const res = await fetch(t.url, {
+          method: 'POST',
+          headers: { token: creds.token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(t.body),
+        });
+        const data: any = await res.json().catch(() => ({}));
+        if (!res.ok) continue;
+        const jid = data?.jid || data?.id || data?.channel?.id;
+        return { ok: true, jid, raw: data };
+      } catch { continue; }
+    }
+    return { ok: false, error: 'Criação de canal não suportada por esta instância' };
+  }
+
+  /** Adiciona participantes a um grupo/canal existente. */
+  async addParticipants(mentorId: string, jid: string, participants: string[]): Promise<{ ok: boolean; error?: string; raw?: any }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    const phones = (participants || []).map((p) => this.normalizePhone(p)).filter(Boolean);
+    const tries = [
+      { url: `${base}/group/addParticipants`, body: { groupJid: jid, participants: phones, numbers: phones } },
+      { url: `${base}/group/participants/add`, body: { jid, participants: phones } },
+    ];
+    for (const t of tries) {
+      try {
+        const res = await fetch(t.url, {
+          method: 'POST',
+          headers: { token: creds.token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(t.body),
+        });
+        const data: any = await res.json().catch(() => ({}));
+        if (res.ok) return { ok: true, raw: data };
+      } catch { continue; }
+    }
+    return { ok: false, error: 'Falha ao adicionar participantes' };
+  }
+
+  /** Remove participantes de um grupo. */
+  async removeParticipants(mentorId: string, jid: string, participants: string[]): Promise<{ ok: boolean; error?: string }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    const phones = (participants || []).map((p) => this.normalizePhone(p)).filter(Boolean);
+    const tries = [
+      { url: `${base}/group/removeParticipants`, body: { groupJid: jid, participants: phones } },
+      { url: `${base}/group/participants/remove`, body: { jid, participants: phones } },
+    ];
+    for (const t of tries) {
+      try {
+        const res = await fetch(t.url, {
+          method: 'POST',
+          headers: { token: creds.token, 'Content-Type': 'application/json' },
+          body: JSON.stringify(t.body),
+        });
+        if (res.ok) return { ok: true };
+      } catch { continue; }
+    }
+    return { ok: false, error: 'Falha ao remover participantes' };
+  }
+
+  /** Envia texto para um grupo/canal (jid completo, ex: 12036304...@g.us). */
+  async sendTextToGroup(mentorId: string, groupJid: string, message: string): Promise<{ ok: boolean; error?: string; raw?: any }> {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    try {
+      const url = `${creds.baseUrl.replace(/\/$/, '')}/send/text`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { token: creds.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ number: groupJid, text: message, isGroup: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data?.message || `HTTP ${res.status}`, raw: data };
+      return { ok: true, raw: data };
+    } catch (e: any) {
+      return { ok: false, error: e.message };
+    }
+  }
+
+  /** Envia mídia para grupo/canal. */
+  async sendMediaToGroup(mentorId: string, groupJid: string, att: WhatsappAttachment, publicBaseUrl?: string) {
+    const creds = await this.getCreds(mentorId);
+    if (!creds) return { ok: false, error: 'WhatsApp não configurado' };
+    const base = creds.baseUrl.replace(/\/$/, '');
+    let mediaUrl = att.url;
+    if (mediaUrl.startsWith('/') && publicBaseUrl) mediaUrl = publicBaseUrl.replace(/\/$/, '') + mediaUrl;
+    const kind = att.kind || (att.mimetype?.startsWith('image/') ? 'image' : att.mimetype?.startsWith('audio/') ? 'audio' : att.mimetype?.startsWith('video/') ? 'video' : 'document');
+    const endpointMap: Record<string, string> = { image: '/send/image', video: '/send/video', audio: '/send/audio', document: '/send/document' };
+    const endpoint = endpointMap[kind] || '/send/document';
+    const body: any = { number: groupJid, url: mediaUrl, isGroup: true };
+    if (att.caption) body.caption = att.caption;
+    if (att.fileName) body.fileName = att.fileName;
+    try {
+      const res = await fetch(`${base}${endpoint}`, {
+        method: 'POST',
+        headers: { token: creds.token, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { ok: false, error: data?.message || `HTTP ${res.status}`, raw: data };
+      return { ok: true, raw: data };
+    } catch (e: any) {
+      return { ok: false, error: e.message };
+    }
+  }
+
   /** Envia mídia (imagem/audio/video/documento) com caption opcional */
   async sendMedia(
     mentorId: string,

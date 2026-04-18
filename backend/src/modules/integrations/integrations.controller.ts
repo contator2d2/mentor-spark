@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, Delete, Param } from '@nestjs/common';
 import { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -113,5 +113,42 @@ export class IntegrationsController {
   @Post('whatsapp/test')
   test(@TenantId() mentorId: string, @Body() body: { to: string; message?: string }) {
     return this.whatsapp.sendText(mentorId, body.to, body.message || '✅ Teste do MentorFlow — sua integração WhatsApp está funcionando!');
+  }
+
+  // ===== WhatsApp: Grupos & Canais =====
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Get('whatsapp/groups')
+  listGroups(@TenantId() mentorId: string) {
+    return this.whatsapp.listGroups(mentorId);
+  }
+
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('whatsapp/groups')
+  createGroup(@TenantId() mentorId: string, @Body() body: { name: string; participants: string[] }) {
+    return this.whatsapp.createGroup(mentorId, body.name, body.participants || []);
+  }
+
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('whatsapp/channels')
+  createChannel(@TenantId() mentorId: string, @Body() body: { name: string; description?: string }) {
+    return this.whatsapp.createChannel(mentorId, body.name, body.description);
+  }
+
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('whatsapp/groups/:jid/participants')
+  addMembers(@TenantId() mentorId: string, @Param('jid') jid: string, @Body() body: { participants: string[] }) {
+    return this.whatsapp.addParticipants(mentorId, jid, body.participants || []);
+  }
+
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Delete('whatsapp/groups/:jid/participants')
+  removeMembers(@TenantId() mentorId: string, @Param('jid') jid: string, @Body() body: { participants: string[] }) {
+    return this.whatsapp.removeParticipants(mentorId, jid, body.participants || []);
+  }
+
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('whatsapp/groups/:jid/send')
+  sendToGroup(@TenantId() mentorId: string, @Param('jid') jid: string, @Body() body: { message: string }) {
+    return this.whatsapp.sendTextToGroup(mentorId, jid, body.message);
   }
 }

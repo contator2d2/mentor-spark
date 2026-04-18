@@ -58,6 +58,7 @@ import BoardSettingsPage from "./pages/app/BoardSettingsPage";
 import TeamPage from "./pages/app/TeamPage";
 import MessageTemplatesPage from "./pages/app/MessageTemplatesPage";
 import MessageBroadcastsPage from "./pages/app/MessageBroadcastsPage";
+import WhatsappGroupsPage from "./pages/app/WhatsappGroupsPage";
 import QuizHostPage from "./pages/app/QuizHostPage";
 import QuizPlayerPage from "./pages/QuizPlayerPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
@@ -153,6 +154,7 @@ const App = () => (
                 <Route path="team" element={<TeamPage />} />
                 <Route path="messages/templates" element={<MessageTemplatesPage />} />
                 <Route path="messages/broadcasts" element={<MessageBroadcastsPage />} />
+                <Route path="whatsapp/groups" element={<WhatsappGroupsPage />} />
                 <Route path="automations" element={<AutomationsPage />} />
                 <Route path="ai" element={<AiAssistant />} />
                 <Route path="prompts" element={<PromptsPage />} />

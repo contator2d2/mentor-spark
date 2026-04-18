@@ -15,15 +15,18 @@ import { Link } from "react-router-dom";
 import { MediaUpload } from "@/components/MediaUpload";
 
 type Channel = "in_app" | "whatsapp" | "email";
+type Mode = "leads" | "groups";
 
 interface Lead { id: string; name: string; email?: string; phone?: string; }
 interface Step { body: string; subject?: string; delaySeconds?: number; attachments?: any[] }
+interface Group { jid: string; name: string; isChannel?: boolean; participants?: number; }
 interface Broadcast {
   id: string; name: string; channel: Channel; status: string;
   totalRecipients: number; sentCount: number; failedCount: number;
   scheduledAt?: string; startedAt?: string; finishedAt?: string;
   perRecipientDelaySeconds: number; jitter: number;
   sequence: Step[]; leadIds: string[];
+  groupTargets?: { jid: string; name?: string; isChannel?: boolean }[];
 }
 interface Template { id: string; name: string; channel: Channel; subject?: string; body: string; attachments?: any[] }
 
@@ -111,12 +114,15 @@ export default function MessageBroadcastsPage() {
 function ComposerDialog({ onClose }: { onClose: () => void }) {
   const [name, setName] = useState("");
   const [channel, setChannel] = useState<Channel>("whatsapp");
+  const [mode, setMode] = useState<Mode>("leads");
   const [delay, setDelay] = useState(8);
   const [jitter, setJitter] = useState(0.3);
   const [scheduledAt, setScheduledAt] = useState("");
   const [steps, setSteps] = useState<Step[]>([{ body: "", delaySeconds: 0 }]);
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState("");
   const [validating, setValidating] = useState(false);
   const [validation, setValidation] = useState<Record<string, { isWhatsapp?: boolean; error?: string }>>({});
@@ -128,17 +134,40 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
     api<Template[]>("/messages/templates/all").then(setTemplates).catch(() => {});
   }, []);
 
+  useEffect(() => {
+    if (mode !== "groups" || channel !== "whatsapp") return;
+    api<{ ok: boolean; groups?: Group[] }>("/integrations/whatsapp/groups")
+      .then((r) => setGroups(r.groups || []))
+      .catch(() => {});
+  }, [mode, channel]);
+
+  // Se trocar para canal != whatsapp, força modo leads
+  useEffect(() => { if (channel !== "whatsapp") setMode("leads"); }, [channel]);
+
   const filteredLeads = useMemo(() => {
     const q = search.toLowerCase();
     return leads.filter((l) => !q || l.name?.toLowerCase().includes(q) || l.email?.toLowerCase().includes(q) || l.phone?.includes(q));
   }, [leads, search]);
 
+  const filteredGroups = useMemo(() => {
+    const q = search.toLowerCase();
+    return groups.filter((g) => !q || g.name?.toLowerCase().includes(q));
+  }, [groups, search]);
+
   function toggleAll() {
-    if (selected.size === filteredLeads.length) setSelected(new Set());
-    else setSelected(new Set(filteredLeads.map((l) => l.id)));
+    if (mode === "leads") {
+      if (selected.size === filteredLeads.length) setSelected(new Set());
+      else setSelected(new Set(filteredLeads.map((l) => l.id)));
+    } else {
+      if (selectedGroups.size === filteredGroups.length) setSelectedGroups(new Set());
+      else setSelectedGroups(new Set(filteredGroups.map((g) => g.jid)));
+    }
   }
   function toggleLead(id: string) {
     const ns = new Set(selected); ns.has(id) ? ns.delete(id) : ns.add(id); setSelected(ns);
+  }
+  function toggleGroup(jid: string) {
+    const ns = new Set(selectedGroups); ns.has(jid) ? ns.delete(jid) : ns.add(jid); setSelectedGroups(ns);
   }
 
   function addStep() { setSteps([...steps, { body: "", delaySeconds: 30 }]); }
@@ -177,18 +206,25 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
   async function save() {
     if (!name) return toast.error("Dê um nome ao disparo");
     if (steps.some((s) => !s.body)) return toast.error("Todas as mensagens precisam de conteúdo");
-    if (selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+    const isGroupMode = mode === "groups";
+    if (!isGroupMode && selected.size === 0) return toast.error("Selecione ao menos um destinatário");
+    if (isGroupMode && selectedGroups.size === 0) return toast.error("Selecione ao menos um grupo/canal");
     setSaving(true);
     try {
-      await api("/messages/broadcasts", {
-        method: "POST",
-        body: {
-          name, channel, sequence: steps,
-          leadIds: Array.from(selected),
-          perRecipientDelaySeconds: delay, jitter,
-          scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
-        },
-      });
+      const body: any = {
+        name, channel, sequence: steps,
+        perRecipientDelaySeconds: delay, jitter,
+        scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+      };
+      if (isGroupMode) {
+        body.groupTargets = Array.from(selectedGroups).map((jid) => {
+          const g = groups.find((x) => x.jid === jid);
+          return { jid, name: g?.name, isChannel: g?.isChannel };
+        });
+      } else {
+        body.leadIds = Array.from(selected);
+      }
+      await api("/messages/broadcasts", { method: "POST", body });
       toast.success(scheduledAt ? "Disparo agendado!" : "Disparo iniciado!");
       onClose();
     } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
@@ -281,14 +317,31 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
+          {/* Modo de destinatários */}
+          {channel === "whatsapp" && (
+            <div className="flex gap-2">
+              <Button size="sm" variant={mode === "leads" ? "default" : "outline"} onClick={() => setMode("leads")}>
+                Para Leads
+              </Button>
+              <Button size="sm" variant={mode === "groups" ? "default" : "outline"} onClick={() => setMode("groups")}>
+                Para Grupos / Canais
+              </Button>
+            </div>
+          )}
+
           {/* Destinatários */}
           <div>
             <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-              <Label>Destinatários ({selected.size} selecionados)</Label>
+              <Label>
+                Destinatários ({mode === "leads" ? selected.size : selectedGroups.size} selecionados)
+              </Label>
               <div className="flex gap-2">
                 <Input placeholder="Buscar..." value={search} onChange={(e) => setSearch(e.target.value)} className="h-8 w-48" />
-                <Button size="sm" variant="outline" onClick={toggleAll}>{selected.size === filteredLeads.length ? "Limpar" : "Selecionar todos"}</Button>
-                {channel === "whatsapp" && (
+                <Button size="sm" variant="outline" onClick={toggleAll}>
+                  {(mode === "leads" ? selected.size === filteredLeads.length : selectedGroups.size === filteredGroups.length)
+                    ? "Limpar" : "Selecionar todos"}
+                </Button>
+                {channel === "whatsapp" && mode === "leads" && (
                   <Button size="sm" variant="outline" onClick={validateAll} disabled={validating || selected.size === 0}>
                     {validating ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <ShieldCheck className="h-3 w-3 mr-1" />}Validar números
                   </Button>
@@ -296,22 +349,42 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
               </div>
             </div>
             <Card className="max-h-72 overflow-y-auto">
-              {filteredLeads.map((l) => {
-                const v = validation[l.id];
-                return (
-                  <div key={l.id} className="flex items-center gap-2 px-3 py-2 border-b border-border/40 hover:bg-muted/30">
-                    <Checkbox checked={selected.has(l.id)} onCheckedChange={() => toggleLead(l.id)} />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm">{l.name}</div>
-                      <div className="text-xs text-muted-foreground">{channel === "email" ? l.email : l.phone}</div>
+              {mode === "leads" ? (
+                <>
+                  {filteredLeads.map((l) => {
+                    const v = validation[l.id];
+                    return (
+                      <div key={l.id} className="flex items-center gap-2 px-3 py-2 border-b border-border/40 hover:bg-muted/30">
+                        <Checkbox checked={selected.has(l.id)} onCheckedChange={() => toggleLead(l.id)} />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-sm">{l.name}</div>
+                          <div className="text-xs text-muted-foreground">{channel === "email" ? l.email : l.phone}</div>
+                        </div>
+                        {v && (v.isWhatsapp
+                          ? <Badge variant="outline" className="text-xs"><CheckCircle2 className="h-3 w-3 mr-1 text-primary" />WA</Badge>
+                          : <Badge variant="destructive" className="text-xs"><AlertTriangle className="h-3 w-3 mr-1" />{v.error || "Sem WA"}</Badge>)}
+                      </div>
+                    );
+                  })}
+                  {filteredLeads.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">Nenhum lead encontrado.</div>}
+                </>
+              ) : (
+                <>
+                  {filteredGroups.map((g) => (
+                    <div key={g.jid} className="flex items-center gap-2 px-3 py-2 border-b border-border/40 hover:bg-muted/30">
+                      <Checkbox checked={selectedGroups.has(g.jid)} onCheckedChange={() => toggleGroup(g.jid)} />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm flex items-center gap-2">
+                          {g.name}
+                          {g.isChannel && <Badge variant="outline" className="text-[10px]">Canal</Badge>}
+                        </div>
+                        <div className="text-xs text-muted-foreground">{g.participants || 0} membros · {g.jid}</div>
+                      </div>
                     </div>
-                    {v && (v.isWhatsapp
-                      ? <Badge variant="outline" className="text-xs"><CheckCircle2 className="h-3 w-3 mr-1 text-primary" />WA</Badge>
-                      : <Badge variant="destructive" className="text-xs"><AlertTriangle className="h-3 w-3 mr-1" />{v.error || "Sem WA"}</Badge>)}
-                  </div>
-                );
-              })}
-              {filteredLeads.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">Nenhum lead encontrado.</div>}
+                  ))}
+                  {filteredGroups.length === 0 && <div className="p-6 text-center text-muted-foreground text-sm">Nenhum grupo. Crie um em "Grupos WhatsApp".</div>}
+                </>
+              )}
             </Card>
           </div>
         </div>
