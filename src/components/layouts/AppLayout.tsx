@@ -18,6 +18,8 @@ import {
   Plug,
   Layers,
   Wallet,
+  CalendarDays,
+  FileText,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -42,6 +44,8 @@ const NAV: NavItem[] = [
   { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
   { to: "/app/prompts", label: "Prompts", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/capture", label: "Captação / QR", icon: QrCode, roles: ["mentor"] },
+  { to: "/app/events", label: "Eventos", icon: CalendarDays, roles: ["mentor", "super_admin"] },
+  { to: "/app/contracts/templates", label: "Contratos", icon: FileText, roles: ["mentor", "super_admin"] },
   { to: "/app/integrations", label: "Integrações", icon: Plug, roles: ["mentor", "super_admin"] },
   { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin"] },
   { to: "/app/admin", label: "Mentores", icon: ShieldCheck, roles: ["super_admin"] },

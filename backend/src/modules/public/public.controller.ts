@@ -77,17 +77,25 @@ export class PublicController {
     return { url, qr: dataUrl };
   }
 
-  /** Submissão pública de lead */
+  /** Submissão pública de lead. Aceita ?event=<slug> para vincular a um evento. */
   @Post('mentor/:slug/lead')
   async createLead(
     @Param('slug') slug: string,
-    @Body() body: { name: string; email: string; phone?: string; company?: string; revenue?: number; source?: string },
+    @Body() body: { name: string; email: string; phone?: string; company?: string; revenue?: number; source?: string; eventSlug?: string },
   ) {
     const mentor = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
     if (!mentor) throw new NotFoundException('Mentor não encontrado');
+
+    let eventId: string | undefined;
+    if (body.eventSlug) {
+      const ev = await (this.users.manager as any).findOne('events', { where: { slug: body.eventSlug, mentorId: mentor.id } });
+      if (ev) eventId = ev.id;
+    }
+
     const result = await this.leadsService.createFromCapture({
       mentorId: mentor.id,
       mentorBrand: mentor.brandName || mentor.name,
+      eventId,
       ...body,
     });
     return { ok: true, leadId: result.lead.id, accountCreated: result.accountCreated };

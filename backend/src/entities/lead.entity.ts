@@ -51,6 +51,10 @@ export class Lead {
   @Column({ nullable: true })
   source?: string; // evento, qr, link
 
+  /** FK para events.id quando o lead veio de um evento específico. */
+  @Column({ type: 'uuid', nullable: true })
+  eventId?: string;
+
   @Column({ type: 'enum', enum: LeadStage, default: LeadStage.NEW })
   stage: LeadStage;
 
@@ -62,6 +66,76 @@ export class Lead {
 
   @Column({ type: 'text', nullable: true })
   notes?: string;
+
+  // ==================== Onboarding completo ====================
+  @Column({ nullable: true })
+  cpf?: string;
+
+  @Column({ nullable: true })
+  rg?: string;
+
+  @Column({ type: 'date', nullable: true })
+  birthDate?: string;
+
+  @Column({ nullable: true })
+  addressZip?: string;
+
+  @Column({ nullable: true })
+  addressStreet?: string;
+
+  @Column({ nullable: true })
+  addressNumber?: string;
+
+  @Column({ nullable: true })
+  addressComplement?: string;
+
+  @Column({ nullable: true })
+  addressNeighborhood?: string;
+
+  @Column({ nullable: true })
+  addressCity?: string;
+
+  @Column({ nullable: true })
+  addressState?: string;
+
+  // ---- Empresa
+  @Column({ nullable: true })
+  companyLegalName?: string; // razão social
+
+  @Column({ nullable: true })
+  companyCnpj?: string;
+
+  @Column({ nullable: true })
+  companyAddressZip?: string;
+
+  @Column({ nullable: true })
+  companyAddressStreet?: string;
+
+  @Column({ nullable: true })
+  companyAddressNumber?: string;
+
+  @Column({ nullable: true })
+  companyAddressCity?: string;
+
+  @Column({ nullable: true })
+  companyAddressState?: string;
+
+  // ---- Perfil de negócio
+  @Column({ nullable: true })
+  segment?: string;
+
+  @Column({ type: 'int', nullable: true })
+  employees?: number;
+
+  @Column({ type: 'text', nullable: true })
+  challenges?: string;
+
+  @Column({ type: 'text', nullable: true })
+  goals?: string;
+
+  /** Marca quando o lead completou o onboarding via token público */
+  @Column({ type: 'timestamptz', nullable: true })
+  onboardingCompletedAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;
