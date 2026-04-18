@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument = require('pdfkit');
 import { Contract, ContractStatus } from '../../entities/contract.entity';
 import { ContractTemplate } from '../../entities/contract-template.entity';
 import { Lead } from '../../entities/lead.entity';
