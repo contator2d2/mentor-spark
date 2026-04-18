@@ -127,12 +127,13 @@ export default function AppLayout() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
-        <div className="flex items-center justify-between">
-          <div className="min-w-0">
+        <div className="flex items-center justify-between gap-1">
+          <div className="min-w-0 flex-1">
             <div className="text-sm text-white truncate">{user?.name}</div>
             <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
           </div>
-          <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white">
+          <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" />
+          <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9">
             <LogOut className="h-4 w-4" />
           </Button>
         </div>
