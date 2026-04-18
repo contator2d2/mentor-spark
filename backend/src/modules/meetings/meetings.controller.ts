@@ -24,10 +24,17 @@ export class MeetingsController {
 
   @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
   @Get()
-  list(@TenantId() mentorId: string, @Query('leadId') leadId?: string) {
-    const where: any = { mentorId };
-    if (leadId) where.leadId = leadId;
-    return this.meetings.find({ where, order: { scheduledAt: 'DESC' } });
+  async list(@TenantId() mentorId: string, @Query('leadId') leadId?: string) {
+    try {
+      const where: any = { mentorId };
+      if (leadId) where.leadId = leadId;
+      return await this.meetings.find({ where, order: { scheduledAt: 'DESC' } });
+    } catch (err: any) {
+      // Log detalhado para diagnosticar o 500 (ex: coluna ausente após migração).
+      // eslint-disable-next-line no-console
+      console.error('[GET /meetings] erro:', err?.message, err?.stack);
+      throw new BadRequestException(`Falha ao listar reuniões: ${err?.message || 'erro desconhecido'}`);
+    }
   }
 
   @Auth('mentor', 'super_admin')
