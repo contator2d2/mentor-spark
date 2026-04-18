@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3001/api";
+const API_URL = import.meta.env.VITE_API_URL || `${window.location.origin}/api`;
 const TOKEN_KEY = "mentorflow_token";
 
 export function getToken() {

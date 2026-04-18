@@ -19,10 +19,10 @@ export class AppSettingsService {
   async set(key: string, value: string | null, description?: string) {
     const existing = await this.repo.findOne({ where: { key } });
     if (existing) {
-      await this.repo.update(existing.id, { value: value ?? undefined, description });
+      await this.repo.update(existing.id, { value, description });
       return;
     }
-    await this.repo.save(this.repo.create({ key, value: value ?? undefined, description }));
+    await this.repo.save(this.repo.create({ key, value, description }));
   }
 
   async listKeys(prefix?: string) {
