@@ -118,7 +118,15 @@ export class KanbanController {
     return { ok: true };
   }
 
-  // ============== COLUMNS ==============
+  @Auth('mentor', 'super_admin')
+  @Post('boards/reorder')
+  async reorderBoards(@TenantId() mentorId: string, @Body() body: { ids: string[] }) {
+    if (!Array.isArray(body?.ids)) throw new BadRequestException('ids[] é obrigatório');
+    for (let i = 0; i < body.ids.length; i++) {
+      await this.boards.update({ id: body.ids[i], mentorId } as any, { order: i });
+    }
+    return { ok: true };
+  }
   @Auth('mentor', 'super_admin')
   @Post('boards/:boardId/columns')
   async createColumn(@TenantId() mentorId: string, @Param('boardId') boardId: string, @Body() dto: any) {
