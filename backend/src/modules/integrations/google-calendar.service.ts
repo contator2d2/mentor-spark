@@ -34,9 +34,17 @@ export class GoogleCalendarService {
         'Google OAuth não configurado. Super admin deve configurar em Admin → Credenciais Google.',
       );
     }
+    // Prioridade: 1) valor salvo no admin, 2) PUBLIC_API_URL env, 3) localhost (dev only)
     const finalRedirect =
-      redirectUri ||
-      `${process.env.PUBLIC_API_URL || 'http://localhost:3000'}/integrations/google/callback`;
+      (redirectUri && redirectUri.trim()) ||
+      (process.env.PUBLIC_API_URL
+        ? `${process.env.PUBLIC_API_URL.replace(/\/$/, '')}/integrations/google/callback`
+        : 'http://localhost:3000/integrations/google/callback');
+    if (!redirectUri) {
+      this.logger.warn(
+        `google.redirectUri não configurado em app_settings — usando fallback: ${finalRedirect}`,
+      );
+    }
     return { clientId, clientSecret, redirectUri: finalRedirect };
   }
 

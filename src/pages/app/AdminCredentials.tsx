@@ -75,7 +75,12 @@ export default function AdminCredentials() {
 
   if (!google || !uazapi) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
 
-  const suggestedRedirect = `${window.location.origin.replace(/:\d+$/, ":3000").replace("5173", "3000")}/integrations/google/callback`;
+  // Em produção, o backend responde no mesmo domínio (atrás do nginx, ex.: https://mentor.gleego.com.br/integrations/google/callback)
+  // Em dev local (Vite em :5173), o backend NestJS roda em :3000
+  const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+  const suggestedRedirect = isLocalDev
+    ? `http://localhost:3000/integrations/google/callback`
+    : `${window.location.origin}/integrations/google/callback`;
 
   return (
     <div className="space-y-6 max-w-3xl">
