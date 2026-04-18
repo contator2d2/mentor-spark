@@ -127,10 +127,9 @@ export class TasksService {
   async markDone(mentorId: string, id: string, byUserId: string) {
     const task = await this.tasks.findOne({ where: { id, mentorId } });
     if (!task) throw new NotFoundException('Tarefa não encontrada');
-    if (task.assignedUserId && task.assignedUserId !== byUserId) {
-      // Mentor sempre pode; outro responsável não.
-      const me = await this.users.findOne({ where: { id: byUserId } });
-      if (me?.id !== task.mentorId) throw new ForbiddenException('Sem permissão');
+    const isMentor = byUserId === mentorId;
+    if (!isMentor && task.assignedUserId && task.assignedUserId !== byUserId) {
+      throw new ForbiddenException('Sem permissão');
     }
     task.status = TaskStatus.DONE;
     task.completedAt = new Date();
