@@ -7,8 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Loader2, Kanban as KanbanIcon, ExternalLink, Flame, Snowflake, Cloud,
-  TrendingUp, Users, Sparkles,
+  TrendingUp, Users, Sparkles, Plus, Zap,
 } from "lucide-react";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -166,6 +172,9 @@ function Column({
 export default function LeadsPage() {
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [quickSaving, setQuickSaving] = useState(false);
+  const [quick, setQuick] = useState({ name: "", email: "", phone: "", company: "", sendInvite: false });
   const nav = useNavigate();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -174,6 +183,22 @@ export default function LeadsPage() {
     catch (e: any) { toast.error(e.message); }
   }
   useEffect(() => { load(); }, []);
+
+  async function quickCreate() {
+    if (!quick.name || !quick.email) { toast.error("Nome e email obrigatórios"); return; }
+    setQuickSaving(true);
+    try {
+      const lead = await api<any>("/leads/manual", { method: "POST", body: quick });
+      toast.success("Lead criado!");
+      setQuickOpen(false);
+      setQuick({ name: "", email: "", phone: "", company: "", sendInvite: false });
+      setLeads((prev) => prev ? [lead, ...prev] : [lead]);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setQuickSaving(false);
+    }
+  }
 
   function onStart(e: DragStartEvent) { setActiveId(String(e.active.id)); }
 
@@ -226,6 +251,56 @@ export default function LeadsPage() {
           <p className="text-muted-foreground mt-2 max-w-lg">
             Arraste cards entre as etapas. Clique no ícone para abrir o prontuário completo.
           </p>
+        </div>
+
+        <div className="relative animate-fade-in flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <Badge variant="outline" className="mb-3 border-accent/40 bg-accent/10 text-accent">
+              <KanbanIcon className="h-3 w-3 mr-1" /> Pipeline de vendas
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-display tracking-tight text-balance">
+              Funil de <span className="text-gradient">leads</span>
+            </h1>
+            <p className="text-muted-foreground mt-2 max-w-lg">
+              Arraste cards entre as etapas. Clique no ícone para abrir o prontuário completo.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Dialog open={quickOpen} onOpenChange={setQuickOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="border-accent/40">
+                  <Zap className="h-4 w-4 mr-2" />Cadastro rápido
+                </Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Cadastro rápido</DialogTitle>
+                  <DialogDescription>Apenas o essencial. Você pode completar depois no prontuário.</DialogDescription>
+                </DialogHeader>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1 col-span-2"><Label className="text-xs">Nome *</Label><Input value={quick.name} onChange={(e) => setQuick({ ...quick, name: e.target.value })} /></div>
+                  <div className="space-y-1 col-span-2"><Label className="text-xs">Email *</Label><Input type="email" value={quick.email} onChange={(e) => setQuick({ ...quick, email: e.target.value })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Telefone</Label><Input value={quick.phone} onChange={(e) => setQuick({ ...quick, phone: e.target.value })} /></div>
+                  <div className="space-y-1"><Label className="text-xs">Empresa</Label><Input value={quick.company} onChange={(e) => setQuick({ ...quick, company: e.target.value })} /></div>
+                  <div className="col-span-2 flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/40">
+                    <div>
+                      <div className="text-sm font-medium">Enviar convite</div>
+                      <div className="text-xs text-muted-foreground">Cria login + envia senha por email.</div>
+                    </div>
+                    <Switch checked={quick.sendInvite} onCheckedChange={(v) => setQuick({ ...quick, sendInvite: v })} />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={quickCreate} disabled={quickSaving} className="bg-gradient-primary">
+                    {quickSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Criar lead
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+            <Button onClick={() => nav("/app/leads/novo")} className="bg-gradient-primary">
+              <Plus className="h-4 w-4 mr-2" />Cadastro completo
+            </Button>
+          </div>
         </div>
 
         <div className="relative grid grid-cols-2 md:grid-cols-4 gap-3 mt-8">

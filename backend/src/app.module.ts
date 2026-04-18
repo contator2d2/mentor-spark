@@ -31,6 +31,7 @@ import { UploadsModule } from './modules/uploads/uploads.module';
 import { EventsModule } from './modules/events/events.module';
 import { ContractsModule } from './modules/contracts/contracts.module';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { CompaniesModule } from './modules/companies/companies.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { buildPgOptions } from './db.config';
@@ -74,6 +75,7 @@ import { buildPgOptions } from './db.config';
     EventsModule,
     ContractsModule,
     OnboardingModule,
+    CompaniesModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',

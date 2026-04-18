@@ -148,7 +148,22 @@ export default function LeadDossier() {
               {tempBadge(lead.temperature)}
               {lead.score != null && <Badge variant="secondary">Score: {Math.round(lead.score)}%</Badge>}
               {lead.onboardingCompletedAt && <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Cadastro completo</Badge>}
+              {lead.isPartner && (
+                <Badge className="bg-violet-500/15 text-violet-400 border border-violet-500/30">
+                  <Building2 className="h-3 w-3 mr-1" />Sócio{lead.partnerRole ? ` · ${lead.partnerRole}` : ""}
+                </Badge>
+              )}
             </div>
+            {lead.companyId && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => nav(`/app/companies/${lead.companyId}`)}
+              >
+                <Building2 className="h-3 w-3 mr-2" />Abrir prontuário da empresa
+              </Button>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={generateLink}><Link2 className="h-4 w-4 mr-2" />Link de cadastro</Button>

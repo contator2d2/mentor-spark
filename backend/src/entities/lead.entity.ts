@@ -1,5 +1,6 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { User } from './user.entity';
+import { Company } from './company.entity';
 
 export enum LeadStage {
   NEW = 'new',
@@ -136,6 +137,27 @@ export class Lead {
   /** Marca quando o lead completou o onboarding via token público */
   @Column({ type: 'timestamptz', nullable: true })
   onboardingCompletedAt?: Date;
+
+  // ==================== Vínculo com Empresa (opcional — sócios) ====================
+  /** FK para companies.id quando este lead é sócio de uma empresa */
+  @Column({ type: 'uuid', nullable: true })
+  companyId?: string;
+
+  @ManyToOne(() => Company, (c) => c.partners, { onDelete: 'SET NULL', nullable: true })
+  @JoinColumn({ name: 'companyId' })
+  companyEntity?: Company;
+
+  /** Indica se o lead é sócio de uma entidade (empresa) */
+  @Column({ default: false })
+  isPartner: boolean;
+
+  /** Cargo/papel do sócio na empresa (CEO, CFO, etc.) */
+  @Column({ nullable: true })
+  partnerRole?: string;
+
+  /** % de participação societária */
+  @Column({ type: 'numeric', precision: 5, scale: 2, nullable: true })
+  partnerShare?: number;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -22,6 +22,59 @@ export class LeadsController {
     @InjectRepository(User) private users: Repository<User>,
   ) {}
 
+  /**
+   * Cadastro manual completo (sem onboarding público).
+   * Aceita todos os campos do lead. Se sendInvite=true, cria usuário PROSPECT
+   * e envia email com senha. Caso contrário, fica apenas como registro no funil.
+   */
+  @Auth('mentor', 'super_admin')
+  @Post('manual')
+  async createManual(
+    @TenantId() mentorId: string,
+    @Body() dto: any & { sendInvite?: boolean },
+  ) {
+    if (!dto.name || !dto.email) throw new BadRequestException('Nome e email são obrigatórios');
+    const email = String(dto.email).toLowerCase();
+
+    const existing = await this.leadsRepo.findOne({ where: { mentorId, email } });
+    if (existing) throw new BadRequestException('Já existe um lead com este email no seu funil.');
+
+    let userId: string | undefined;
+    if (dto.sendInvite) {
+      const created = await this.authService.createProspectUser({
+        mentorId,
+        name: dto.name,
+        email,
+        phone: dto.phone,
+        company: dto.company,
+        revenue: dto.revenue ? Number(dto.revenue) : undefined,
+      });
+      userId = created.user.id;
+      if (created.generatedPassword) {
+        const mentor = await this.users.findOne({ where: { id: mentorId } });
+        await this.authService.sendWelcomeEmail(
+          email,
+          dto.name,
+          created.generatedPassword,
+          mentor?.brandName || 'MentorFlow',
+        );
+      }
+    }
+
+    const { sendInvite, ...rest } = dto;
+    const lead = this.leadsRepo.create({
+      ...rest,
+      mentorId,
+      userId,
+      email,
+      stage: dto.stage || 'new',
+      source: dto.source || 'manual',
+      onboardingCompletedAt: new Date(),
+    });
+    const saved = await this.leadsRepo.save(lead);
+    return Array.isArray(saved) ? saved[0] : saved;
+  }
+
   @Auth('mentor', 'super_admin')
   @Get()
   async list(
