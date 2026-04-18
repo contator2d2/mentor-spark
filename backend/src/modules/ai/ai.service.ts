@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -8,6 +8,14 @@ import { Lead, LeadTemperature } from '../../entities/lead.entity';
 import { Meeting } from '../../entities/meeting.entity';
 import { TestResponse } from '../../entities/test-response.entity';
 import { AiProvider, AiProviderType } from '../../entities/ai-provider.entity';
+import { AiUsageLog } from '../../entities/ai-usage-log.entity';
+
+interface ChatResult {
+  text: string;
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
 
 @Injectable()
 export class AiService {
@@ -23,6 +31,7 @@ export class AiService {
     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
     @InjectRepository(TestResponse) private responses: Repository<TestResponse>,
     @InjectRepository(AiProvider) private providers: Repository<AiProvider>,
+    @InjectRepository(AiUsageLog) private usageLogs: Repository<AiUsageLog>,
   ) {}
 
   invalidateProviderCache() {
@@ -54,6 +63,7 @@ export class AiService {
     if (!cfg) {
       cfg = this.cfgs.create({
         mentorId,
+        aiEnabled: true,
         systemPrompt: 'Você é um assistente de mentoria empresarial estratégico, claro e objetivo.',
         methodology: '',
         responseStyle: 'Profissional, direto, em português brasileiro.',
@@ -70,54 +80,96 @@ export class AiService {
     return this.cfgs.save(cfg);
   }
 
+  /** Verifica se a IA está habilitada para o mentor. Lança 403 se não. */
+  async assertAiEnabled(mentorId: string) {
+    const cfg = await this.getMentorConfig(mentorId);
+    if (cfg.aiEnabled === false) {
+      throw new ForbiddenException('Assistente IA está desativado. Ative em Assistente IA → Configurações.');
+    }
+    return cfg;
+  }
+
   // ---------- Provider dispatch ----------
-  /** Chamada genérica de chat. Roteia para o provider default cadastrado pelo super_admin. */
-  async chat(systemPrompt: string, userMessage: string): Promise<string> {
+  /** Chamada genérica de chat. Roteia para o provider default cadastrado pelo super_admin.
+   * Se mentorId for fornecido: bloqueia se IA desativada e loga o uso de tokens.
+   */
+  async chat(systemPrompt: string, userMessage: string, opts?: { mentorId?: string; useCase?: string }): Promise<string> {
+    if (opts?.mentorId) {
+      await this.assertAiEnabled(opts.mentorId);
+    }
     const provider = await this.getDefaultProvider();
     if (!provider) {
       this.logger.warn('Nenhum AiProvider default cadastrado — retornando mock.');
       return `[IA mockada] Nenhum provider de IA configurado. Acesse Admin → Provedores de IA e cadastre um (OpenAI, Gemini, etc.).\n\nResposta simulada para: "${userMessage.slice(0, 120)}..."`;
     }
-    return this.chatWithProvider(provider, systemPrompt, userMessage);
+
+    const startedAt = Date.now();
+    let result: ChatResult;
+    let success = true;
+    let errorMessage: string | null = null;
+    try {
+      result = await this.chatWithProvider(provider, systemPrompt, userMessage);
+    } catch (e: any) {
+      success = false;
+      errorMessage = e?.message || String(e);
+      result = { text: `Erro ao consultar IA (${provider.name}): ${errorMessage}`, promptTokens: 0, completionTokens: 0, totalTokens: 0 };
+    }
+
+    if (opts?.mentorId) {
+      await this.usageLogs.save(this.usageLogs.create({
+        mentorId: opts.mentorId,
+        providerId: provider.id,
+        providerName: provider.name,
+        model: provider.model,
+        useCase: opts.useCase || 'chat',
+        promptTokens: result.promptTokens,
+        completionTokens: result.completionTokens,
+        totalTokens: result.totalTokens,
+        latencyMs: Date.now() - startedAt,
+        success,
+        errorMessage: errorMessage || undefined,
+      })).catch((e) => this.logger.error(`Falha ao logar uso de IA: ${e.message}`));
+    }
+
+    return result.text;
   }
 
   /** Permite testar um provider específico (usado pelo botão "Testar" no admin). */
   async testProvider(provider: AiProvider): Promise<string> {
-    return this.chatWithProvider(
+    const r = await this.chatWithProvider(
       provider,
       'Você é um assistente útil.',
       'Diga "OK" e o nome do modelo que você é, em uma frase curta.',
     );
+    return r.text;
   }
 
-  private async chatWithProvider(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<string> {
-    try {
-      switch (provider.type) {
-        case AiProviderType.GEMINI:
-          return await this.callGemini(provider, systemPrompt, userMessage);
-        case AiProviderType.ANTHROPIC:
-          return await this.callAnthropic(provider, systemPrompt, userMessage);
-        case AiProviderType.OPENAI:
-        case AiProviderType.OPENAI_COMPATIBLE:
-        default:
-          return await this.callOpenAICompatible(provider, systemPrompt, userMessage);
-      }
-    } catch (e: any) {
-      this.logger.error(`AI provider ${provider.name} error: ${e?.message}`);
-      return `Erro ao consultar IA (${provider.name}): ${e?.message || e}`;
+  private async chatWithProvider(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<ChatResult> {
+    switch (provider.type) {
+      case AiProviderType.GEMINI:
+        return this.callGemini(provider, systemPrompt, userMessage);
+      case AiProviderType.ANTHROPIC:
+        return this.callAnthropic(provider, systemPrompt, userMessage);
+      case AiProviderType.OPENAI:
+      case AiProviderType.OPENAI_COMPATIBLE:
+      default:
+        return this.callOpenAICompatible(provider, systemPrompt, userMessage);
     }
   }
 
+  /** Estimativa simples de tokens quando o provider não retorna usage (fallback). */
+  private estimateTokens(text: string): number {
+    if (!text) return 0;
+    return Math.ceil(text.length / 4); // heurística clássica ~4 chars/token
+  }
+
   /** OpenAI + qualquer endpoint compatível (OpenRouter, Groq, Together, Lovable AI Gateway, etc.) */
-  private async callOpenAICompatible(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<string> {
+  private async callOpenAICompatible(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<ChatResult> {
     const baseUrl = (provider.baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '');
     const url = `${baseUrl}/chat/completions`;
     const r = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${provider.apiKey}`,
-      },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${provider.apiKey}` },
       body: JSON.stringify({
         model: provider.model,
         messages: [
@@ -132,11 +184,18 @@ export class AiService {
       throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`);
     }
     const j: any = await r.json();
-    return j?.choices?.[0]?.message?.content || '';
+    const text = j?.choices?.[0]?.message?.content || '';
+    const usage = j?.usage || {};
+    return {
+      text,
+      promptTokens: usage.prompt_tokens ?? this.estimateTokens(systemPrompt + userMessage),
+      completionTokens: usage.completion_tokens ?? this.estimateTokens(text),
+      totalTokens: usage.total_tokens ?? this.estimateTokens(systemPrompt + userMessage + text),
+    };
   }
 
   /** Google Gemini (REST v1beta). */
-  private async callGemini(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<string> {
+  private async callGemini(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<ChatResult> {
     const baseUrl = (provider.baseUrl || 'https://generativelanguage.googleapis.com/v1beta').replace(/\/$/, '');
     const url = `${baseUrl}/models/${encodeURIComponent(provider.model)}:generateContent?key=${encodeURIComponent(provider.apiKey)}`;
     const r = await fetch(url, {
@@ -153,20 +212,23 @@ export class AiService {
       throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`);
     }
     const j: any = await r.json();
-    return j?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('\n') || '';
+    const text = j?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('\n') || '';
+    const usage = j?.usageMetadata || {};
+    return {
+      text,
+      promptTokens: usage.promptTokenCount ?? this.estimateTokens(systemPrompt + userMessage),
+      completionTokens: usage.candidatesTokenCount ?? this.estimateTokens(text),
+      totalTokens: usage.totalTokenCount ?? this.estimateTokens(systemPrompt + userMessage + text),
+    };
   }
 
   /** Anthropic Claude (Messages API). */
-  private async callAnthropic(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<string> {
+  private async callAnthropic(provider: AiProvider, systemPrompt: string, userMessage: string): Promise<ChatResult> {
     const baseUrl = (provider.baseUrl || 'https://api.anthropic.com/v1').replace(/\/$/, '');
     const url = `${baseUrl}/messages`;
     const r = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': provider.apiKey,
-        'anthropic-version': '2023-06-01',
-      },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': provider.apiKey, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify({
         model: provider.model,
         max_tokens: 1024,
@@ -179,12 +241,24 @@ export class AiService {
       throw new Error(`HTTP ${r.status}: ${t.slice(0, 300)}`);
     }
     const j: any = await r.json();
-    return j?.content?.map((c: any) => c.text).join('\n') || '';
+    const text = j?.content?.map((c: any) => c.text).join('\n') || '';
+    const usage = j?.usage || {};
+    return {
+      text,
+      promptTokens: usage.input_tokens ?? this.estimateTokens(systemPrompt + userMessage),
+      completionTokens: usage.output_tokens ?? this.estimateTokens(text),
+      totalTokens: (usage.input_tokens ?? 0) + (usage.output_tokens ?? 0) || this.estimateTokens(systemPrompt + userMessage + text),
+    };
   }
 
-  // ---------- Casos de uso (não mudam) ----------
+  // ---------- Casos de uso ----------
   async analyzeTestResponse(mentorId: string, response: TestResponse, customPrompt?: string) {
     const cfg = await this.getMentorConfig(mentorId);
+    if (cfg.aiEnabled === false) {
+      // IA desativada: retorna classificação heurística sem chamar provider
+      const classification = response.scorePct >= 70 ? LeadTemperature.HOT : response.scorePct >= 40 ? LeadTemperature.WARM : LeadTemperature.COLD;
+      return { analysis: 'Análise IA desativada para esta conta.', classification };
+    }
     const sys =
       (cfg.systemPrompt || '') +
       `\nMetodologia do mentor: ${cfg.methodology || '-'}\nEstilo: ${cfg.responseStyle || '-'}\nFoco: ${cfg.focusAreas || '-'}`;
@@ -199,7 +273,7 @@ Respostas (JSON): ${JSON.stringify(response.answers).slice(0, 4000)}
 Score: ${response.totalScore}/${response.maxScore} (${response.scorePct}%)
 
 Retorne em texto estruturado em português, e na ÚLTIMA linha escreva apenas: CLASSIFICATION=cold|warm|hot`;
-    const text = await this.chat(sys, prompt);
+    const text = await this.chat(sys, prompt, { mentorId, useCase: 'analyze_test' });
     const match = text.match(/CLASSIFICATION=(cold|warm|hot)/i);
     const classification =
       (match?.[1]?.toLowerCase() as LeadTemperature) ||
@@ -210,6 +284,9 @@ Retorne em texto estruturado em português, e na ÚLTIMA linha escreva apenas: C
 
   async summarizeMeeting(mentorId: string, transcript: string) {
     const cfg = await this.getMentorConfig(mentorId);
+    if (cfg.aiEnabled === false) {
+      return { summary: 'Análise IA desativada para esta conta.', insights: { keyPoints: [], decisions: [], nextActions: [] } };
+    }
     const sys = cfg.systemPrompt || 'Você é um assistente de mentoria empresarial.';
     const prompt = `Transcrição da reunião:\n"""${transcript.slice(0, 12000)}"""\n\nProduza:
 - Resumo (4-6 linhas)
@@ -218,7 +295,7 @@ Retorne em texto estruturado em português, e na ÚLTIMA linha escreva apenas: C
 - Próximas ações (lista com responsável quando possível)
 
 Retorne em JSON válido com chaves: summary, keyPoints[], decisions[], nextActions[].`;
-    const raw = await this.chat(sys, prompt);
+    const raw = await this.chat(sys, prompt, { mentorId, useCase: 'summarize_meeting' });
     try {
       const json = JSON.parse(raw.replace(/^```json\s*|```$/g, '').trim());
       return {
@@ -231,7 +308,7 @@ Retorne em JSON válido com chaves: summary, keyPoints[], decisions[], nextActio
   }
 
   async assistantChat(mentorId: string, message: string, leadId?: string) {
-    const cfg = await this.getMentorConfig(mentorId);
+    const cfg = await this.assertAiEnabled(mentorId);
     let context = '';
     if (leadId) {
       const lead = await this.leads.findOne({ where: { id: leadId, mentorId } });
@@ -243,6 +320,6 @@ Retorne em JSON válido com chaves: summary, keyPoints[], decisions[], nextActio
       (cfg.systemPrompt || '') +
       `\nMetodologia: ${cfg.methodology || '-'}\nEstilo: ${cfg.responseStyle || '-'}` +
       context;
-    return this.chat(sys, message);
+    return this.chat(sys, message, { mentorId, useCase: 'assistant_chat' });
   }
 }

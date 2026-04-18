@@ -13,6 +13,14 @@ export class MentorAiConfig {
   @JoinColumn({ name: 'mentorId' })
   mentor: User;
 
+  /** Ativa ou desativa todas as funcionalidades de IA para este mentor. */
+  @Column({ type: 'boolean', default: true })
+  aiEnabled: boolean;
+
+  /** Limite mensal de tokens (0 ou null = ilimitado). Usado para monetização futura. */
+  @Column({ type: 'int', nullable: true })
+  monthlyTokenLimit?: number;
+
   @Column({ type: 'text', nullable: true })
   systemPrompt?: string;
 
