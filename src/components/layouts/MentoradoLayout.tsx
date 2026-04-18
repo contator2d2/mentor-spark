@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users } from "lucide-react";
+import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users, DollarSign } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,8 +19,8 @@ import {
 const NAV = [
   { to: "/me", label: "Início", icon: Home, end: true },
   { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
+  { to: "/me/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/me/community", label: "Comunidade", icon: Users },
-  { to: "/me/tests", label: "Testes", icon: ClipboardList },
 ];
 
 export default function MentoradoLayout() {
@@ -161,7 +161,7 @@ export default function MentoradoLayout() {
 
       {/* Bottom Nav fixa */}
       <nav className="fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border/50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
-        <div className="max-w-2xl mx-auto grid grid-cols-4">
+        <div className="max-w-2xl mx-auto grid grid-cols-4">{/* mantém 4 itens */}
           {NAV.map((n) => {
             const Icon = n.icon;
             return (
