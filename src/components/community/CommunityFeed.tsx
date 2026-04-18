@@ -9,10 +9,15 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { MessageCircle, Pin, Trash2, Send, Users, Sparkles, Loader2, Heart, ThumbsUp, Flame, Lightbulb, PartyPopper } from "lucide-react";
+import {
+  MessageCircle, Pin, Trash2, Send, Users, Sparkles, Loader2,
+  Heart, ThumbsUp, Flame, Lightbulb, PartyPopper,
+  Image as ImageIcon, Video, X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 const EMOJIS = [
   { e: "👍", I: ThumbsUp },
@@ -21,6 +26,8 @@ const EMOJIS = [
   { e: "💡", I: Lightbulb },
   { e: "🎉", I: PartyPopper },
 ];
+
+type MediaItem = { url: string; type: "image" | "video" | "file"; name?: string };
 
 interface Post {
   id: string;
@@ -38,6 +45,7 @@ interface Post {
   createdAt: string;
   reactions: { emoji: string; count: number }[];
   myReactions: string[];
+  media?: MediaItem[];
 }
 
 interface Comment {
@@ -50,8 +58,20 @@ interface Comment {
 }
 
 interface Props {
-  /** Quando true, renderiza versão "mentorado" sem alguns controles. */
   asMentorado?: boolean;
+}
+
+/** Converte URL de vídeo (YouTube / Vimeo) em URL de embed. Retorna null se não reconhecer. */
+function toEmbedUrl(raw: string): string | null {
+  const url = raw.trim();
+  // YouTube
+  const yt =
+    url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/|youtube\.com\/embed\/)([\w-]{6,})/i);
+  if (yt) return `https://www.youtube.com/embed/${yt[1]}`;
+  // Vimeo
+  const vm = url.match(/vimeo\.com\/(?:video\/)?(\d+)/i);
+  if (vm) return `https://player.vimeo.com/video/${vm[1]}`;
+  return null;
 }
 
 export default function CommunityFeed({ asMentorado = false }: Props) {
@@ -60,7 +80,12 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
-  const [draft, setDraft] = useState({ title: "", body: "", audience: "all", pinned: false, locked: false });
+  const [draft, setDraft] = useState<{
+    title: string; body: string; audience: string; pinned: boolean; locked: boolean;
+    media: MediaItem[];
+  }>({ title: "", body: "", audience: "all", pinned: false, locked: false, media: [] });
+  const [showImagePicker, setShowImagePicker] = useState(false);
+  const [videoUrlInput, setVideoUrlInput] = useState("");
   const [openComments, setOpenComments] = useState<Record<string, Comment[]>>({});
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
 
@@ -75,15 +100,41 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
   }
   useEffect(() => { load(); }, []);
 
+  function resetDraft() {
+    setDraft({ title: "", body: "", audience: "all", pinned: false, locked: false, media: [] });
+    setShowImagePicker(false);
+    setVideoUrlInput("");
+  }
+
   async function createPost(e: FormEvent) {
     e.preventDefault();
-    if (!draft.body.trim()) return;
+    if (!draft.body.trim() && draft.media.length === 0) return;
     try {
       await api("/community/posts", { method: "POST", body: draft });
-      setDraft({ title: "", body: "", audience: "all", pinned: false, locked: false });
+      resetDraft();
       setComposerOpen(false);
       load();
     } catch (err: any) { toast.error(err.message); }
+  }
+
+  function addImage(url: string) {
+    if (!url) return;
+    setDraft((d) => ({ ...d, media: [...d.media, { url, type: "image" }] }));
+    setShowImagePicker(false);
+  }
+
+  function addVideo() {
+    const embed = toEmbedUrl(videoUrlInput);
+    if (!embed) {
+      toast.error("Cole um link válido do YouTube ou Vimeo.");
+      return;
+    }
+    setDraft((d) => ({ ...d, media: [...d.media, { url: embed, type: "video", name: videoUrlInput.trim() }] }));
+    setVideoUrlInput("");
+  }
+
+  function removeMedia(idx: number) {
+    setDraft((d) => ({ ...d, media: d.media.filter((_, i) => i !== idx) }));
   }
 
   async function react(postId: string, emoji: string) {
@@ -182,6 +233,72 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
               value={draft.body}
               onChange={(e) => setDraft({ ...draft, body: e.target.value })}
             />
+
+            {/* Mídias adicionadas */}
+            {draft.media.length > 0 && (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                {draft.media.map((m, idx) => (
+                  <div key={idx} className="relative group rounded-lg overflow-hidden border border-border bg-muted/30">
+                    {m.type === "image" ? (
+                      <img src={m.url} alt="" className="w-full h-32 object-cover" />
+                    ) : (
+                      <div className="w-full h-32 flex flex-col items-center justify-center text-xs text-muted-foreground gap-1 p-2">
+                        <Video className="h-6 w-6 text-primary" />
+                        <span className="truncate w-full text-center">{m.name || "Vídeo"}</span>
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeMedia(idx)}
+                      className="absolute top-1 right-1 h-6 w-6 rounded-full bg-background/90 border border-border flex items-center justify-center opacity-0 group-hover:opacity-100 transition hover:bg-destructive hover:text-destructive-foreground"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Picker de imagem */}
+            {showImagePicker && (
+              <div className="rounded-lg border border-border p-3 bg-muted/20">
+                <ImageUploadField
+                  label=""
+                  value=""
+                  onChange={(url) => addImage(url)}
+                  aspect="16/9"
+                  allowUrl
+                  hint="Imagem que será anexada ao post"
+                />
+              </div>
+            )}
+
+            {/* Input de vídeo */}
+            {videoUrlInput !== "" || draft.media.some(m => m.type === "video") ? null : null}
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => setShowImagePicker((v) => !v)}
+              >
+                <ImageIcon className="h-3.5 w-3.5 mr-1" /> Imagem
+              </Button>
+              <div className="flex items-center gap-1 flex-1 min-w-[200px]">
+                <Input
+                  placeholder="Cole link do YouTube ou Vimeo"
+                  value={videoUrlInput}
+                  onChange={(e) => setVideoUrlInput(e.target.value)}
+                  className="h-8 text-sm"
+                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addVideo(); } }}
+                />
+                <Button type="button" size="sm" variant="outline" onClick={addVideo} disabled={!videoUrlInput.trim()}>
+                  <Video className="h-3.5 w-3.5 mr-1" /> Adicionar
+                </Button>
+              </div>
+            </div>
+
             {isMentor && (
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
@@ -205,8 +322,10 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
               </div>
             )}
             <div className="flex justify-end gap-2">
-              <Button type="button" variant="ghost" size="sm" onClick={() => setComposerOpen(false)}>Cancelar</Button>
-              <Button type="submit" size="sm" disabled={!draft.body.trim()}><Send className="h-3 w-3 mr-1" />Publicar</Button>
+              <Button type="button" variant="ghost" size="sm" onClick={() => { setComposerOpen(false); resetDraft(); }}>Cancelar</Button>
+              <Button type="submit" size="sm" disabled={!draft.body.trim() && draft.media.length === 0}>
+                <Send className="h-3 w-3 mr-1" />Publicar
+              </Button>
             </div>
           </form>
         )}
@@ -223,6 +342,7 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
       {posts.map((p) => {
         const initials = (p.authorName || "?").slice(0, 2).toUpperCase();
         const isAuthor = p.authorId === user?.id;
+        const media = p.media || [];
         return (
           <Card key={p.id} className={cn("p-4 space-y-3", p.pinned && "border-primary/40 bg-primary/5")}>
             <div className="flex items-start gap-3">
@@ -247,7 +367,40 @@ export default function CommunityFeed({ asMentorado = false }: Props) {
               )}
             </div>
 
-            <div className="text-sm whitespace-pre-wrap">{p.body}</div>
+            {p.body && <div className="text-sm whitespace-pre-wrap">{p.body}</div>}
+
+            {/* Render mídias */}
+            {media.length > 0 && (
+              <div className={cn("grid gap-2", media.length === 1 ? "grid-cols-1" : "grid-cols-2")}>
+                {media.map((m, i) => {
+                  if (m.type === "image") {
+                    return (
+                      <a key={i} href={m.url} target="_blank" rel="noopener noreferrer" className="block rounded-lg overflow-hidden border border-border">
+                        <img src={m.url} alt="" className="w-full max-h-[480px] object-cover hover:opacity-95 transition" loading="lazy" />
+                      </a>
+                    );
+                  }
+                  if (m.type === "video") {
+                    return (
+                      <div key={i} className="rounded-lg overflow-hidden border border-border bg-black aspect-video">
+                        <iframe
+                          src={m.url}
+                          title={m.name || "Vídeo"}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    );
+                  }
+                  return (
+                    <a key={i} href={m.url} target="_blank" rel="noopener noreferrer" className="block p-3 rounded-lg border border-border bg-muted/30 text-sm truncate hover:bg-muted/50">
+                      {m.name || m.url}
+                    </a>
+                  );
+                })}
+              </div>
+            )}
 
             <div className="flex items-center gap-1 flex-wrap pt-2 border-t border-border/50">
               {EMOJIS.map(({ e }) => {
