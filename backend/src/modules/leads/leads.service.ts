@@ -41,6 +41,7 @@ export class LeadsService {
     company?: string;
     revenue?: number;
     source?: string;
+    eventId?: string;
   }) {
     // Cria usuário PROSPECT + envia email com senha
     const { user, generatedPassword } = await this.authService.createProspectUser({
@@ -64,8 +65,12 @@ export class LeadsService {
         company: params.company,
         revenue: params.revenue,
         source: params.source || 'capture',
+        eventId: params.eventId,
         stage: LeadStage.NEW,
       });
+      await this.leads.save(lead);
+    } else if (params.eventId && !lead.eventId) {
+      lead.eventId = params.eventId;
       await this.leads.save(lead);
     }
 
