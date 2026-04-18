@@ -236,16 +236,56 @@ export class AdminController {
     if (!amount || amount <= 0) throw new BadRequestException('Valor inválido — defina planAmount ou amount no body.');
     const dueDate = body.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
     const description = body.description || `Mensalidade ${plan?.name || 'Plano'} — ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
+    const method = (body.method || 'pix') as ChargeMethod;
 
-    // Cria a cobrança usando o billing service. Como o mentor é o "lead/cliente" da plataforma,
-    // criamos como cobrança avulsa SEM leadId (o billing aceita isso para uso administrativo).
-    return this.billing.createCharge(mentor.id, {
+    let asaasData: any = null;
+    if (body.createInAsaas) {
+      try {
+        const customer = await this.asaas.upsertCustomer({
+          name: mentor.name,
+          email: mentor.email,
+          phone: mentor.phone,
+          externalReference: `mentor:${mentor.id}`,
+        });
+        const billingMap: any = { pix: 'PIX', boleto: 'BOLETO', credit_card: 'CREDIT_CARD' };
+        asaasData = await this.asaas.createCharge({
+          customer: customer.id,
+          billingType: billingMap[method] || 'PIX',
+          value: amount,
+          dueDate,
+          description,
+          externalReference: `platform:mentor:${mentor.id}`,
+        });
+      } catch (e: any) {
+        // segue mesmo se falhar — cria a charge interna
+      }
+    }
+
+    const charge = this.charges.create({
+      mentorId: mentor.id,
+      leadId: null as any,
       description,
       amount,
-      method: (body.method || 'pix') as ChargeMethod,
-      dueDate: new Date(dueDate),
-      createInAsaas: body.createInAsaas ?? false,
+      dueDate,
+      method,
+      status: ChargeStatus.PENDING,
+      asaasChargeId: asaasData?.id,
+      invoiceUrl: asaasData?.invoiceUrl,
+      bankSlipUrl: asaasData?.bankSlipUrl,
+      metadata: { type: 'platform_subscription', planId: mentor.planId },
     });
+    const saved = await this.charges.save(charge);
+
+    if (asaasData?.id && method === ChargeMethod.PIX) {
+      try {
+        const qr = await this.asaas.getPixQrCode(asaasData.id);
+        saved.pixQrCode = qr.encodedImage;
+        saved.pixCopyPaste = qr.payload;
+        await this.charges.save(saved);
+      } catch {}
+    }
+
+    return saved;
   }
 
   /** Dashboard financeiro consolidado da plataforma. */
