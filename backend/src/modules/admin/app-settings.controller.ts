@@ -27,9 +27,12 @@ export class AppSettingsController {
   @Auth('super_admin')
   @Post('google')
   async saveGoogle(@Body() body: { clientId?: string; clientSecret?: string; redirectUri?: string }) {
-    if (body.clientId !== undefined) await this.settings.set('google.clientId', body.clientId || null, 'Google OAuth Client ID (Calendar)');
-    if (body.clientSecret) await this.settings.set('google.clientSecret', body.clientSecret, 'Google OAuth Client Secret');
-    if (body.redirectUri !== undefined) await this.settings.set('google.redirectUri', body.redirectUri || null, 'OAuth Redirect URI');
+    const normalizedClientId = body.clientId?.trim();
+    const normalizedClientSecret = body.clientSecret?.trim();
+    const normalizedRedirectUri = body.redirectUri?.trim().replace(/\/$/, '');
+    if (normalizedClientId !== undefined) await this.settings.set('google.clientId', normalizedClientId || null, 'Google OAuth Client ID (Calendar)');
+    if (normalizedClientSecret) await this.settings.set('google.clientSecret', normalizedClientSecret, 'Google OAuth Client Secret');
+    if (normalizedRedirectUri !== undefined) await this.settings.set('google.redirectUri', normalizedRedirectUri || null, 'OAuth Redirect URI');
     return { ok: true };
   }
 
