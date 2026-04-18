@@ -46,11 +46,85 @@ export default function LeadDossier() {
   const nav = useNavigate();
   const [data, setData] = useState<Dossier | null>(null);
 
+  // Action dialogs state
+  const [linkOpen, setLinkOpen] = useState(false);
+  const [linkUrl, setLinkUrl] = useState("");
+  const [contractOpen, setContractOpen] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [tplId, setTplId] = useState<string>("");
+  const [generating, setGenerating] = useState(false);
+  const [converting, setConverting] = useState(false);
+
   useEffect(() => {
     api<Dossier>(`/dossier/lead/${id}`)
       .then(setData)
       .catch((e) => toast.error(e.message));
   }, [id]);
+
+  async function generateLink() {
+    try {
+      const res = await api<{ url: string }>(`/leads/${id}/onboarding-link`, { method: "POST" });
+      setLinkUrl(res.url);
+      setLinkOpen(true);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+
+  async function convert() {
+    if (!confirm("Converter este lead em mentorado?")) return;
+    setConverting(true);
+    try {
+      await api(`/leads/${id}/convert`, { method: "POST" });
+      toast.success("Lead convertido em mentorado!");
+      const updated = await api<Dossier>(`/dossier/lead/${id}`);
+      setData(updated);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setConverting(false);
+    }
+  }
+
+  async function openContract() {
+    try {
+      const list = await api<any[]>("/contract-templates");
+      setTemplates(list);
+      if (list.length > 0) setTplId(list[0].id);
+      setContractOpen(true);
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+
+  async function generateContract() {
+    if (!tplId) return;
+    setGenerating(true);
+    try {
+      const res = await fetch(`${(import.meta as any).env.VITE_API_URL || ""}/contracts/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ leadId: id, templateId: tplId }),
+      });
+      if (!res.ok) throw new Error("Falha ao gerar contrato");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `contrato-${data?.lead?.name || "lead"}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Contrato gerado!");
+      setContractOpen(false);
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setGenerating(false);
+    }
+  }
 
   if (!data) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
   const { lead, stats, tests, meetings, tasks, timeline } = data;
