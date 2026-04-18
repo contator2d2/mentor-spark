@@ -7,9 +7,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Loader2, Plus, Pencil, Trash2, FileText, Video, Link2, FileDown, Clock } from "lucide-react";
+import { Loader2, Plus, Pencil, Trash2, FileText, Video, Image as ImageIcon, FileDown, Music, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { MediaUpload, UploadKind } from "@/components/MediaUpload";
 
 interface Content {
   id: string;
@@ -23,7 +24,14 @@ interface Content {
   createdAt: string;
 }
 
-const TYPE_ICONS: Record<string, any> = { article: FileText, video: Video, pdf: FileDown, link: Link2 };
+const TYPE_ICONS: Record<string, any> = { article: FileText, video: Video, pdf: FileDown, image: ImageIcon, audio: Music };
+const TYPE_TO_UPLOAD: Record<string, UploadKind | null> = {
+  article: null,
+  video: "video",
+  pdf: "document",
+  image: "image",
+  audio: "audio",
+};
 
 export default function ContentsPage() {
   const [items, setItems] = useState<Content[]>([]);
