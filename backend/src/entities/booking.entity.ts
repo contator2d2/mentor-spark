@@ -66,6 +66,10 @@ export class Booking {
   @Column({ type: 'timestamptz', nullable: true })
   reminderSentAt?: Date;
 
+  /** Lembrete de 1h antes (canal extra) */
+  @Column({ type: 'timestamptz', nullable: true })
+  reminder1hSentAt?: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 }
