@@ -34,9 +34,21 @@ export class AiProvider {
   @Column({ type: 'boolean', default: true })
   enabled: boolean;
 
-  /** Apenas UM provider pode ser default global. */
+  /** Apenas UM provider pode ser default global para chat/análise. */
   @Column({ type: 'boolean', default: false })
   isDefault: boolean;
+
+  /**
+   * Apenas UM provider pode ser usado para transcrição de áudio (Whisper).
+   * Só faz sentido em providers do tipo OPENAI ou OPENAI_COMPATIBLE que exponham
+   * o endpoint /audio/transcriptions (OpenAI oficial, Groq, etc.).
+   */
+  @Column({ type: 'boolean', default: false })
+  useForTranscription: boolean;
+
+  /** Modelo de transcrição (ex: whisper-1, whisper-large-v3). Default: whisper-1. */
+  @Column({ nullable: true })
+  transcriptionModel?: string;
 
   @CreateDateColumn()
   createdAt: Date;
