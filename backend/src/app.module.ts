@@ -20,7 +20,7 @@ import { MentorModule } from './modules/mentor/mentor.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { PlansModule } from './modules/plans/plans.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
-import { DossierModule } from './modules/dossier/dossier.module';
+import { ProntuarioModule } from './modules/prontuario/prontuario.module';
 import { PromptsModule } from './modules/prompts/prompts.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { PushModule } from './modules/push/push.module';
@@ -68,7 +68,7 @@ import { buildPgOptions } from './db.config';
     DashboardModule,
     PlansModule,
     IntegrationsModule,
-    DossierModule,
+    ProntuarioModule,
     PromptsModule,
     BillingModule,
     PushModule,
