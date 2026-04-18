@@ -103,6 +103,22 @@ export class ContractsController {
 
     const sys = `Você é um advogado brasileiro especialista em contratos para mentores e consultores. Gere contratos juridicamente sólidos, em português brasileiro, ${dto.tone === 'acessivel' ? 'em linguagem acessível e clara' : 'em linguagem formal jurídica'}. Use APENAS os placeholders abaixo onde fizer sentido (não invente outros): {{nome}}, {{cpf}}, {{rg}}, {{endereco}}, {{cidade}}, {{estado}}, {{cep}}, {{empresa}}, {{cnpj}}, {{empresa_endereco}}, {{empresa_cidade}}, {{empresa_estado}}, {{empresa_cep}}, {{segmento}}, {{faturamento}}, {{mentor_nome}}, {{mentor_marca}}, {{mentor_email}}, {{plano_nome}}, {{valor_plano}}, {{data_hoje}}.`;
 
+    const methodLabels: Record<string, string> = { cartao: 'Cartão de Crédito', boleto: 'Boleto Bancário', pix: 'PIX' };
+    const methods = (dto.paymentMethods && dto.paymentMethods.length > 0)
+      ? dto.paymentMethods.map((m) => methodLabels[m] || m).join(', ')
+      : 'PIX, Boleto ou Cartão';
+
+    let paymentBlock = '';
+    const cond = dto.paymentCondition || 'mensal';
+    if (cond === 'a_vista') {
+      paymentBlock = `Condição: PAGAMENTO À VISTA\n- Valor total: ${dto.totalPrice ? `R$ ${dto.totalPrice}` : '{{valor_plano}}'}\n- Métodos aceitos: ${methods}\n- Vencimento: na assinatura do contrato`;
+    } else if (cond === 'parcelado') {
+      const n = dto.installments || '12';
+      paymentBlock = `Condição: PAGAMENTO PARCELADO\n- Valor total: ${dto.totalPrice ? `R$ ${dto.totalPrice}` : '—'}\n- Quantidade de parcelas: ${n}x\n- Valor da parcela: ${dto.priceMonthly ? `R$ ${dto.priceMonthly}` : '—'}\n- Métodos aceitos: ${methods}`;
+    } else {
+      paymentBlock = `Condição: MENSALIDADE RECORRENTE\n- Valor mensal: ${dto.priceMonthly ? `R$ ${dto.priceMonthly}` : '{{valor_plano}}'}\n- Vencimento: todo dia da assinatura, durante a vigência\n- Métodos aceitos: ${methods}`;
+    }
+
     const user = `Gere o corpo COMPLETO de um ${titulo}.
 
 Informações:
@@ -110,10 +126,11 @@ Informações:
 - Segmento de atuação do mentorado: ${dto.segment || 'genérico'}
 - Objetivo da mentoria/serviço: ${dto.objective || 'desenvolvimento empresarial'}
 - Duração: ${dto.durationMonths || '12'} meses
-- Valor mensal: ${dto.priceMonthly ? `R$ ${dto.priceMonthly}` : '{{valor_plano}}'}
-- Forma de pagamento: ${dto.paymentTerms || 'Mensal, via boleto/PIX/cartão'}
 - Foro: ${dto.jurisdiction || 'Comarca do mentor'}
 ${dto.extraClauses ? `- Cláusulas extras solicitadas: ${dto.extraClauses}` : ''}
+
+PAGAMENTO (use exatamente esta condição na cláusula de Valor e Forma de Pagamento):
+${paymentBlock}
 
 Estrutura obrigatória:
 1. QUALIFICAÇÃO DAS PARTES (CONTRATANTE e CONTRATADA)
@@ -121,7 +138,7 @@ Estrutura obrigatória:
 3. ESCOPO DOS SERVIÇOS (detalhado conforme o segmento)
 4. OBRIGAÇÕES DAS PARTES
 5. PRAZO E VIGÊNCIA
-6. VALOR E FORMA DE PAGAMENTO
+6. VALOR E FORMA DE PAGAMENTO (descreva detalhadamente a condição e métodos acima, incluindo regras de inadimplência: multa de 2% + juros de 1% a.m.)
 7. CONFIDENCIALIDADE
 8. PROPRIEDADE INTELECTUAL
 9. RESCISÃO
