@@ -62,6 +62,7 @@ import QuizHostPage from "./pages/app/QuizHostPage";
 import QuizPlayerPage from "./pages/QuizPlayerPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
 import AdminCredentials from "./pages/app/AdminCredentials";
+import AdminAiUsage from "./pages/app/AdminAiUsage";
 import SchedulingPage from "./pages/app/SchedulingPage";
 import SchedulingBookingsPage from "./pages/app/SchedulingBookingsPage";
 import SchedulingPublicPage from "./pages/SchedulingPublicPage";
@@ -168,6 +169,7 @@ const App = () => (
                 <Route path="admin/finance" element={<AdminFinance />} />
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
                 <Route path="admin/credentials" element={<AdminCredentials />} />
+                <Route path="admin/ai-usage" element={<AdminAiUsage />} />
                 <Route path="scheduling" element={<SchedulingPage />} />
                 <Route path="scheduling/bookings" element={<SchedulingBookingsPage />} />
                 <Route path="billing" element={<MentorBillingPage />} />
