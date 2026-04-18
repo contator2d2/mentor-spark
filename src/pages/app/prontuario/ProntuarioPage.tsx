@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
-  Target, BarChart3, FileText, Lock, Bell, Brain, Settings2,
+  Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks,
   Link2, UserPlus, FileSignature, Copy, Download, Building2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,9 @@ import { TimelineTab } from "./tabs/TimelineTab";
 import { TestesTab } from "./tabs/TestesTab";
 import { ReunioesTab } from "./tabs/ReunioesTab";
 import { TarefasTab } from "./tabs/TarefasTab";
+import { DoresObjetivosTab } from "./tabs/DoresObjetivosTab";
+import { IndicadoresTab } from "./tabs/IndicadoresTab";
+import { PlanoAcaoTab } from "./tabs/PlanoAcaoTab";
 import { ComingSoonTab } from "./tabs/ComingSoonTab";
 
 export default function ProntuarioPage() {
