@@ -44,6 +44,10 @@ import MeetingsListPage from "./pages/app/MeetingsListPage";
 import MeetingPreparePage from "./pages/app/MeetingPreparePage";
 import MeetingDetailPage from "./pages/app/MeetingDetailPage";
 import EventsPage from "./pages/app/EventsPage";
+import EventDetailPage from "./pages/app/EventDetailPage";
+import EventPublicPage from "./pages/EventPublicPage";
+import EventTicketPage from "./pages/EventTicketPage";
+import EventNpsPage from "./pages/EventNpsPage";
 import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
 import OnboardingPublicPage from "./pages/OnboardingPublicPage";
 import BoardsListPage from "./pages/app/BoardsListPage";
@@ -81,6 +85,9 @@ const App = () => (
               <Route path="/c/:slug" element={<CapturePage />} />
               <Route path="/c/:slug/test/:testId" element={<TestPlayer />} />
               <Route path="/onboard/:token" element={<OnboardingPublicPage />} />
+              <Route path="/e/:slug" element={<EventPublicPage />} />
+              <Route path="/e/:slug/ticket/:ticketCode" element={<EventTicketPage />} />
+              <Route path="/e/:slug/nps/:ticketCode" element={<EventNpsPage />} />
 
               {/* Painel do mentor */}
               <Route
@@ -116,6 +123,7 @@ const App = () => (
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="capture" element={<CaptureSettings />} />
                 <Route path="events" element={<EventsPage />} />
+                <Route path="events/:id" element={<EventDetailPage />} />
                 <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
                 <Route path="integrations" element={<IntegrationsPage />} />
