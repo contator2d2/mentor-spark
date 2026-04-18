@@ -319,6 +319,9 @@ export default function EventDetailPage() {
       {/* Scanner */}
       <CheckinScanner open={scannerOpen} onClose={() => setScannerOpen(false)} onCheckedIn={load} />
 
+      {/* Quiz PVP */}
+      <StartQuizDialog open={quizOpen} onClose={() => setQuizOpen(false)} eventId={id} />
+
       {/* Compartilhar */}
       <ShareDialog open={shareOpen} onClose={() => setShareOpen(false)} url={publicSignupUrl()} eventName={event.name} />
 
