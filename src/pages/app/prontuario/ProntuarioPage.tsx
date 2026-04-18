@@ -35,6 +35,7 @@ import { MateriaisTab } from "./tabs/MateriaisTab";
 import { IATab } from "./tabs/IATab";
 import { PersonalizacaoTab } from "./tabs/PersonalizacaoTab";
 import { FinanceiroTab } from "./tabs/FinanceiroTab";
+import { AcessoTab } from "./tabs/AcessoTab";
 
 export default function ProntuarioPage() {
   const { id } = useParams();
