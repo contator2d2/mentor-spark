@@ -14,6 +14,7 @@ export const RequireFeature = (feature: keyof Plan) => SetMetadata(FEATURE_KEY, 
 
 @Injectable()
 export class FeatureGuard implements CanActivate {
+  private readonly logger = new Logger(FeatureGuard.name);
   constructor(private reflector: Reflector, private plans: PlansService) {}
 
   async canActivate(ctx: ExecutionContext): Promise<boolean> {
@@ -25,16 +26,20 @@ export class FeatureGuard implements CanActivate {
 
     const req = ctx.switchToHttp().getRequest();
     const user = req.user;
-    if (!user) return true; // outro guard cuida da auth
+    if (!user) return true;
 
-    // super_admin tem acesso total
     if (user.role === 'super_admin') return true;
 
-    // Para mentorado/team, usa o mentorId; para mentor, o próprio id
     const mentorId = user.role === 'mentor' ? (user.sub || user.id) : user.mentorId;
     if (!mentorId) return true;
 
-    const ok = await this.plans.hasFeature(mentorId, feature);
+    let ok = true;
+    try {
+      ok = await this.plans.hasFeature(mentorId, feature);
+    } catch (e: any) {
+      this.logger.warn(`hasFeature(${String(feature)}) falhou: ${e?.message}. Liberando acesso.`);
+      return true;
+    }
     if (!ok) {
       throw new ForbiddenException({
         statusCode: 403,
