@@ -7,19 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  ArrowLeft,
-  Mail,
-  Phone,
-  Building2,
-  Loader2,
-  ClipboardList,
-  Calendar,
-  CheckSquare,
-  Activity,
-  Sparkles,
-  Flame,
-  Snowflake,
-  Cloud,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
+} from "@/components/ui/dialog";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  ArrowLeft, Mail, Phone, Building2, Loader2, ClipboardList, Calendar,
+  CheckSquare, Activity, Sparkles, Flame, Snowflake, Cloud,
+  Link2, UserPlus, FileSignature, Copy, Download,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -73,14 +69,68 @@ export default function LeadDossier() {
               {lead.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3 w-3" />{lead.phone}</span>}
               {lead.company && <span className="inline-flex items-center gap-1"><Building2 className="h-3 w-3" />{lead.company}</span>}
             </div>
-            <div className="flex gap-2 mt-3">
+            <div className="flex gap-2 mt-3 flex-wrap">
               <Badge variant="outline" className="capitalize">{lead.stage}</Badge>
               {tempBadge(lead.temperature)}
               {lead.score != null && <Badge variant="secondary">Score: {Math.round(lead.score)}%</Badge>}
+              {lead.onboardingCompletedAt && <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">Cadastro completo</Badge>}
             </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={generateLink}><Link2 className="h-4 w-4 mr-2" />Link de cadastro</Button>
+            {lead.stage !== "client" && (
+              <Button onClick={convert} disabled={converting} className="bg-emerald-500/90 hover:bg-emerald-500 text-white">
+                {converting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <UserPlus className="h-4 w-4 mr-2" />}
+                Converter em mentorado
+              </Button>
+            )}
+            <Button onClick={openContract} className="bg-gradient-primary hover:opacity-90">
+              <FileSignature className="h-4 w-4 mr-2" />Gerar contrato
+            </Button>
           </div>
         </div>
       </Card>
+
+      {/* Diálogos de ação */}
+      <Dialog open={linkOpen} onOpenChange={setLinkOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Link de cadastro</DialogTitle>
+            <DialogDescription>Envie este link ao lead para que preencha os dados completos para o contrato.</DialogDescription>
+          </DialogHeader>
+          <div className="flex gap-2 items-center bg-muted/30 rounded-lg p-3 border border-border/40">
+            <code className="text-xs flex-1 break-all">{linkUrl}</code>
+            <Button size="icon" variant="ghost" onClick={() => { navigator.clipboard.writeText(linkUrl); toast.success("Copiado"); }}>
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={contractOpen} onOpenChange={setContractOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Gerar contrato</DialogTitle>
+            <DialogDescription>Escolha o template. Os dados do lead serão preenchidos automaticamente.</DialogDescription>
+          </DialogHeader>
+          {templates.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nenhum template criado. Vá em <b>Contratos</b> no menu para criar.</p>
+          ) : (
+            <Select value={tplId} onValueChange={setTplId}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {templates.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          )}
+          <DialogFooter>
+            <Button onClick={generateContract} disabled={generating || !tplId} className="bg-gradient-primary hover:opacity-90">
+              {generating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Download className="h-4 w-4 mr-2" />}
+              Gerar PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
