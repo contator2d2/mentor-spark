@@ -17,6 +17,7 @@ import { MeetingParticipantsController } from './meeting-participants.controller
 import { CaptureSessionsController } from './capture-sessions.controller';
 import { CapturePipelineService } from './capture-pipeline.service';
 import { AudioChunkerService } from './audio-chunker.service';
+import { CaptureHealthCron } from './capture-health.cron';
 
 import { AiModule } from '../ai/ai.module';
 import { IntegrationsModule } from '../integrations/integrations.module';
