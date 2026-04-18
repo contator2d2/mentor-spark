@@ -7,6 +7,7 @@ import { User, UserRole } from '../../entities/user.entity';
 import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
 import { Task, TaskStatus } from '../../entities/task.entity';
+import { ProntuarioAlertsService } from './prontuario-alerts.service';
 
 @Injectable()
 export class ProntuarioService {
@@ -17,6 +18,7 @@ export class ProntuarioService {
     @InjectRepository(TestResponse) private responses: Repository<TestResponse>,
     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
     @InjectRepository(Task) private tasks: Repository<Task>,
+    private alertsService: ProntuarioAlertsService,
   ) {}
 
   /**
@@ -246,7 +248,10 @@ export class ProntuarioService {
     rec.overallScore = overall;
     rec.lastRecalculatedAt = new Date();
 
-    return this.records.save(rec);
+    const saved = await this.records.save(rec);
+    // Após recalcular, dispara avaliação de alertas automáticos
+    try { await this.alertsService.evaluate(saved); } catch { /* não bloqueia */ }
+    return saved;
   }
 
   async recalculateById(mentorId: string, recordId: string) {
