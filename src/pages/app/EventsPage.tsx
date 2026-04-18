@@ -19,13 +19,19 @@ interface Event {
   registrationsCount: number; checkedInCount: number; leadsCount: number; convertedCount: number;
 }
 
+interface PaymentProvider {
+  id: string; type: string; label?: string; environment?: string;
+}
+
 export default function EventsPage() {
   const [items, setItems] = useState<Event[] | null>(null);
+  const [providers, setProviders] = useState<PaymentProvider[]>([]);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     name: "", description: "", location: "", virtualUrl: "", modality: "physical",
     startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2,
+    isPaid: false, paymentProviderId: "",
   });
   const [qrSlug, setQrSlug] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -36,7 +42,13 @@ export default function EventsPage() {
       setItems(evs);
     } catch (e: any) { toast.error(e.message); }
   }
-  useEffect(() => { load(); }, []);
+  async function loadProviders() {
+    try {
+      const p = await api<PaymentProvider[]>("/event-payments/providers");
+      setProviders(p);
+    } catch {}
+  }
+  useEffect(() => { load(); loadProviders(); }, []);
 
   async function create() {
     setSaving(true);
