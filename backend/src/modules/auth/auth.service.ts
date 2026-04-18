@@ -278,6 +278,61 @@ export class AuthService {
   }
 
   /**
+   * Reset de senha pelo super admin.
+   * Gera nova senha temporária, marca mustChangePassword=true e envia por email/WhatsApp.
+   */
+  async adminResetPassword(userId: string) {
+    const user = await this.users.findOne({ where: { id: userId } });
+    if (!user) throw new UnauthorizedException('Usuário não encontrado');
+    const newPassword = this.generateTempPassword();
+    await this.users.update(userId, {
+      passwordHash: await bcrypt.hash(newPassword, 10),
+      mustChangePassword: true,
+    });
+    await this.sendWelcomeCredentials({
+      mentorId: user.mentorId || user.id,
+      email: user.email,
+      name: user.name,
+      password: newPassword,
+      brandName: user.brandName || 'MentorFlow',
+      phone: user.phone,
+    });
+    return { ok: true, tempPassword: newPassword };
+  }
+
+  /**
+   * Gera um JWT para o super admin "logar como" outro usuário (impersonate).
+   * Útil para suporte e debug. Não exige senha.
+   */
+  async adminImpersonate(targetUserId: string) {
+    const user = await this.users.findOne({ where: { id: targetUserId } });
+    if (!user) throw new UnauthorizedException('Usuário não encontrado');
+    const access_token = this.jwt.sign({
+      sub: user.id,
+      role: user.role,
+      mentorId: user.mentorId,
+      parentMentorId: user.parentMentorId,
+      impersonated: true,
+    });
+    return {
+      access_token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        slug: user.slug,
+        brandName: user.brandName,
+        brandLogoUrl: user.brandLogoUrl,
+        brandPrimaryColor: user.brandPrimaryColor,
+        brandAccentColor: user.brandAccentColor,
+        onboardingCompleted: user.onboardingCompleted,
+        mentorId: user.mentorId,
+      },
+    };
+  }
+
+  /**
    * Cadastro público auto-serviço de mentorado/lead vindo de link/QR.
    * Cria User PROSPECT com senha temporária e dispara credenciais por WhatsApp+email.
    */
