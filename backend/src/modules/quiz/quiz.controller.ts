@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Param, Post } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { Auth, Public } from '../auth/auth.decorators';
+import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 import { QuizService } from './quiz.service';
 
@@ -31,7 +31,7 @@ export class QuizController {
   }
 
   // ===== ROTAS PÚBLICAS PARA O JOGADOR / TELÃO =====
-  @Public()
+  // Pública (sem @Auth)
   @Get('public/by-pin/:pin')
   byPin(@Param('pin') pin: string) {
     return this.svc.getByPin(pin).then((s) => ({
@@ -40,7 +40,7 @@ export class QuizController {
     }));
   }
 
-  @Public()
+  // Pública
   @Get('public/state/:id')
   publicState(@Param('id') id: string) {
     return this.svc.getPublicState(id);
