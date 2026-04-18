@@ -81,7 +81,7 @@ export class MeetingsController {
     const m = await this.meetings.findOne({ where: { id, mentorId } });
     if (!m) throw new BadRequestException('Reunião não encontrada');
     m.audioUrl = `/uploads/meetings/${file.filename}`;
-    m.status = 'transcribing';
+    m.status = 'processing';
     await this.meetings.save(m);
     // Dispara transcrição em background
     this.service.transcribeAndSummarize(mentorId, id, file.path).catch(() => {});
