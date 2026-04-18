@@ -82,8 +82,7 @@ export default function TasksKanban() {
   useEffect(() => {
     load();
     api<any[]>("/leads").then(setLeads).catch(() => {});
-    // mentorados (usuários com phone, sob esse mentor)
-    api<any[]>("/users?role=mentorado").then(setMentorados).catch(() => setMentorados([]));
+    api<any[]>("/mentor/mentorados").then(setMentorados).catch(() => setMentorados([]));
   }, []);
 
   /** Lista unificada de possíveis responsáveis. */
