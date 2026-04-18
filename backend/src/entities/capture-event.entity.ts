@@ -2,6 +2,20 @@ import {
   Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, Index,
 } from 'typeorm';
 
+export enum EventModality {
+  PHYSICAL = 'physical',
+  VIRTUAL = 'virtual',
+  HYBRID = 'hybrid',
+}
+
+export enum EventStatus {
+  DRAFT = 'draft',
+  PUBLISHED = 'published',
+  LIVE = 'live',
+  ENDED = 'ended',
+  CANCELLED = 'cancelled',
+}
+
 /** Evento de captação (workshop, palestra, feira) — base para origem de leads. */
 @Entity('events')
 @Index(['mentorId'])
@@ -15,8 +29,21 @@ export class CaptureEvent {
   @Column()
   name: string;
 
+  @Column({ type: 'text', nullable: true })
+  description?: string;
+
   @Column({ nullable: true })
   location?: string;
+
+  /** URL da sala virtual (Meet, Zoom, etc.) — usado quando virtual/hybrid */
+  @Column({ nullable: true })
+  virtualUrl?: string;
+
+  @Column({ type: 'enum', enum: EventModality, default: EventModality.PHYSICAL })
+  modality: EventModality;
+
+  @Column({ type: 'enum', enum: EventStatus, default: EventStatus.PUBLISHED })
+  status: EventStatus;
 
   @Column({ type: 'timestamptz', nullable: true })
   startsAt?: Date;
@@ -30,6 +57,30 @@ export class CaptureEvent {
 
   @Column({ type: 'text', nullable: true })
   notes?: string;
+
+  /** Capacidade máxima (null = ilimitado) */
+  @Column({ type: 'int', nullable: true })
+  capacity?: number;
+
+  /** Pergunta NPS customizada (default: padrão) */
+  @Column({ type: 'text', nullable: true })
+  npsQuestion?: string;
+
+  /** Habilita envio automático de NPS após o evento */
+  @Column({ default: true })
+  npsEnabled: boolean;
+
+  /** Horas após endsAt para disparar NPS automaticamente */
+  @Column({ type: 'int', default: 2 })
+  npsDelayHours: number;
+
+  /** ID do test_template a oferecer aos inscritos pós-evento */
+  @Column({ type: 'uuid', nullable: true })
+  defaultTestTemplateId?: string;
+
+  /** Imagem de capa (URL) */
+  @Column({ nullable: true })
+  coverImageUrl?: string;
 
   @Column({ default: true })
   isActive: boolean;
