@@ -1,10 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
 
 export enum ContentType {
+  POST = 'post',
   ARTICLE = 'article',
   VIDEO = 'video',
   PDF = 'pdf',
   LINK = 'link',
+  IMAGE = 'image',
+  AUDIO = 'audio',
 }
 
 @Entity('contents')
@@ -24,6 +27,14 @@ export class Content {
 
   @Column({ nullable: true })
   url?: string;
+
+  /** Imagem de capa (post style) */
+  @Column({ nullable: true })
+  coverImage?: string;
+
+  /** URL de vídeo embed (YouTube, Vimeo) */
+  @Column({ nullable: true })
+  videoUrl?: string;
 
   @Column({ type: 'enum', enum: ContentType, default: ContentType.ARTICLE })
   type: ContentType;
