@@ -8,6 +8,8 @@ import { MentoredPrivateNote } from '../../entities/mentored-private-note.entity
 import { MentoredAlert } from '../../entities/mentored-alert.entity';
 import { MentoredMaterial } from '../../entities/mentored-material.entity';
 import { MentoredTimelineEvent } from '../../entities/mentored-timeline-event.entity';
+import { MentoredAIInsight } from '../../entities/mentored-ai-insight.entity';
+import { MentorProntuarioConfig } from '../../entities/mentor-prontuario-config.entity';
 import { Lead } from '../../entities/lead.entity';
 import { User } from '../../entities/user.entity';
 import { TestResponse } from '../../entities/test-response.entity';
@@ -18,6 +20,9 @@ import { ProntuarioService } from './prontuario.service';
 import { ProntuarioOperationalController } from './prontuario-operational.controller';
 import { ProntuarioPrivateController } from './prontuario-private.controller';
 import { ProntuarioAlertsService } from './prontuario-alerts.service';
+import { ProntuarioAiController } from './prontuario-ai.controller';
+import { ProntuarioAiService } from './prontuario-ai.service';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
@@ -30,15 +35,23 @@ import { ProntuarioAlertsService } from './prontuario-alerts.service';
       MentoredAlert,
       MentoredMaterial,
       MentoredTimelineEvent,
+      MentoredAIInsight,
+      MentorProntuarioConfig,
       Lead,
       User,
       TestResponse,
       Meeting,
       Task,
     ]),
+    AiModule,
   ],
-  controllers: [ProntuarioController, ProntuarioOperationalController, ProntuarioPrivateController],
-  providers: [ProntuarioService, ProntuarioAlertsService],
-  exports: [ProntuarioService, ProntuarioAlertsService],
+  controllers: [
+    ProntuarioController,
+    ProntuarioOperationalController,
+    ProntuarioPrivateController,
+    ProntuarioAiController,
+  ],
+  providers: [ProntuarioService, ProntuarioAlertsService, ProntuarioAiService],
+  exports: [ProntuarioService, ProntuarioAlertsService, ProntuarioAiService],
 })
 export class ProntuarioModule {}
