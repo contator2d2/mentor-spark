@@ -29,6 +29,9 @@ import { TarefasTab } from "./tabs/TarefasTab";
 import { DoresObjetivosTab } from "./tabs/DoresObjetivosTab";
 import { IndicadoresTab } from "./tabs/IndicadoresTab";
 import { PlanoAcaoTab } from "./tabs/PlanoAcaoTab";
+import { NotasPrivadasTab } from "./tabs/NotasPrivadasTab";
+import { AlertasTab } from "./tabs/AlertasTab";
+import { MateriaisTab } from "./tabs/MateriaisTab";
 import { ComingSoonTab } from "./tabs/ComingSoonTab";
 
 export default function ProntuarioPage() {
