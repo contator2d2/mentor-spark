@@ -10,6 +10,7 @@ import { AdminModule } from '../admin/admin.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([MentorIntegration, User]), PlansModule, AdminModule],
+  // exporta WhatsappService e GoogleCalendarService para uso em outros módulos
   controllers: [IntegrationsController],
   providers: [WhatsappService, GoogleCalendarService],
   exports: [WhatsappService, GoogleCalendarService],
