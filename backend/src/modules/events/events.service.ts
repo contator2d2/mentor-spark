@@ -461,7 +461,7 @@ export class EventsService {
       if (existing) return { lead: existing, alreadyConverted: true };
     }
     const mentor = await this.users.findOne({ where: { id: mentorId } });
-    const lead = await this.leadsService.createFromCapture({
+    const result = await this.leadsService.createFromCapture({
       mentorId,
       mentorBrand: mentor?.brandName || 'MentorFlow',
       name: reg.name,
@@ -471,9 +471,9 @@ export class EventsService {
       source: `event:${ev.slug}`,
       eventId: ev.id,
     });
-    reg.leadId = lead.id;
+    reg.leadId = result.lead.id;
     await this.regs.save(reg);
-    return { lead };
+    return { lead: result.lead };
   }
 
   // ==================== Histórico ====================
