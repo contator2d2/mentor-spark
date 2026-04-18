@@ -1,6 +1,11 @@
-import { Body, Controller, Post, HttpCode } from '@nestjs/common';
+import { Body, Controller, Get, Post, HttpCode } from '@nestjs/common';
 import { IsEmail, IsString, MinLength, IsOptional } from 'class-validator';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { AuthService } from './auth.service';
+import { Auth } from './auth.decorators';
+import { CurrentUser } from './current-user.decorator';
+import { User } from '../../entities/user.entity';
 import { ApiTags } from '@nestjs/swagger';
 
 class SignUpDto {
@@ -18,7 +23,10 @@ class LoginDto {
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private auth: AuthService) {}
+  constructor(
+    private auth: AuthService,
+    @InjectRepository(User) private users: Repository<User>,
+  ) {}
 
   @Post('signup-mentor')
   signUpMentor(@Body() dto: SignUpDto) {
@@ -29,5 +37,29 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto.email, dto.password);
+  }
+
+  /** Alias compatível com clientes que chamam /auth/me */
+  @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
+  @Get('me')
+  async me(@CurrentUser() u: any) {
+    const user = await this.users.findOne({ where: { id: u.sub } });
+    if (!user) return null;
+    if ((user.role === 'mentorado' || user.role === 'prospect') && user.mentorId) {
+      const mentor = await this.users.findOne({ where: { id: user.mentorId } });
+      return {
+        ...user,
+        tenantBrand: mentor
+          ? {
+              brandName: mentor.brandName || mentor.name,
+              brandLogoUrl: mentor.brandLogoUrl,
+              brandPrimaryColor: mentor.brandPrimaryColor,
+              brandAccentColor: mentor.brandAccentColor,
+              slug: mentor.slug,
+            }
+          : null,
+      };
+    }
+    return user;
   }
 }
