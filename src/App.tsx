@@ -60,6 +60,7 @@ import MessageBroadcastsPage from "./pages/app/MessageBroadcastsPage";
 import QuizHostPage from "./pages/app/QuizHostPage";
 import QuizPlayerPage from "./pages/QuizPlayerPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
+import AdminCredentials from "./pages/app/AdminCredentials";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -150,6 +151,7 @@ const App = () => (
                 <Route path="admin/tenants" element={<AdminTenants />} />
                 <Route path="admin/finance" element={<AdminFinance />} />
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
+                <Route path="admin/credentials" element={<AdminCredentials />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}
