@@ -36,6 +36,7 @@ import { KanbanModule } from './modules/kanban/kanban.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { TeamModule } from './modules/team/team.module';
 import { AutomationsModule } from './modules/automations/automations.module';
+import { LibraryModule } from './modules/library/library.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { buildPgOptions } from './db.config';
@@ -84,6 +85,7 @@ import { buildPgOptions } from './db.config';
     MessagesModule,
     TeamModule,
     AutomationsModule,
+    LibraryModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
