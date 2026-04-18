@@ -26,8 +26,8 @@ export class Charge {
   @Column({ type: 'uuid' })
   mentorId: string;
 
-  @Column({ type: 'uuid' })
-  leadId: string;
+  @Column({ type: 'uuid', nullable: true })
+  leadId?: string;
 
   @Column({ type: 'uuid', nullable: true })
   subscriptionId?: string;

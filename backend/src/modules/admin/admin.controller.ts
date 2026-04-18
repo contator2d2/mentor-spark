@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Body, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
@@ -7,7 +7,10 @@ import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
 import { Plan } from '../../entities/plan.entity';
 import { Subscription, SubscriptionStatus } from '../../entities/subscription.entity';
+import { Charge, ChargeStatus, ChargeMethod } from '../../entities/charge.entity';
 import { Auth } from '../auth/auth.decorators';
+import { AuthService } from '../auth/auth.service';
+import { AsaasService } from '../billing/asaas.service';
 
 @Controller('admin')
 export class AdminController {
@@ -18,6 +21,9 @@ export class AdminController {
     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
     @InjectRepository(Plan) private plans: Repository<Plan>,
     @InjectRepository(Subscription) private subs: Repository<Subscription>,
+    @InjectRepository(Charge) private charges: Repository<Charge>,
+    private authService: AuthService,
+    private asaas: AsaasService,
   ) {}
 
   /** Lista mentores com plano resolvido e métricas básicas para a tela de aprovação. */
@@ -137,6 +143,149 @@ export class AdminController {
     if (body.planNotes !== undefined) patch.planNotes = body.planNotes || null;
     await this.users.update(id, patch);
     return this.users.findOne({ where: { id } });
+  }
+
+  /** Resumo completo de um tenant (mentor) para a tela de gestão. */
+  @Auth('super_admin')
+  @Get('tenants/:id')
+  async tenantDetail(@Param('id') id: string) {
+    const m = await this.users.findOne({ where: { id } });
+    if (!m) throw new NotFoundException('Mentor não encontrado');
+    const [leadsCount, mentoradosCount, testsCount, meetingsCount, teamCount, recentCharges] = await Promise.all([
+      this.leads.count({ where: { mentorId: m.id } }),
+      this.users.count({ where: { mentorId: m.id, role: UserRole.MENTORADO } }),
+      this.responses.count({ where: { mentorId: m.id } }),
+      this.meetings.count({ where: { mentorId: m.id } }),
+      this.users.count({ where: { parentMentorId: m.id, role: UserRole.MENTOR_TEAM } }),
+      this.charges.find({ where: { mentorId: m.id }, order: { createdAt: 'DESC' }, take: 10 }),
+    ]);
+    const plan = m.planId ? await this.plans.findOne({ where: { id: m.planId } }) : null;
+    return {
+      id: m.id,
+      name: m.name,
+      email: m.email,
+      phone: m.phone,
+      role: m.role,
+      status: m.status,
+      slug: m.slug,
+      brandName: m.brandName,
+      brandLogoUrl: m.brandLogoUrl,
+      brandPrimaryColor: m.brandPrimaryColor,
+      customDomain: m.customDomain,
+      mustChangePassword: m.mustChangePassword,
+      credentialsSentAt: m.credentialsSentAt,
+      onboardingCompleted: m.onboardingCompleted,
+      createdAt: m.createdAt,
+      updatedAt: m.updatedAt,
+      planId: m.planId || null,
+      planName: plan?.name || null,
+      planPriceMonthly: plan ? Number(plan.priceMonthly) : 0,
+      planExpiresAt: m.planExpiresAt || null,
+      planBillingType: m.planBillingType || null,
+      planAmount: m.planAmount != null ? Number(m.planAmount) : null,
+      planDueDay: m.planDueDay || null,
+      planNotes: m.planNotes || null,
+      metrics: { leads: leadsCount, mentorados: mentoradosCount, tests: testsCount, meetings: meetingsCount, team: teamCount },
+      recentCharges: recentCharges.map((c) => ({
+        id: c.id, description: c.description, amount: Number(c.amount),
+        status: c.status, method: c.method, dueDate: c.dueDate, paidAt: c.paidAt,
+        invoiceUrl: c.invoiceUrl,
+      })),
+    };
+  }
+
+  /** Reseta a senha do mentor: gera nova temp e envia por email/WhatsApp. */
+  @Auth('super_admin')
+  @Post('users/:id/reset-password')
+  async resetPassword(@Param('id') id: string) {
+    return this.authService.adminResetPassword(id);
+  }
+
+  /** Login impersonate: super admin recebe um JWT do usuário-alvo. */
+  @Auth('super_admin')
+  @Post('users/:id/impersonate')
+  async impersonate(@Param('id') id: string) {
+    return this.authService.adminImpersonate(id);
+  }
+
+  /** Muda role do usuário (corrige casos onde mentorado virou super_admin por engano). */
+  @Auth('super_admin')
+  @Patch('users/:id/role')
+  async changeRole(@Param('id') id: string, @Body() body: { role: UserRole; mentorId?: string | null }) {
+    const validRoles: UserRole[] = [UserRole.SUPER_ADMIN, UserRole.MENTOR, UserRole.MENTOR_TEAM, UserRole.MENTORADO, UserRole.PROSPECT];
+    if (!validRoles.includes(body.role)) throw new BadRequestException('Role inválida');
+    const patch: any = { role: body.role };
+    if (body.mentorId !== undefined) patch.mentorId = body.mentorId || null;
+    // Limpa parentMentorId se não for team
+    if (body.role !== UserRole.MENTOR_TEAM) patch.parentMentorId = null;
+    await this.users.update(id, patch);
+    return this.users.findOne({ where: { id } });
+  }
+
+  /** Dispara cobrança da mensalidade do plano SaaS para um mentor específico. */
+  @Auth('super_admin')
+  @Post('mentors/:id/charge-plan')
+  async chargePlan(
+    @Param('id') id: string,
+    @Body() body: { method?: 'pix' | 'boleto' | 'credit_card'; dueDate?: string; amount?: number; description?: string; createInAsaas?: boolean },
+  ) {
+    const mentor = await this.users.findOne({ where: { id } });
+    if (!mentor) throw new NotFoundException('Mentor não encontrado');
+    const plan = mentor.planId ? await this.plans.findOne({ where: { id: mentor.planId } }) : null;
+    const amount = body.amount ?? (mentor.planAmount != null ? Number(mentor.planAmount) : (plan ? Number(plan.priceMonthly) : 0));
+    if (!amount || amount <= 0) throw new BadRequestException('Valor inválido — defina planAmount ou amount no body.');
+    const dueDate = body.dueDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    const description = body.description || `Mensalidade ${plan?.name || 'Plano'} — ${new Date().toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`;
+    const method = (body.method || 'pix') as ChargeMethod;
+
+    let asaasData: any = null;
+    if (body.createInAsaas) {
+      try {
+        const customer = await this.asaas.upsertCustomer({
+          name: mentor.name,
+          email: mentor.email,
+          phone: mentor.phone,
+          externalReference: `mentor:${mentor.id}`,
+        });
+        const billingMap: any = { pix: 'PIX', boleto: 'BOLETO', credit_card: 'CREDIT_CARD' };
+        asaasData = await this.asaas.createCharge({
+          customer: customer.id,
+          billingType: billingMap[method] || 'PIX',
+          value: amount,
+          dueDate,
+          description,
+          externalReference: `platform:mentor:${mentor.id}`,
+        });
+      } catch (e: any) {
+        // segue mesmo se falhar — cria a charge interna
+      }
+    }
+
+    const charge = this.charges.create({
+      mentorId: mentor.id,
+      leadId: null as any,
+      description,
+      amount,
+      dueDate,
+      method,
+      status: ChargeStatus.PENDING,
+      asaasChargeId: asaasData?.id,
+      invoiceUrl: asaasData?.invoiceUrl,
+      bankSlipUrl: asaasData?.bankSlipUrl,
+      metadata: { type: 'platform_subscription', planId: mentor.planId },
+    });
+    const saved = await this.charges.save(charge);
+
+    if (asaasData?.id && method === ChargeMethod.PIX) {
+      try {
+        const qr = await this.asaas.getPixQrCode(asaasData.id);
+        saved.pixQrCode = qr.encodedImage;
+        saved.pixCopyPaste = qr.payload;
+        await this.charges.save(saved);
+      } catch {}
+    }
+
+    return saved;
   }
 
   /** Dashboard financeiro consolidado da plataforma. */
