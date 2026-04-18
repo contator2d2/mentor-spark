@@ -325,7 +325,7 @@ export default function AdminPage() {
 
       {/* EDIT DIALOG */}
       <Dialog open={!!editing} onOpenChange={(v) => !v && setEditing(null)}>
-        <DialogContent className="glass-card border-border/60 max-w-lg">
+        <DialogContent className="glass-card border-border/60 max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-2xl font-display">Editar mentor</DialogTitle>
             <DialogDescription>
@@ -333,32 +333,131 @@ export default function AdminPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
-            <div className="space-y-1.5">
-              <Label>Plano</Label>
-              <Select value={form.planId} onValueChange={(v) => setForm({ ...form, planId: v })}>
-                <SelectTrigger><SelectValue placeholder="Selecione um plano" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Sem plano (free/trial)</SelectItem>
-                  {plans.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.name} — {fmtBRL(Number(p.priceMonthly))}/mês
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="space-y-5 py-2">
+            {/* PLANO */}
+            <div className="space-y-3 rounded-lg border border-border/60 p-4 bg-muted/20">
+              <div className="text-sm font-semibold flex items-center gap-2">
+                <Crown className="h-4 w-4 text-violet-400" /> Plano & Cobrança
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Plano</Label>
+                  <Select value={form.planId} onValueChange={(v) => setForm({ ...form, planId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Selecione um plano" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Sem plano (free/trial)</SelectItem>
+                      {plans.map((p) => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name} — {fmtBRL(Number(p.priceMonthly))}/mês
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Tipo de cobrança</Label>
+                  <Select
+                    value={form.planBillingType || "none"}
+                    onValueChange={(v) => setForm({ ...form, planBillingType: v === "none" ? "" : (v as any) })}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">— Não definido —</SelectItem>
+                      <SelectItem value="monthly">Mensal (recorrente)</SelectItem>
+                      <SelectItem value="upfront">À vista (pagamento único)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label>Valor combinado (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={form.planAmount}
+                    onChange={(e) => setForm({ ...form, planAmount: e.target.value })}
+                    placeholder={editing ? String(editing.planPriceMonthly || "") : "0,00"}
+                  />
+                  <p className="text-[11px] text-muted-foreground">Em branco = usa preço padrão do plano.</p>
+                </div>
+
+                {form.planBillingType === "monthly" ? (
+                  <div className="space-y-1.5">
+                    <Label>Dia do vencimento (1-28)</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={28}
+                      value={form.planDueDay}
+                      onChange={(e) => setForm({ ...form, planDueDay: e.target.value })}
+                      placeholder="Ex: 10"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    <Label>Data de vencimento</Label>
+                    <Input
+                      type="date"
+                      value={form.planExpiresAt}
+                      onChange={(e) => setForm({ ...form, planExpiresAt: e.target.value })}
+                    />
+                    <p className="text-[11px] text-muted-foreground">Para acesso por tempo limitado.</p>
+                  </div>
+                )}
+              </div>
+
+              {form.planBillingType === "monthly" && (
+                <div className="space-y-1.5">
+                  <Label>Acesso expira em (opcional)</Label>
+                  <Input
+                    type="date"
+                    value={form.planExpiresAt}
+                    onChange={(e) => setForm({ ...form, planExpiresAt: e.target.value })}
+                  />
+                  <p className="text-[11px] text-muted-foreground">Em branco = renovação contínua.</p>
+                </div>
+              )}
+
+              <div className="space-y-1.5">
+                <Label>Métodos de pagamento aceitos</Label>
+                <div className="flex flex-wrap gap-2">
+                  {PAYMENT_METHODS.map((pm) => {
+                    const active = form.planPaymentMethods.includes(pm.value);
+                    return (
+                      <button
+                        key={pm.value}
+                        type="button"
+                        onClick={() => togglePm(pm.value)}
+                        className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
+                          active
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-muted/40 border-border hover:border-primary/50"
+                        }`}
+                      >
+                        {active && <Check className="h-3 w-3 inline mr-1" />}
+                        {pm.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Observações internas</Label>
+                <Input
+                  value={form.planNotes}
+                  onChange={(e) => setForm({ ...form, planNotes: e.target.value })}
+                  placeholder="Ex: Negociado 20% de desconto nos 3 primeiros meses"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>Expira em</Label>
-              <Input
-                type="date"
-                value={form.planExpiresAt}
-                onChange={(e) => setForm({ ...form, planExpiresAt: e.target.value })}
-              />
-              <p className="text-xs text-muted-foreground">Deixe em branco para acesso sem expiração.</p>
-            </div>
-
+            {/* STATUS */}
             <div className="space-y-1.5">
               <Label>Status de acesso</Label>
               <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
