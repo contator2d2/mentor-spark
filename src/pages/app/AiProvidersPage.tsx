@@ -49,9 +49,56 @@ const TYPE_LABELS: Record<ProviderType, string> = {
 const DEFAULT_MODELS: Record<ProviderType, string> = {
   openai: "gpt-4o-mini",
   gemini: "gemini-2.5-flash",
-  anthropic: "claude-3-5-sonnet-20241022",
+  anthropic: "claude-sonnet-4-5-20250929",
   openai_compatible: "openai/gpt-4o-mini",
 };
+
+// Modelos atualizados (2025) por provedor — usuário pode escolher ou digitar custom
+const MODEL_OPTIONS: Record<ProviderType, { value: string; label: string }[]> = {
+  openai: [
+    { value: "gpt-5", label: "GPT-5 (mais inteligente)" },
+    { value: "gpt-5-mini", label: "GPT-5 Mini (balanceado)" },
+    { value: "gpt-5-nano", label: "GPT-5 Nano (rápido/barato)" },
+    { value: "gpt-4.1", label: "GPT-4.1" },
+    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { value: "o3", label: "o3 (raciocínio profundo)" },
+    { value: "o4-mini", label: "o4-mini (raciocínio rápido)" },
+  ],
+  gemini: [
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (top)" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (balanceado)" },
+    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (rápido)" },
+    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+    { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+  ],
+  anthropic: [
+    { value: "claude-opus-4-5-20250929", label: "Claude Opus 4.5 (top)" },
+    { value: "claude-sonnet-4-5-20250929", label: "Claude Sonnet 4.5 (recomendado)" },
+    { value: "claude-3-7-sonnet-20250219", label: "Claude 3.7 Sonnet" },
+    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku (rápido)" },
+  ],
+  openai_compatible: [
+    { value: "openai/gpt-4o-mini", label: "OpenRouter — GPT-4o Mini" },
+    { value: "openai/gpt-5-mini", label: "OpenRouter — GPT-5 Mini" },
+    { value: "anthropic/claude-sonnet-4.5", label: "OpenRouter — Claude Sonnet 4.5" },
+    { value: "google/gemini-2.5-flash", label: "OpenRouter — Gemini 2.5 Flash" },
+    { value: "meta-llama/llama-3.3-70b-instruct", label: "OpenRouter — Llama 3.3 70B" },
+    { value: "deepseek/deepseek-chat", label: "OpenRouter — DeepSeek V3" },
+    { value: "llama-3.3-70b-versatile", label: "Groq — Llama 3.3 70B" },
+    { value: "mixtral-8x7b-32768", label: "Groq — Mixtral 8x7B" },
+  ],
+};
+
+const TRANSCRIPTION_MODELS = [
+  { value: "whisper-1", label: "whisper-1 (OpenAI)" },
+  { value: "gpt-4o-transcribe", label: "gpt-4o-transcribe (OpenAI, melhor qualidade)" },
+  { value: "gpt-4o-mini-transcribe", label: "gpt-4o-mini-transcribe (OpenAI, rápido)" },
+  { value: "whisper-large-v3", label: "whisper-large-v3 (Groq, ultra rápido)" },
+  { value: "whisper-large-v3-turbo", label: "whisper-large-v3-turbo (Groq)" },
+];
 
 const emptyForm: Partial<Provider> = {
   name: "",
@@ -229,55 +276,83 @@ export default function AiProvidersPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
+        <DialogContent className="max-w-3xl max-h-[85vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
             <DialogTitle>{editing ? "Editar provider" : "Novo provider de IA"}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nome</Label>
-              <Input
-                placeholder="OpenAI Produção"
-                value={form.name || ""}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select
-                value={form.type}
-                onValueChange={(v: ProviderType) =>
-                  setForm({ ...form, type: v, model: form.model || DEFAULT_MODELS[v] })
-                }
-              >
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {(Object.keys(TYPE_LABELS) as ProviderType[]).map((k) => (
-                    <SelectItem key={k} value={k}>{TYPE_LABELS[k]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Modelo</Label>
-              <Input
-                placeholder={DEFAULT_MODELS[form.type as ProviderType]}
-                value={form.model || ""}
-                onChange={(e) => setForm({ ...form, model: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>API Key {editing && <span className="text-xs text-muted-foreground">(deixe em branco para manter a atual)</span>}</Label>
-              <Input
-                type="password"
-                placeholder="sk-..."
-                value={form.apiKey || ""}
-                onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
-              />
-            </div>
-            {(form.type === "openai_compatible" || form.type === "openai" || form.type === "anthropic" || form.type === "gemini") && (
-              <div className="space-y-2">
-                <Label>Base URL <span className="text-xs text-muted-foreground">(opcional — só preencha para endpoints customizados)</span></Label>
+
+          <div className="flex-1 overflow-y-auto px-6 py-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-4">
+              <div className="space-y-1.5">
+                <Label>Nome</Label>
+                <Input
+                  placeholder="OpenAI Produção"
+                  value={form.name || ""}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Tipo</Label>
+                <Select
+                  value={form.type}
+                  onValueChange={(v: ProviderType) =>
+                    setForm({ ...form, type: v, model: DEFAULT_MODELS[v] })
+                  }
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(TYPE_LABELS) as ProviderType[]).map((k) => (
+                      <SelectItem key={k} value={k}>{TYPE_LABELS[k]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label>Modelo</Label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <Select
+                    value={
+                      MODEL_OPTIONS[form.type as ProviderType]?.some((m) => m.value === form.model)
+                        ? form.model
+                        : "__custom__"
+                    }
+                    onValueChange={(v) => {
+                      if (v !== "__custom__") setForm({ ...form, model: v });
+                    }}
+                  >
+                    <SelectTrigger><SelectValue placeholder="Escolher modelo" /></SelectTrigger>
+                    <SelectContent>
+                      {MODEL_OPTIONS[form.type as ProviderType]?.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                      <SelectItem value="__custom__">✏️ Customizado (digitar abaixo)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    placeholder={DEFAULT_MODELS[form.type as ProviderType]}
+                    value={form.model || ""}
+                    onChange={(e) => setForm({ ...form, model: e.target.value })}
+                    className="font-mono text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>
+                  API Key {editing && <span className="text-xs text-muted-foreground font-normal">(em branco = manter)</span>}
+                </Label>
+                <Input
+                  type="password"
+                  placeholder="sk-..."
+                  value={form.apiKey || ""}
+                  onChange={(e) => setForm({ ...form, apiKey: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>Base URL <span className="text-xs text-muted-foreground font-normal">(opcional)</span></Label>
                 <Input
                   placeholder={
                     form.type === "openai" ? "https://api.openai.com/v1" :
@@ -289,45 +364,77 @@ export default function AiProvidersPage() {
                   onChange={(e) => setForm({ ...form, baseUrl: e.target.value })}
                 />
               </div>
-            )}
-            <div className="flex items-center justify-between">
-              <Label>Ativo</Label>
-              <Switch checked={!!form.enabled} onCheckedChange={(v) => setForm({ ...form, enabled: v })} />
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <Label>Definir como padrão global (chat/análise/resumo)</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Usado em assistente IA, análise de testes, resumo de reuniões.</p>
-              </div>
-              <Switch checked={!!form.isDefault} onCheckedChange={(v) => setForm({ ...form, isDefault: v })} />
-            </div>
-            {(form.type === "openai" || form.type === "openai_compatible") && (
-              <>
-                <div className="flex items-center justify-between">
+
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
                   <div>
-                    <Label>Usar para transcrição de áudio (Whisper)</Label>
-                    <p className="text-xs text-muted-foreground mt-0.5">Necessário para transcrever reuniões. Só providers OpenAI-compatíveis com endpoint /audio/transcriptions (OpenAI, Groq).</p>
+                    <Label className="cursor-pointer">Ativo</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Disponível para uso</p>
                   </div>
-                  <Switch
-                    checked={!!form.useForTranscription}
-                    onCheckedChange={(v) => setForm({ ...form, useForTranscription: v })}
-                  />
+                  <Switch checked={!!form.enabled} onCheckedChange={(v) => setForm({ ...form, enabled: v })} />
                 </div>
-                {form.useForTranscription && (
-                  <div className="space-y-2">
-                    <Label>Modelo de transcrição</Label>
-                    <Input
-                      placeholder="whisper-1"
-                      value={form.transcriptionModel || ""}
-                      onChange={(e) => setForm({ ...form, transcriptionModel: e.target.value })}
-                    />
-                    <p className="text-xs text-muted-foreground">Ex: <code>whisper-1</code> (OpenAI), <code>whisper-large-v3</code> (Groq).</p>
+
+                <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+                  <div>
+                    <Label className="cursor-pointer">Padrão global</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Chat, análise e resumos</p>
                   </div>
-                )}
-              </>
-            )}
+                  <Switch checked={!!form.isDefault} onCheckedChange={(v) => setForm({ ...form, isDefault: v })} />
+                </div>
+              </div>
+
+              {(form.type === "openai" || form.type === "openai_compatible") && (
+                <div className="md:col-span-2 space-y-3 pt-2">
+                  <div className="flex items-center justify-between rounded-lg border border-border bg-muted/30 px-4 py-3">
+                    <div className="pr-4">
+                      <Label className="cursor-pointer">Usar para transcrição de áudio (Whisper)</Label>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        Necessário para transcrever reuniões. Só providers com endpoint <code>/audio/transcriptions</code> (OpenAI, Groq).
+                      </p>
+                    </div>
+                    <Switch
+                      checked={!!form.useForTranscription}
+                      onCheckedChange={(v) => setForm({ ...form, useForTranscription: v })}
+                    />
+                  </div>
+
+                  {form.useForTranscription && (
+                    <div className="space-y-1.5">
+                      <Label>Modelo de transcrição</Label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <Select
+                          value={
+                            TRANSCRIPTION_MODELS.some((m) => m.value === form.transcriptionModel)
+                              ? form.transcriptionModel
+                              : "__custom__"
+                          }
+                          onValueChange={(v) => {
+                            if (v !== "__custom__") setForm({ ...form, transcriptionModel: v });
+                          }}
+                        >
+                          <SelectTrigger><SelectValue placeholder="Escolher modelo" /></SelectTrigger>
+                          <SelectContent>
+                            {TRANSCRIPTION_MODELS.map((m) => (
+                              <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                            ))}
+                            <SelectItem value="__custom__">✏️ Customizado</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Input
+                          placeholder="whisper-1"
+                          value={form.transcriptionModel || ""}
+                          onChange={(e) => setForm({ ...form, transcriptionModel: e.target.value })}
+                          className="font-mono text-sm"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <DialogFooter>
+
+          <DialogFooter className="px-6 py-4 border-t border-border">
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
             <Button onClick={save} disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
