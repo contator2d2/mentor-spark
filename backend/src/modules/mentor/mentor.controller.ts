@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { IsEmail, IsOptional, IsString, MinLength } from 'class-validator';
+import { Lead, LeadStage } from '../../entities/lead.entity';
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { CurrentUser, TenantId } from '../auth/current-user.decorator';
@@ -35,6 +36,7 @@ export class MentorController {
 
   constructor(
     @InjectRepository(User) private users: Repository<User>,
+    @InjectRepository(Lead) private leads: Repository<Lead>,
     private mail: MailService,
     private plans: PlansService,
     private whatsapp: WhatsappService,
@@ -48,15 +50,24 @@ export class MentorController {
       this.logger.warn(`[mentorados.list] mentorId vazio para user=${me?.sub} role=${me?.role}`);
       return [];
     }
-    const list = await this.users.find({
-      where: [
-        { mentorId, role: UserRole.MENTORADO },
-        { mentorId, role: UserRole.PROSPECT },
-      ],
-      order: { createdAt: 'DESC' },
-    });
+
+    const [list, leads] = await Promise.all([
+      this.users.find({
+        where: [
+          { mentorId, role: UserRole.MENTORADO },
+          { mentorId, role: UserRole.PROSPECT },
+        ],
+        order: { createdAt: 'DESC' },
+      }),
+      this.leads.find({ where: { mentorId } }),
+    ]);
+
+    const leadByUserId = new Map(leads.filter((lead) => lead.userId).map((lead) => [lead.userId as string, lead.id]));
+    const leadByEmail = new Map(leads.map((lead) => [lead.email.toLowerCase(), lead.id]));
+
     return list.map((u) => ({
       id: u.id,
+      leadId: leadByUserId.get(u.id) || leadByEmail.get(u.email.toLowerCase()) || null,
       name: u.name,
       email: u.email,
       phone: u.phone,
@@ -80,7 +91,6 @@ export class MentorController {
       throw new BadRequestException('Nome e email são obrigatórios');
     }
 
-    // Limite do plano
     const limit = await this.plans.getLimit(mentorId, 'maxMentorados');
     if (limit >= 0) {
       const current = await this.users.count({ where: { mentorId, role: UserRole.MENTORADO } });
@@ -92,20 +102,51 @@ export class MentorController {
     const email = dto.email.toLowerCase().trim();
     const existing = await this.users.findOne({ where: { email } });
     if (existing) {
-      // Bloqueia se já é mentor ou super_admin
       if (existing.role === UserRole.MENTOR || existing.role === UserRole.SUPER_ADMIN) {
         throw new BadRequestException('Este email pertence a um mentor/admin e não pode ser convertido em mentorado');
       }
       if (existing.mentorId && existing.mentorId !== mentorId) {
         throw new BadRequestException('Este email já pertence a outro mentor');
       }
-      // Já existe — promove a MENTORADO neste tenant
+
       await this.users.update(existing.id, {
         mentorId,
         role: UserRole.MENTORADO,
         status: UserStatus.ACTIVE,
+        name: dto.name || existing.name,
+        phone: dto.phone ?? existing.phone ?? null,
+        company: dto.company ?? existing.company ?? null,
       });
-      return { id: existing.id, email, reused: true };
+
+      let lead = await this.leads.findOne({
+        where: [
+          { mentorId, userId: existing.id },
+          { mentorId, email },
+        ],
+      });
+
+      if (!lead) {
+        lead = await this.leads.save(
+          this.leads.create({
+            mentorId,
+            userId: existing.id,
+            name: dto.name || existing.name,
+            email,
+            phone: dto.phone ?? existing.phone,
+            company: dto.company ?? existing.company,
+            source: 'manual',
+            stage: LeadStage.CLIENT,
+          }),
+        );
+      } else {
+        lead.userId = existing.id;
+        lead.name = dto.name || lead.name;
+        lead.phone = dto.phone ?? lead.phone;
+        lead.company = dto.company ?? lead.company;
+        await this.leads.save(lead);
+      }
+
+      return { id: existing.id, leadId: lead.id, email, reused: true };
     }
 
     const tempPassword = dto.password || uuid().slice(0, 8);
@@ -121,7 +162,19 @@ export class MentorController {
     });
     await this.users.save(user);
 
-    // Email de boas-vindas
+    const lead = await this.leads.save(
+      this.leads.create({
+        mentorId,
+        userId: user.id,
+        name: dto.name,
+        email,
+        phone: dto.phone,
+        company: dto.company,
+        source: 'manual',
+        stage: LeadStage.CLIENT,
+      }),
+    );
+
     const mentor = await this.users.findOne({ where: { id: mentorId } });
     const brand = mentor?.brandName || mentor?.name || 'MentorFlow';
     const appUrl = process.env.APP_URL || 'http://localhost:8080';
@@ -143,7 +196,6 @@ export class MentorController {
       this.logger.warn(`[mentorados.create] falha ao enviar email: ${e.message}`);
     }
 
-    // WhatsApp de boas-vindas (se mentor tiver integração e mentorado tiver telefone)
     if (dto.phone) {
       try {
         await this.whatsapp.sendText(
@@ -156,7 +208,7 @@ export class MentorController {
       }
     }
 
-    return { id: user.id, email, reused: false, tempPassword };
+    return { id: user.id, leadId: lead.id, email, reused: false, tempPassword };
   }
 
   @Auth('mentor', 'super_admin')

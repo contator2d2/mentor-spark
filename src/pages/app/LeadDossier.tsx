@@ -54,16 +54,24 @@ export default function LeadDossier() {
   const [tplId, setTplId] = useState<string>("");
   const [generating, setGenerating] = useState(false);
   const [converting, setConverting] = useState(false);
+  const dossierId = data?.lead?.id ?? id;
 
   useEffect(() => {
+    if (!id) return;
     api<Dossier>(`/dossier/lead/${id}`)
-      .then(setData)
+      .then((res) => {
+        setData(res);
+        if (res.lead?.id && res.lead.id !== id) {
+          nav(`/app/leads/${res.lead.id}`, { replace: true });
+        }
+      })
       .catch((e) => toast.error(e.message));
-  }, [id]);
+  }, [id, nav]);
 
   async function generateLink() {
+    if (!dossierId) return;
     try {
-      const res = await api<{ url: string }>(`/leads/${id}/onboarding-link`, { method: "POST" });
+      const res = await api<{ url: string }>(`/leads/${dossierId}/onboarding-link`, { method: "POST" });
       setLinkUrl(res.url);
       setLinkOpen(true);
     } catch (e: any) {
@@ -72,12 +80,12 @@ export default function LeadDossier() {
   }
 
   async function convert() {
-    if (!confirm("Converter este lead em mentorado?")) return;
+    if (!dossierId || !confirm("Converter este lead em mentorado?")) return;
     setConverting(true);
     try {
-      await api(`/leads/${id}/convert`, { method: "POST" });
+      await api(`/leads/${dossierId}/convert`, { method: "POST" });
       toast.success("Lead convertido em mentorado!");
-      const updated = await api<Dossier>(`/dossier/lead/${id}`);
+      const updated = await api<Dossier>(`/dossier/lead/${dossierId}`);
       setData(updated);
     } catch (e: any) {
       toast.error(e.message);
@@ -98,7 +106,7 @@ export default function LeadDossier() {
   }
 
   async function generateContract() {
-    if (!tplId) return;
+    if (!tplId || !dossierId) return;
     setGenerating(true);
     try {
       const res = await fetch(`${(import.meta as any).env.VITE_API_URL || ""}/contracts/generate`, {
@@ -107,7 +115,7 @@ export default function LeadDossier() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ leadId: id, templateId: tplId }),
+        body: JSON.stringify({ leadId: dossierId, templateId: tplId }),
       });
       if (!res.ok) throw new Error("Falha ao gerar contrato");
       const blob = await res.blob();
