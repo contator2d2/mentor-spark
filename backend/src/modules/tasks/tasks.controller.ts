@@ -20,18 +20,19 @@ export class TasksController {
   ) {
     // Mentorado/prospect só vê o que está atribuído a ele
     const isMentor = user.role === 'mentor' || user.role === 'super_admin';
+    const myId = user.sub;
     return this.tasksService.list(mentorId, {
       leadId,
       assignedUserId,
       status,
-      mineUserId: !isMentor ? user.userId || user.id : mine === 'true' ? user.userId || user.id : undefined,
+      mineUserId: !isMentor ? myId : mine === 'true' ? myId : undefined,
     });
   }
 
   @Auth('mentor', 'super_admin')
   @Post()
   create(@TenantId() mentorId: string, @CurrentUser() user: any, @Body() dto: any) {
-    return this.tasksService.create(mentorId, dto, user.userId || user.id);
+    return this.tasksService.create(mentorId, dto, user.sub);
   }
 
   @Auth('mentor', 'super_admin', 'mentorado')
@@ -44,7 +45,7 @@ export class TasksController {
   @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
   @Post(':id/complete')
   complete(@TenantId() mentorId: string, @CurrentUser() user: any, @Param('id') id: string) {
-    return this.tasksService.markDone(mentorId, id, user.userId || user.id);
+    return this.tasksService.markDone(mentorId, id, user.sub);
   }
 
   /** Mentor força envio do lembrete agora. */
