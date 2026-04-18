@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
-  Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks,
+  Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder,
   Link2, UserPlus, FileSignature, Copy, Download, Building2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -264,6 +264,7 @@ export default function ProntuarioPage() {
           <TabsTrigger value="timeline"><Sparkles className="h-3 w-3 mr-1" />Timeline</TabsTrigger>
           <TabsTrigger value="notes"><Lock className="h-3 w-3 mr-1" />Notas privadas</TabsTrigger>
           <TabsTrigger value="alerts"><Bell className="h-3 w-3 mr-1" />Alertas</TabsTrigger>
+          <TabsTrigger value="materials"><Folder className="h-3 w-3 mr-1" />Materiais</TabsTrigger>
           <TabsTrigger value="ai"><Brain className="h-3 w-3 mr-1" />IA & Insights</TabsTrigger>
         </TabsList>
 
@@ -283,25 +284,10 @@ export default function ProntuarioPage() {
         <TabsContent value="meetings"><ReunioesTab data={data} /></TabsContent>
         <TabsContent value="tasks"><TarefasTab data={data} /></TabsContent>
 
-        <TabsContent value="timeline"><TimelineTab data={data} /></TabsContent>
-
-        <TabsContent value="notes">
-          <ComingSoonTab
-            icon={Lock}
-            title="Observações Privadas do Mentor"
-            description="Notas internas sensíveis — percepções, hipóteses e contexto comportamental, invisíveis ao mentorado."
-            phase="Fase 3"
-          />
-        </TabsContent>
-
-        <TabsContent value="alerts">
-          <ComingSoonTab
-            icon={Bell}
-            title="Alertas e Riscos"
-            description="Sinais automáticos de risco de churn, baixa execução, falta de interação e queda de indicadores."
-            phase="Fase 3"
-          />
-        </TabsContent>
+        <TabsContent value="timeline"><TimelineTab data={data} recordId={record.id} /></TabsContent>
+        <TabsContent value="notes"><NotasPrivadasTab recordId={record.id} /></TabsContent>
+        <TabsContent value="alerts"><AlertasTab recordId={record.id} /></TabsContent>
+        <TabsContent value="materials"><MateriaisTab recordId={record.id} /></TabsContent>
 
         <TabsContent value="ai">
           <ComingSoonTab
