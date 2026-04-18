@@ -6,6 +6,7 @@ import { MentorAiConfig } from './mentor-ai-config.entity';
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   MENTOR = 'mentor',
+  MENTOR_TEAM = 'mentor_team',
   MENTORADO = 'mentorado',
   PROSPECT = 'prospect',
 }
