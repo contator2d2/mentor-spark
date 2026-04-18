@@ -125,7 +125,7 @@ export default function Dashboard() {
                 </div>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-muted-foreground">{c.label}</span>
-                  <span className="text-[10px] text-emerald-400 font-medium tabular-nums">{c.delta}</span>
+                  <span className="text-[10px] text-success font-medium tabular-nums">{c.delta}</span>
                 </div>
               </div>
             </Link>
