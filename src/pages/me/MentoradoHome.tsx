@@ -17,6 +17,7 @@ export default function MentoradoHome() {
   const { user } = useAuth();
   const { brand } = useBranding();
   const [tests, setTests] = useState<any[]>([]);
+  const [pendingTests, setPendingTests] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
   const [meetings, setMeetings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,11 +25,15 @@ export default function MentoradoHome() {
   useEffect(() => {
     Promise.all([
       api<any[]>("/tests/responses").catch(() => []),
+      api<any[]>("/test-assignments/me").catch(() => []),
       api<any[]>("/contents").catch(() => []),
       api<any[]>("/meetings").catch(() => []),
     ])
-      .then(([t, c, m]) => {
+      .then(([t, a, c, m]) => {
         setTests(Array.isArray(t) ? t : []);
+        setPendingTests(
+          Array.isArray(a) ? a.filter((x: any) => x.status !== "completed") : [],
+        );
         setContents(Array.isArray(c) ? c : []);
         setMeetings(Array.isArray(m) ? m : []);
       })
