@@ -122,9 +122,9 @@ export default function AutomationsPage() {
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader><DialogTitle>{editing ? "Editar" : "Nova"} automação</DialogTitle></DialogHeader>
-          <div className="space-y-4">
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0">
+          <DialogHeader className="px-6 pt-6 pb-2 shrink-0"><DialogTitle>{editing ? "Editar" : "Nova"} automação</DialogTitle></DialogHeader>
+          <div className="space-y-4 overflow-y-auto px-6 py-2 flex-1">
             <div className="grid grid-cols-[1fr_auto] gap-3 items-center">
               <div><Label className="text-xs">Nome *</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
               <div className="flex items-center gap-2 pt-5"><Switch checked={form.enabled} onCheckedChange={(v) => setForm({ ...form, enabled: v })} /><span className="text-sm">Ativa</span></div>
@@ -170,7 +170,7 @@ export default function AutomationsPage() {
               <div><Label className="text-xs">Atrasar envio (minutos, opcional)</Label><Input type="number" value={form.actionConfig.delayMinutes || ""} onChange={(e) => setForm({ ...form, actionConfig: { ...form.actionConfig, delayMinutes: +e.target.value || undefined } })} /></div>
             </Card>
           </div>
-          <DialogFooter><Button onClick={save}>Salvar</Button></DialogFooter>
+          <DialogFooter className="px-6 pb-6 pt-2 shrink-0 border-t"><Button onClick={save}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
