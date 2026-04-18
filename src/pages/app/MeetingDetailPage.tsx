@@ -186,6 +186,79 @@ export default function MeetingDetailPage() {
           ))}
         </TabsContent>
 
+        <TabsContent value="attachments" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center">
+                <Paperclip className="h-4 w-4 mr-2 text-primary" />
+                Adicionar anexo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-xs text-muted-foreground">
+                PDFs, slides, materiais de apoio ou um áudio gravado externamente para transcrever.
+              </p>
+              <MediaUpload
+                onChange={async (m) => {
+                  if (!m) return;
+                  const newAttach = {
+                    url: m.url,
+                    name: m.originalName,
+                    kind: m.kind,
+                    mimetype: m.mimetype,
+                    size: m.size,
+                    uploadedAt: new Date().toISOString(),
+                  };
+                  const next = [...(meeting.attachments || []), newAttach];
+                  await api(`/meetings/${id}`, { method: "PATCH", body: { attachments: next } });
+                  setMeeting({ ...meeting, attachments: next });
+                  toast.success("Anexo salvo");
+                }}
+              />
+            </CardContent>
+          </Card>
+
+          {(meeting.attachments || []).length > 0 ? (
+            <div className="space-y-2">
+              {(meeting.attachments as any[]).map((a, idx) => (
+                <Card key={idx} className="group">
+                  <CardContent className="py-3 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                      {a.kind === "image" ? <FileText className="h-4 w-4" /> : a.kind === "audio" ? <Mic className="h-4 w-4" /> : <FileText className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <a href={a.url} target="_blank" rel="noreferrer" className="text-sm font-medium hover:text-primary truncate block">
+                        {a.name}
+                      </a>
+                      <div className="text-xs text-muted-foreground">
+                        {(a.size / 1024 / 1024).toFixed(2)} MB · {new Date(a.uploadedAt).toLocaleString("pt-BR")}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={async () => {
+                        const next = (meeting.attachments as any[]).filter((_, i) => i !== idx);
+                        await api(`/meetings/${id}`, { method: "PATCH", body: { attachments: next } });
+                        setMeeting({ ...meeting, attachments: next });
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="py-8 text-center text-muted-foreground text-sm">
+                Nenhum anexo. Use o uploader acima.
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
         <TabsContent value="capture" className="space-y-4">
           {sessions.length === 0 && <div className="text-sm text-muted-foreground">Nenhuma sessão de captura.</div>}
           {activeSession && (
