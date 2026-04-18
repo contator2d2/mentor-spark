@@ -288,18 +288,40 @@ export default function AdminPage() {
 
                   <div className="grid grid-cols-2 gap-2 text-xs">
                     <div className="bg-muted/30 rounded-lg p-2">
-                      <div className="text-muted-foreground uppercase tracking-wider text-[10px]">Mensalidade</div>
-                      <div className="font-semibold text-foreground">{fmtBRL(m.planPriceMonthly || 0)}</div>
+                      <div className="text-muted-foreground uppercase tracking-wider text-[10px]">
+                        {m.planBillingType === "upfront" ? "Valor à vista" : "Mensalidade"}
+                      </div>
+                      <div className="font-semibold text-foreground">
+                        {fmtBRL(m.planAmount != null ? m.planAmount : m.planPriceMonthly || 0)}
+                      </div>
                     </div>
                     <div className="bg-muted/30 rounded-lg p-2">
                       <div className="text-muted-foreground uppercase tracking-wider text-[10px] flex items-center gap-1">
-                        <CalendarClock className="h-3 w-3" /> Expira
+                        <CalendarClock className="h-3 w-3" />
+                        {m.planBillingType === "monthly" && m.planDueDay ? "Vence dia" : "Expira"}
                       </div>
                       <div className={`font-semibold ${m.isExpired ? "text-rose-400" : "text-foreground"}`}>
-                        {fmtDate(m.planExpiresAt)}
+                        {m.planBillingType === "monthly" && m.planDueDay
+                          ? `Todo dia ${m.planDueDay}`
+                          : fmtDate(m.planExpiresAt)}
                       </div>
                     </div>
                   </div>
+
+                  {(m.planBillingType || (m.planPaymentMethods && m.planPaymentMethods.length > 0)) && (
+                    <div className="flex flex-wrap gap-1">
+                      {m.planBillingType && (
+                        <Badge variant="outline" className="text-[10px]">
+                          {m.planBillingType === "monthly" ? "Mensal" : "À vista"}
+                        </Badge>
+                      )}
+                      {(m.planPaymentMethods || []).map((pm) => (
+                        <Badge key={pm} variant="outline" className="text-[10px] capitalize">
+                          {pm === "credit_card" ? "Cartão" : pm}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-2 pt-2 border-t border-border/40">
                     <Button size="sm" variant="outline" className="flex-1 min-w-[100px]" onClick={() => openEdit(m)}>
