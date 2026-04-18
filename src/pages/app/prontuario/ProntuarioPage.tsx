@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/select";
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
-  Target, BarChart3, FileText, Lock, Bell, Brain, Settings2,
+  Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks,
   Link2, UserPlus, FileSignature, Copy, Download, Building2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,6 +26,9 @@ import { TimelineTab } from "./tabs/TimelineTab";
 import { TestesTab } from "./tabs/TestesTab";
 import { ReunioesTab } from "./tabs/ReunioesTab";
 import { TarefasTab } from "./tabs/TarefasTab";
+import { DoresObjetivosTab } from "./tabs/DoresObjetivosTab";
+import { IndicadoresTab } from "./tabs/IndicadoresTab";
+import { PlanoAcaoTab } from "./tabs/PlanoAcaoTab";
 import { ComingSoonTab } from "./tabs/ComingSoonTab";
 
 export default function ProntuarioPage() {
@@ -249,10 +252,12 @@ export default function ProntuarioPage() {
         <TabsList className="flex flex-wrap h-auto">
           <TabsTrigger value="overview"><Activity className="h-3 w-3 mr-1" />Visão geral</TabsTrigger>
           <TabsTrigger value="summary"><FileText className="h-3 w-3 mr-1" />Resumo executivo</TabsTrigger>
+          <TabsTrigger value="pains"><Target className="h-3 w-3 mr-1" />Dores & Objetivos</TabsTrigger>
+          <TabsTrigger value="metrics"><BarChart3 className="h-3 w-3 mr-1" />Indicadores</TabsTrigger>
+          <TabsTrigger value="plan"><ListChecks className="h-3 w-3 mr-1" />Plano de ação</TabsTrigger>
           <TabsTrigger value="tests"><ClipboardList className="h-3 w-3 mr-1" />Testes ({data.tests.length})</TabsTrigger>
           <TabsTrigger value="meetings"><Calendar className="h-3 w-3 mr-1" />Reuniões ({data.meetings.length})</TabsTrigger>
           <TabsTrigger value="tasks"><CheckSquare className="h-3 w-3 mr-1" />Tarefas ({data.tasks.length})</TabsTrigger>
-          <TabsTrigger value="metrics"><BarChart3 className="h-3 w-3 mr-1" />Indicadores</TabsTrigger>
           <TabsTrigger value="timeline"><Sparkles className="h-3 w-3 mr-1" />Timeline</TabsTrigger>
           <TabsTrigger value="notes"><Lock className="h-3 w-3 mr-1" />Notas privadas</TabsTrigger>
           <TabsTrigger value="alerts"><Bell className="h-3 w-3 mr-1" />Alertas</TabsTrigger>
@@ -267,18 +272,13 @@ export default function ProntuarioPage() {
           <ResumoExecutivoTab record={record} onUpdated={onRecordUpdated} />
         </TabsContent>
 
+        <TabsContent value="pains"><DoresObjetivosTab recordId={record.id} /></TabsContent>
+        <TabsContent value="metrics"><IndicadoresTab recordId={record.id} /></TabsContent>
+        <TabsContent value="plan"><PlanoAcaoTab leadId={lead.id} /></TabsContent>
+
         <TabsContent value="tests"><TestesTab data={data} /></TabsContent>
         <TabsContent value="meetings"><ReunioesTab data={data} /></TabsContent>
         <TabsContent value="tasks"><TarefasTab data={data} /></TabsContent>
-
-        <TabsContent value="metrics">
-          <ComingSoonTab
-            icon={Target}
-            title="Indicadores e Métricas"
-            description="Acompanhe métricas customizáveis (faturamento, conversão, produtividade) com valor atual, meta e tendência."
-            phase="Fase 2"
-          />
-        </TabsContent>
 
         <TabsContent value="timeline"><TimelineTab data={data} /></TabsContent>
 
