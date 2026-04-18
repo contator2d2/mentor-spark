@@ -60,7 +60,7 @@ export default function EventsPage() {
       await api("/events", { method: "POST", body: payload });
       toast.success("Evento criado");
       setOpen(false);
-      setForm({ name: "", description: "", location: "", virtualUrl: "", modality: "physical", startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2 });
+      setForm({ name: "", description: "", location: "", virtualUrl: "", modality: "physical", startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2, isPaid: false, paymentProviderId: "" });
       load();
     } catch (e: any) { toast.error(e.message); }
     finally { setSaving(false); }
