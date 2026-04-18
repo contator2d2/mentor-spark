@@ -73,7 +73,14 @@ export class AuthService {
     if (user.status === UserStatus.PENDING) throw new UnauthorizedException('Conta aguardando aprovação');
     if (user.status === UserStatus.SUSPENDED) throw new UnauthorizedException('Conta suspensa');
 
-    const payload = { sub: user.id, email: user.email, role: user.role, mentorId: user.mentorId };
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+      mentorId: user.mentorId,
+      parentMentorId: user.parentMentorId,
+      teamRole: user.teamRole,
+    };
     return {
       access_token: await this.jwt.signAsync(payload),
       user: {
@@ -88,6 +95,8 @@ export class AuthService {
         brandAccentColor: user.brandAccentColor,
         onboardingCompleted: user.onboardingCompleted,
         mentorId: user.mentorId,
+        parentMentorId: user.parentMentorId,
+        teamRole: user.teamRole,
       },
     };
   }

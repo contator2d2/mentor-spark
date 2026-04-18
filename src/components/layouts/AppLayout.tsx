@@ -20,6 +20,9 @@ import {
   Wallet,
   CalendarDays,
   FileText,
+  KanbanSquare,
+  MessageSquare,
+  Zap,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -36,10 +39,14 @@ interface NavItem {
 const NAV: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ["mentor", "super_admin"] },
   { to: "/app/leads", label: "Leads & Funil", icon: Kanban, roles: ["mentor", "super_admin"] },
+  { to: "/app/boards", label: "Meus Kanbans", icon: KanbanSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/tests", label: "Testes", icon: ClipboardList, roles: ["mentor", "super_admin"] },
   { to: "/app/meetings", label: "Reuniões", icon: Calendar, roles: ["mentor", "super_admin"] },
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
+  { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"] },
+  { to: "/app/automations", label: "Automações", icon: Zap, roles: ["mentor", "super_admin"] },
+  { to: "/app/team", label: "Equipe", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/contents", label: "Conteúdos", icon: BookOpen, roles: ["mentor", "super_admin"] },
   { to: "/app/ai", label: "Assistente IA", icon: Sparkles, roles: ["mentor", "super_admin"] },
   { to: "/app/prompts", label: "Prompts", icon: BookOpen, roles: ["mentor", "super_admin"] },

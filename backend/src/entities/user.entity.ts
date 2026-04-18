@@ -6,6 +6,7 @@ import { MentorAiConfig } from './mentor-ai-config.entity';
 export enum UserRole {
   SUPER_ADMIN = 'super_admin',
   MENTOR = 'mentor',
+  MENTOR_TEAM = 'mentor_team',
   MENTORADO = 'mentorado',
   PROSPECT = 'prospect',
 }
@@ -69,6 +70,14 @@ export class User {
   /** Para PROSPECT/MENTORADO: id do mentor dono (multi-tenant) */
   @Column({ type: 'uuid', nullable: true })
   mentorId?: string;
+
+  /** Para MENTOR_TEAM: id do mentor pai (mesma multi-tenancy do mentor) */
+  @Column({ type: 'uuid', nullable: true })
+  parentMentorId?: string;
+
+  /** Sub-role do membro da equipe (admin/editor/attendant) */
+  @Column({ nullable: true })
+  teamRole?: string;
 
   @Column({ nullable: true })
   company?: string;

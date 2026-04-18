@@ -45,6 +45,11 @@ import MeetingDetailPage from "./pages/app/MeetingDetailPage";
 import EventsPage from "./pages/app/EventsPage";
 import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
 import OnboardingPublicPage from "./pages/OnboardingPublicPage";
+import BoardsListPage from "./pages/app/BoardsListPage";
+import BoardDetailPage from "./pages/app/BoardDetailPage";
+import TeamPage from "./pages/app/TeamPage";
+import MessageTemplatesPage from "./pages/app/MessageTemplatesPage";
+import AutomationsPage from "./pages/app/AutomationsPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -98,6 +103,11 @@ const App = () => (
                 <Route path="meetings/:id/prepare" element={<MeetingPreparePage />} />
                 <Route path="tasks" element={<TasksKanban />} />
                 <Route path="contents" element={<ContentsPage />} />
+                <Route path="boards" element={<BoardsListPage />} />
+                <Route path="boards/:id" element={<BoardDetailPage />} />
+                <Route path="team" element={<TeamPage />} />
+                <Route path="messages/templates" element={<MessageTemplatesPage />} />
+                <Route path="automations" element={<AutomationsPage />} />
                 <Route path="ai" element={<AiAssistant />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="capture" element={<CaptureSettings />} />

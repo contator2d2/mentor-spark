@@ -15,5 +15,6 @@ export const TenantId = createParamDecorator((_data: unknown, ctx: ExecutionCont
   const u = req.user;
   if (!u) return null;
   if (u.role === 'mentor' || u.role === 'super_admin') return u.sub;
+  if (u.role === 'mentor_team') return u.parentMentorId;
   return u.mentorId;
 });

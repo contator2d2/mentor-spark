@@ -7,6 +7,8 @@ export interface JwtPayload {
   email: string;
   role: string;
   mentorId?: string;
+  parentMentorId?: string;
+  teamRole?: string;
 }
 
 @Injectable()
