@@ -77,7 +77,7 @@ export default function MentoradoHome() {
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { icon: ClipboardList, label: "Testes", value: tests.length, color: "text-violet-500", bg: "bg-violet-500/10" },
+          { icon: ClipboardList, label: "Testes", value: tests.length + pendingTests.length, color: "text-violet-500", bg: "bg-violet-500/10" },
           { icon: BookOpen, label: "Conteúdos", value: contents.length, color: "text-cyan-500", bg: "bg-cyan-500/10" },
           { icon: Calendar, label: "Reuniões", value: upcoming.length, color: "text-emerald-500", bg: "bg-emerald-500/10" },
         ].map((c) => {
@@ -96,6 +96,53 @@ export default function MentoradoHome() {
           );
         })}
       </div>
+
+      {/* Testes pendentes (prioridade alta) */}
+      {pendingTests.length > 0 && (
+        <section>
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-display text-lg font-bold flex items-center gap-2">
+              <ClipboardList className="h-4 w-4 text-violet-500" />
+              Testes para responder
+              <span className="text-xs bg-violet-500/10 text-violet-500 px-2 py-0.5 rounded-full">
+                {pendingTests.length}
+              </span>
+            </h2>
+            <Link to="/me/tests" className="text-xs text-primary flex items-center gap-0.5">
+              Ver todos <ChevronRight className="h-3 w-3" />
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {pendingTests.slice(0, 3).map((a) => {
+              const link = a.mentorSlug && a.template
+                ? `/c/${a.mentorSlug}/test/${a.template.id}?lead=${a.leadId}`
+                : "/me/tests";
+              return (
+                <Link
+                  key={a.id}
+                  to={link}
+                  className="block bg-card border border-border rounded-xl p-4 shadow-soft hover:border-primary/40 hover:shadow-elegant transition-all group"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 text-violet-500 flex items-center justify-center shrink-0">
+                      <ClipboardList className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-sm truncate">
+                        {a.template?.title || "Teste"}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Enviado em {new Date(a.createdAt).toLocaleDateString("pt-BR")}
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-primary shrink-0 group-hover:translate-x-0.5 transition-transform" />
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Próximas reuniões */}
       {upcoming.length > 0 && (
