@@ -20,11 +20,11 @@ import { EventsService } from './events.service';
 import { EventPaymentsService } from './event-payments.service';
 import { EventPaymentsController, PublicEventPaymentsController } from './event-payments.controller';
 import { MailService } from '../../shared/mail.service';
-import { WhatsappService } from '../integrations/whatsapp.service';
 import { PushService } from '../push/push.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { LeadsModule } from '../leads/leads.module';
 import { AiModule } from '../ai/ai.module';
+import { IntegrationsModule } from '../integrations/integrations.module';
 
 @Module({
   imports: [
@@ -36,9 +36,10 @@ import { AiModule } from '../ai/ai.module';
     NotificationsModule,
     LeadsModule,
     AiModule,
+    IntegrationsModule,
   ],
   controllers: [EventsController, PublicEventsController, EventPaymentsController, PublicEventPaymentsController],
-  providers: [EventsService, EventPaymentsService, MailService, WhatsappService, PushService],
+  providers: [EventsService, EventPaymentsService, MailService, PushService],
   exports: [EventsService, EventPaymentsService],
 })
 export class EventsModule {}
