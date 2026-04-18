@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Res, Delete } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Res, Delete, Param } from '@nestjs/common';
 import { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
