@@ -224,10 +224,15 @@ export class MentorBillingService {
 
   // ---------- Charges ----------
   async listCharges(mentorId: string, filter?: { status?: ChargeStatus; leadId?: string }) {
-    const qb = this.charges.createQueryBuilder('c').where('c.mentorId = :m', { m: mentorId });
-    if (filter?.status) qb.andWhere('c.status = :s', { s: filter.status });
-    if (filter?.leadId) qb.andWhere('c.leadId = :l', { l: filter.leadId });
-    return qb.orderBy('c.dueDate', 'DESC').getMany();
+    try {
+      const qb = this.charges.createQueryBuilder('c').where('c.mentorId = :m', { m: mentorId });
+      if (filter?.status) qb.andWhere('c.status = :s', { s: filter.status });
+      if (filter?.leadId) qb.andWhere('c.leadId = :l', { l: filter.leadId });
+      return await qb.orderBy('c.dueDate', 'DESC').getMany();
+    } catch (e: any) {
+      this.logger.warn(`listCharges falhou (schema desatualizado?): ${e?.message}. Retornando lista vazia.`);
+      return [];
+    }
   }
 
   async getCharge(mentorId: string, id: string) {
