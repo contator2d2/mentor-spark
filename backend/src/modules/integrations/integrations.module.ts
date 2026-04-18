@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MentorIntegration } from '../../entities/mentor-integration.entity';
 import { User } from '../../entities/user.entity';
@@ -9,8 +9,7 @@ import { PlansModule } from '../plans/plans.module';
 import { AdminModule } from '../admin/admin.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MentorIntegration, User]), PlansModule, AdminModule],
-  // exporta WhatsappService e GoogleCalendarService para uso em outros módulos
+  imports: [TypeOrmModule.forFeature([MentorIntegration, User]), PlansModule, forwardRef(() => AdminModule)],
   controllers: [IntegrationsController],
   providers: [WhatsappService, GoogleCalendarService],
   exports: [WhatsappService, GoogleCalendarService],
