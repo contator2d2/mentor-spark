@@ -50,6 +50,7 @@ import EventTicketPage from "./pages/EventTicketPage";
 import EventNpsPage from "./pages/EventNpsPage";
 import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
 import OnboardingPublicPage from "./pages/OnboardingPublicPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 import BoardsListPage from "./pages/app/BoardsListPage";
 import BoardDetailPage from "./pages/app/BoardDetailPage";
 import BoardSettingsPage from "./pages/app/BoardSettingsPage";
@@ -93,6 +94,16 @@ const App = () => (
               <Route path="/e/:slug/nps/:ticketCode" element={<EventNpsPage />} />
               <Route path="/quiz/:pin" element={<QuizPlayerPage />} />
               <Route path="/quiz" element={<QuizPlayerPage />} />
+
+              {/* Troca de senha (forçada no 1º login) — exige auth, qualquer role */}
+              <Route
+                path="/trocar-senha"
+                element={
+                  <ProtectedRoute roles={["mentor", "super_admin", "mentorado", "prospect"]}>
+                    <ChangePasswordPage />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Painel do mentor */}
               <Route
