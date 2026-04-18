@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ChevronLeft, Plus, Trash2, GripVertical, Save, Video, FileText, Headphones } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ImageUploadField } from "@/components/ImageUploadField";
 
 const LESSON_ICONS: any = { video: Video, article: FileText, audio: Headphones, pdf: FileText };
 
@@ -78,7 +79,13 @@ export default function TrailEditorPage() {
           <Card className="p-4 space-y-3">
             <div><Label>Título</Label><Input value={trail.title} onChange={(e) => setTrail({ ...trail, title: e.target.value })} /></div>
             <div><Label>Descrição</Label><Textarea value={trail.description || ""} onChange={(e) => setTrail({ ...trail, description: e.target.value })} /></div>
-            <div><Label>URL da capa</Label><Input value={trail.coverUrl || ""} onChange={(e) => setTrail({ ...trail, coverUrl: e.target.value })} /></div>
+            <ImageUploadField
+              label="Capa da trilha"
+              hint="Esta imagem aparece para os mentorados no card e na página da trilha."
+              aspect="16/9"
+              value={trail.coverUrl || ""}
+              onChange={(url) => setTrail({ ...trail, coverUrl: url })}
+            />
             <div>
               <Label>Modo de liberação</Label>
               <Select value={trail.releaseMode} onValueChange={(v) => setTrail({ ...trail, releaseMode: v })}>
