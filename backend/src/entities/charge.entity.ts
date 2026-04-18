@@ -70,6 +70,30 @@ export class Charge {
   @Column({ nullable: true })
   bankSlipUrl?: string;
 
+  // ============ Nota fiscal anexada manualmente pelo mentor ============
+  @Column({ nullable: true })
+  nfeUrl?: string;
+
+  @Column({ nullable: true })
+  nfeNumber?: string;
+
+  @Column({ nullable: true })
+  nfeFileName?: string;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  nfeIssuedAt?: Date;
+
+  // ============ Parcelamento ============
+  /** Charge "pai" quando esta cobrança é parte de um parcelamento */
+  @Column({ type: 'uuid', nullable: true })
+  parentChargeId?: string;
+
+  @Column({ type: 'int', nullable: true })
+  installmentNumber?: number;
+
+  @Column({ type: 'int', nullable: true })
+  installmentTotal?: number;
+
   /** Última vez que dispararam lembrete WhatsApp */
   @Column({ type: 'timestamptz', nullable: true })
   lastReminderAt?: Date;
