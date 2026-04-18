@@ -4,6 +4,7 @@ import { Injectable } from '@nestjs/common';
 
 export class JwtAuthGuard extends AuthGuard('jwt') {}
 
+
 export interface JwtPayload {
   sub: string;
   email: string;

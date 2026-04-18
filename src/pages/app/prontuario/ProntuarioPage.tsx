@@ -16,7 +16,7 @@ import {
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
   Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder, Settings,
-  Link2, UserPlus, FileSignature, Copy, Download, Building2,
+  Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProntuarioPayload, MentoredRecord, STAGE_META } from "./types";
@@ -34,6 +34,7 @@ import { AlertasTab } from "./tabs/AlertasTab";
 import { MateriaisTab } from "./tabs/MateriaisTab";
 import { IATab } from "./tabs/IATab";
 import { PersonalizacaoTab } from "./tabs/PersonalizacaoTab";
+import { FinanceiroTab } from "./tabs/FinanceiroTab";
 
 export default function ProntuarioPage() {
   const { id } = useParams();
@@ -266,6 +267,7 @@ export default function ProntuarioPage() {
           <TabsTrigger value="notes"><Lock className="h-3 w-3 mr-1" />Notas privadas</TabsTrigger>
           <TabsTrigger value="alerts"><Bell className="h-3 w-3 mr-1" />Alertas</TabsTrigger>
           <TabsTrigger value="materials"><Folder className="h-3 w-3 mr-1" />Materiais</TabsTrigger>
+          <TabsTrigger value="finance"><DollarSign className="h-3 w-3 mr-1" />Financeiro</TabsTrigger>
           <TabsTrigger value="ai"><Brain className="h-3 w-3 mr-1" />IA & Insights</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="h-3 w-3 mr-1" />Personalização</TabsTrigger>
         </TabsList>
@@ -290,6 +292,7 @@ export default function ProntuarioPage() {
         <TabsContent value="notes"><NotasPrivadasTab recordId={record.id} /></TabsContent>
         <TabsContent value="alerts"><AlertasTab recordId={record.id} /></TabsContent>
         <TabsContent value="materials"><MateriaisTab recordId={record.id} /></TabsContent>
+        <TabsContent value="finance"><FinanceiroTab leadId={lead.id} /></TabsContent>
 
         <TabsContent value="ai">
           <IATab

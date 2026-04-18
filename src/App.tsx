@@ -76,6 +76,7 @@ import { PwaPrompts } from "./components/PwaPrompts";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
+import MentoradoFinanceiro from "./pages/me/MentoradoFinanceiro";
 
 const queryClient = new QueryClient();
 
@@ -202,6 +203,7 @@ const App = () => (
                 <Route path="trails" element={<MentoradoTrailsList />} />
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
                 <Route path="community" element={<MentoradoCommunity />} />
+                <Route path="financeiro" element={<MentoradoFinanceiro />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
