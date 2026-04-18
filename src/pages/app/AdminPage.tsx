@@ -76,10 +76,24 @@ export default function AdminPage() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<Mentor | null>(null);
-  const [form, setForm] = useState<{ planId: string; planExpiresAt: string; status: string }>({
+  const [form, setForm] = useState<{
+    planId: string;
+    planExpiresAt: string;
+    status: string;
+    planBillingType: "monthly" | "upfront" | "";
+    planPaymentMethods: PaymentMethod[];
+    planDueDay: string;
+    planAmount: string;
+    planNotes: string;
+  }>({
     planId: "",
     planExpiresAt: "",
     status: "active",
+    planBillingType: "",
+    planPaymentMethods: [],
+    planDueDay: "",
+    planAmount: "",
+    planNotes: "",
   });
   const [saving, setSaving] = useState(false);
 
@@ -108,7 +122,21 @@ export default function AdminPage() {
       planId: m.planId || "none",
       planExpiresAt: m.planExpiresAt ? m.planExpiresAt.slice(0, 10) : "",
       status: m.status,
+      planBillingType: (m.planBillingType as any) || "",
+      planPaymentMethods: (m.planPaymentMethods || []) as PaymentMethod[],
+      planDueDay: m.planDueDay ? String(m.planDueDay) : "",
+      planAmount: m.planAmount != null ? String(m.planAmount) : "",
+      planNotes: m.planNotes || "",
     });
+  }
+
+  function togglePm(pm: PaymentMethod) {
+    setForm((f) => ({
+      ...f,
+      planPaymentMethods: f.planPaymentMethods.includes(pm)
+        ? f.planPaymentMethods.filter((x) => x !== pm)
+        : [...f.planPaymentMethods, pm],
+    }));
   }
 
   async function saveEdit() {
@@ -121,6 +149,11 @@ export default function AdminPage() {
           planId: form.planId === "none" ? null : form.planId,
           planExpiresAt: form.planExpiresAt || null,
           status: form.status,
+          planBillingType: form.planBillingType || null,
+          planPaymentMethods: form.planPaymentMethods,
+          planDueDay: form.planDueDay ? Number(form.planDueDay) : null,
+          planAmount: form.planAmount ? Number(form.planAmount) : null,
+          planNotes: form.planNotes || null,
         },
       });
       toast.success("Mentor atualizado");
