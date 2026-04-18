@@ -14,6 +14,7 @@ export type AutomationAction =
   | 'create_task'
   | 'send_whatsapp'
   | 'send_email'
+  | 'send_in_app'
   | 'change_lead_stage'
   | 'notify_mentor';
 
