@@ -11,6 +11,14 @@ export enum RegistrationStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum RegistrationPaymentStatus {
+  NOT_REQUIRED = 'not_required',
+  PENDING = 'pending',
+  PAID = 'paid',
+  REFUNDED = 'refunded',
+  FAILED = 'failed',
+}
+
 /** Inscrição de uma pessoa em um evento (lista de presença + check-in via QR). */
 @Entity('event_registrations')
 @Index(['eventId'])
@@ -77,6 +85,23 @@ export class EventRegistration {
 
   @Column({ type: 'timestamptz', nullable: true })
   npsAnsweredAt?: Date;
+
+  // ==================== Pagamento ====================
+  @Column({ type: 'uuid', nullable: true })
+  tierId?: string;
+
+  @Column({ type: 'enum', enum: RegistrationPaymentStatus, default: RegistrationPaymentStatus.NOT_REQUIRED })
+  paymentStatus: RegistrationPaymentStatus;
+
+  /** Total pago em centavos (consolidado a partir de event_payments). */
+  @Column({ type: 'int', default: 0 })
+  amountPaidCents: number;
+
+  @Column({ default: 'BRL' })
+  currency: string;
+
+  @Column({ type: 'timestamptz', nullable: true })
+  paidAt?: Date;
 
   @CreateDateColumn()
   createdAt: Date;
