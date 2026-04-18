@@ -40,6 +40,9 @@ import ContentsPage from "./pages/app/ContentsPage";
 import MeetingsListPage from "./pages/app/MeetingsListPage";
 import MeetingPreparePage from "./pages/app/MeetingPreparePage";
 import MeetingDetailPage from "./pages/app/MeetingDetailPage";
+import EventsPage from "./pages/app/EventsPage";
+import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
+import OnboardingPublicPage from "./pages/OnboardingPublicPage";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -68,6 +71,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/c/:slug" element={<CapturePage />} />
               <Route path="/c/:slug/test/:testId" element={<TestPlayer />} />
+              <Route path="/onboard/:token" element={<OnboardingPublicPage />} />
 
               {/* Painel do mentor */}
               <Route
@@ -93,6 +97,8 @@ const App = () => (
                 <Route path="ai" element={<AiAssistant />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="capture" element={<CaptureSettings />} />
+                <Route path="events" element={<EventsPage />} />
+                <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
                 <Route path="integrations" element={<IntegrationsPage />} />
                 <Route path="admin" element={<AdminPage />} />
