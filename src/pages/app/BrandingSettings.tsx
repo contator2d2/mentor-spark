@@ -331,13 +331,13 @@ export default function BrandingSettings() {
           </div>
 
           {domainStatus === "ok" && (
-            <div className="flex items-center gap-2 text-sm text-green-600">
+            <div className="flex items-center gap-2 text-sm text-primary">
               <CheckCircle2 className="h-4 w-4" />
               Domínio configurado e apontando corretamente!
             </div>
           )}
           {domainStatus === "error" && (
-            <div className="flex items-center gap-2 text-sm text-amber-600">
+            <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
               Domínio ainda não está apontando. Verifique o DNS abaixo (pode levar até 24h).
             </div>
