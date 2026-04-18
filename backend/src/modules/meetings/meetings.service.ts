@@ -85,12 +85,13 @@ export class MeetingsService {
   async createGoogleEvent(mentorId: string, meetingId: string) {
     const m = await this.meetings.findOne({ where: { id: meetingId, mentorId } });
     if (!m) return;
-    const eventId = await this.gcal.createEvent(mentorId, {
+    const ev = await this.gcal.createEvent(mentorId, {
       summary: m.title,
       startISO: m.scheduledAt.toISOString(),
       durationMinutes: m.durationMinutes || 60,
       description: m.meetingUrl ? `Link: ${m.meetingUrl}` : undefined,
     });
+    const eventId = typeof ev === 'string' ? ev : ev?.id;
     if (eventId) {
       m.googleCalendarEventId = eventId;
       await this.meetings.save(m);

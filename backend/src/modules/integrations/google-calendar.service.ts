@@ -132,8 +132,17 @@ export class GoogleCalendarService {
 
   async createEvent(
     mentorId: string,
-    evt: { summary: string; startISO: string; durationMinutes: number; description?: string },
-  ): Promise<string | null> {
+    evt: {
+      summary: string;
+      description?: string;
+      startsAt?: Date;
+      endsAt?: Date;
+      attendeeEmail?: string;
+      // legado:
+      startISO?: string;
+      durationMinutes?: number;
+    },
+  ): Promise<any | null> {
     const u = await this.users
       .createQueryBuilder('u')
       .addSelect('u.googleTokens')
@@ -143,24 +152,51 @@ export class GoogleCalendarService {
     const accessToken = await this.refreshIfNeeded(u);
     if (!accessToken) return null;
 
-    const start = new Date(evt.startISO);
-    const end = new Date(start.getTime() + evt.durationMinutes * 60_000);
+    const start = evt.startsAt || (evt.startISO ? new Date(evt.startISO) : new Date());
+    const end = evt.endsAt || new Date(start.getTime() + (evt.durationMinutes || 30) * 60_000);
 
-    const r = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        summary: evt.summary,
-        description: evt.description,
-        start: { dateTime: start.toISOString() },
-        end: { dateTime: end.toISOString() },
-      }),
-    });
+    const body: any = {
+      summary: evt.summary,
+      description: evt.description,
+      start: { dateTime: start.toISOString() },
+      end: { dateTime: end.toISOString() },
+      conferenceData: {
+        createRequest: {
+          requestId: `bk-${Date.now()}`,
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      },
+    };
+    if (evt.attendeeEmail) body.attendees = [{ email: evt.attendeeEmail }];
+
+    const r = await fetch(
+      'https://www.googleapis.com/calendar/v3/calendars/primary/events?conferenceDataVersion=1&sendUpdates=all',
+      {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      },
+    );
     if (!r.ok) {
       this.logger.warn(`Google Calendar createEvent ${r.status}: ${(await r.text()).slice(0, 200)}`);
       return null;
     }
-    const data: any = await r.json();
-    return data.id || null;
+    return r.json();
+  }
+
+  async deleteEvent(mentorId: string, eventId: string): Promise<boolean> {
+    const u = await this.users
+      .createQueryBuilder('u')
+      .addSelect('u.googleTokens')
+      .where('u.id = :id', { id: mentorId })
+      .getOne();
+    if (!u?.googleTokens?.access_token) return false;
+    const accessToken = await this.refreshIfNeeded(u);
+    if (!accessToken) return false;
+    const r = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/primary/events/${eventId}?sendUpdates=all`,
+      { method: 'DELETE', headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    return r.ok;
   }
 }

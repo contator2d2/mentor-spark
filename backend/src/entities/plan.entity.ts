@@ -69,6 +69,18 @@ export class Plan {
   @Column({ default: true })
   allowMessaging: boolean;
 
+  /** Agenda pública (Calendly-like) */
+  @Column({ default: false })
+  allowScheduling: boolean;
+
+  /** Cobrança recorrente de mentorados via Asaas */
+  @Column({ default: false })
+  allowMentorBilling: boolean;
+
+  /** Trilhas de conteúdo / cursos */
+  @Column({ default: false })
+  allowTrails: boolean;
+
   @Column({ default: true })
   isActive: boolean;
 
