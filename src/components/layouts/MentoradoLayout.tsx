@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap } from "lucide-react";
+import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,8 +19,8 @@ import {
 const NAV = [
   { to: "/me", label: "Início", icon: Home, end: true },
   { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
+  { to: "/me/community", label: "Comunidade", icon: Users },
   { to: "/me/tests", label: "Testes", icon: ClipboardList },
-  { to: "/me/meetings", label: "Agenda", icon: Calendar },
 ];
 
 export default function MentoradoLayout() {

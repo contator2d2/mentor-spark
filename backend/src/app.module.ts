@@ -40,6 +40,7 @@ import { LibraryModule } from './modules/library/library.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { TrailsModule } from './modules/trails/trails.module';
+import { CommunityModule } from './modules/community/community.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { buildPgOptions } from './db.config';
@@ -92,6 +93,7 @@ import { buildPgOptions } from './db.config';
     QuizModule,
     SchedulingModule,
     TrailsModule,
+    CommunityModule,
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
