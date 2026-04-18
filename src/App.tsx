@@ -98,8 +98,8 @@ const App = () => (
         <Toaster />
         <Sonner position="top-right" />
         <BrowserRouter>
-          <BrandingProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <BrandingProvider>
             <Routes>
               <Route path="/" element={<HomeRedirect />} />
               <Route path="/login" element={<Login />} />
@@ -214,8 +214,8 @@ const App = () => (
             </Routes>
             <PwaPrompts />
             <OfflineIndicator />
-            </AuthProvider>
-          </BrandingProvider>
+            </BrandingProvider>
+          </AuthProvider>
         </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
