@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../../entities/user.entity';
 import { AiProvider } from '../../entities/ai-provider.entity';
@@ -23,7 +23,7 @@ import { AsaasService } from '../billing/asaas.service';
   imports: [
     TypeOrmModule.forFeature([User, AiProvider, Lead, TestResponse, Meeting, Plan, Subscription, Charge, AppSetting, MentorAiConfig]),
     AiModule,
-    AuthModule,
+    forwardRef(() => AuthModule),
   ],
   controllers: [AdminController, AiProvidersController, AppSettingsController, AiUsageAdminController],
   providers: [AppSettingsService, AsaasService],
