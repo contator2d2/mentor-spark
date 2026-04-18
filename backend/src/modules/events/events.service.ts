@@ -101,6 +101,10 @@ export class EventsService {
       defaultTestTemplateId: dto.defaultTestTemplateId,
       coverImageUrl: dto.coverImageUrl,
       isActive: dto.isActive ?? true,
+      isPaid: dto.isPaid ?? false,
+      paymentMode: dto.paymentMode || 'optional',
+      paymentProviderId: dto.paymentProviderId || null,
+      currency: dto.currency || 'BRL',
       slug: makeSlug(dto.name),
     });
     return this.events.save(ev);
