@@ -53,6 +53,12 @@ export default function ProntuarioPage() {
 
   const dossierLeadId = data?.lead?.id ?? id;
 
+  function reloadProntuario() {
+    const target = dossierLeadId || id;
+    if (!target) return;
+    api<ProntuarioPayload>(`/prontuario/${target}`).then(setData).catch(() => {});
+  }
+
   useEffect(() => {
     if (!id) return;
     api<ProntuarioPayload>(`/prontuario/${id}`)
@@ -284,9 +290,9 @@ export default function ProntuarioPage() {
         <TabsContent value="metrics"><IndicadoresTab recordId={record.id} /></TabsContent>
         <TabsContent value="plan"><PlanoAcaoTab leadId={lead.id} /></TabsContent>
 
-        <TabsContent value="tests"><TestesTab data={data} /></TabsContent>
-        <TabsContent value="meetings"><ReunioesTab data={data} /></TabsContent>
-        <TabsContent value="tasks"><TarefasTab data={data} /></TabsContent>
+        <TabsContent value="tests"><TestesTab data={data} onChanged={reloadProntuario} /></TabsContent>
+        <TabsContent value="meetings"><ReunioesTab data={data} onChanged={reloadProntuario} /></TabsContent>
+        <TabsContent value="tasks"><TarefasTab data={data} onChanged={reloadProntuario} /></TabsContent>
 
         <TabsContent value="timeline"><TimelineTab data={data} recordId={record.id} /></TabsContent>
         <TabsContent value="notes"><NotasPrivadasTab recordId={record.id} /></TabsContent>
