@@ -81,6 +81,14 @@ export class Plan {
   @Column({ default: false })
   allowTrails: boolean;
 
+  /** Comunidade / feed de membros */
+  @Column({ default: false })
+  allowCommunity: boolean;
+
+  /** Analytics avançado (funil, MRR, LTV) */
+  @Column({ default: false })
+  allowAdvancedAnalytics: boolean;
+
   @Column({ default: true })
   isActive: boolean;
 

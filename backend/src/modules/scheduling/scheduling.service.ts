@@ -216,25 +216,46 @@ export class SchedulingService {
     return this.bookings.save(b);
   }
 
-  /** Lembrete 24h antes via WhatsApp */
-  @Cron(CronExpression.EVERY_30_MINUTES)
+  /** Lembretes 24h e 1h antes via WhatsApp */
+  @Cron(CronExpression.EVERY_10_MINUTES)
   async sendReminders() {
     const now = Date.now();
+
+    // 24h
     const in24h = new Date(now + 24 * 3600_000);
     const in23h = new Date(now + 23 * 3600_000);
-    const upcoming = await this.bookings.createQueryBuilder('b')
+    const upcoming24 = await this.bookings.createQueryBuilder('b')
       .where('b.status = :s AND b.startsAt BETWEEN :a AND :b AND b.reminderSentAt IS NULL',
         { s: BookingStatus.CONFIRMED, a: in23h, b: in24h })
       .getMany();
-    for (const b of upcoming) {
+    for (const b of upcoming24) {
       if (b.guestPhone) {
         await this.whatsapp.sendText(
           b.mentorId,
           b.guestPhone,
-          `Lembrete: você tem um agendamento amanhã (${b.startsAt.toLocaleString('pt-BR')}). ${b.meetingUrl ? `Link: ${b.meetingUrl}` : ''}`,
+          `📅 Lembrete: você tem um agendamento amanhã (${b.startsAt.toLocaleString('pt-BR')}). ${b.meetingUrl ? `Link: ${b.meetingUrl}` : ''}`,
         ).catch(() => null);
       }
       b.reminderSentAt = new Date();
+      await this.bookings.save(b);
+    }
+
+    // 1h antes
+    const in1h = new Date(now + 60 * 60_000);
+    const in50m = new Date(now + 50 * 60_000);
+    const upcoming1h = await this.bookings.createQueryBuilder('b')
+      .where('b.status = :s AND b.startsAt BETWEEN :a AND :b AND b.reminder1hSentAt IS NULL',
+        { s: BookingStatus.CONFIRMED, a: in50m, b: in1h })
+      .getMany();
+    for (const b of upcoming1h) {
+      if (b.guestPhone) {
+        await this.whatsapp.sendText(
+          b.mentorId,
+          b.guestPhone,
+          `⏰ Sua reunião começa em 1h (${b.startsAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}). ${b.meetingUrl ? `\n📹 Acesse: ${b.meetingUrl}` : ''}`,
+        ).catch(() => null);
+      }
+      b.reminder1hSentAt = new Date();
       await this.bookings.save(b);
     }
   }

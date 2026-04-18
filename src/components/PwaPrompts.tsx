@@ -52,7 +52,7 @@ export function PwaPrompts() {
       if (!key) { toast.error("Chave VAPID não configurada."); return; }
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(key),
+        applicationServerKey: urlBase64ToUint8Array(key) as BufferSource,
       });
       const json = sub.toJSON() as any;
       await api("/push/subscribe", { method: "POST", body: { endpoint: json.endpoint, keys: json.keys, userAgent: navigator.userAgent } });
