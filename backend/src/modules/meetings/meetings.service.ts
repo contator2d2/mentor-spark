@@ -48,20 +48,28 @@ export class MeetingsService {
   }
 
   private async transcribeWithWhisper(audioPath: string): Promise<string> {
-    const apiKey = process.env.OPENAI_API_KEY;
+    // Pega provider de transcrição cadastrado pelo super_admin (em /admin/ai-providers).
+    // Fallback: usa OPENAI_API_KEY do env como retrocompat.
+    const provider = await this.ai.getTranscriptionProvider();
+    const apiKey = provider?.apiKey || process.env.OPENAI_API_KEY;
+    const baseUrl = (provider?.baseUrl || 'https://api.openai.com/v1').replace(/\/$/, '');
+    const model = provider?.transcriptionModel || 'whisper-1';
+
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY não configurada — necessária para transcrição Whisper');
+      throw new Error(
+        'Nenhum provider de transcrição configurado. Acesse Admin → Provedores de IA e marque um provider OpenAI-compatível com "Usar para transcrição".',
+      );
     }
     if (!fs.existsSync(audioPath)) throw new Error('Arquivo de áudio não encontrado');
 
     const FormData = require('form-data');
     const form = new FormData();
     form.append('file', fs.createReadStream(audioPath));
-    form.append('model', 'whisper-1');
+    form.append('model', model);
     form.append('language', 'pt');
     form.append('response_format', 'text');
 
-    const r = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    const r = await fetch(`${baseUrl}/audio/transcriptions`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}`, ...form.getHeaders() },
       body: form,

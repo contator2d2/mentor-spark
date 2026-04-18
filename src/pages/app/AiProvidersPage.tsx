@@ -34,6 +34,8 @@ interface Provider {
   model: string;
   enabled: boolean;
   isDefault: boolean;
+  useForTranscription: boolean;
+  transcriptionModel?: string;
   createdAt: string;
 }
 
@@ -59,6 +61,8 @@ const emptyForm: Partial<Provider> = {
   model: "gpt-4o-mini",
   enabled: true,
   isDefault: false,
+  useForTranscription: false,
+  transcriptionModel: "whisper-1",
 };
 
 export default function AiProvidersPage() {
@@ -181,9 +185,14 @@ export default function AiProvidersPage() {
             )}
             {items.map((p) => (
               <tr key={p.id} className="border-t border-border">
-                <td className="p-3 font-medium flex items-center gap-2">
-                  {p.isDefault && <Star className="h-4 w-4 fill-amber-400 text-amber-400" />}
-                  {p.name}
+                <td className="p-3 font-medium">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {p.isDefault && <Star className="h-4 w-4 fill-amber-400 text-amber-400" />}
+                    {p.name}
+                    {p.useForTranscription && (
+                      <Badge variant="outline" className="text-xs">🎙️ Transcrição</Badge>
+                    )}
+                  </div>
                 </td>
                 <td className="p-3 text-muted-foreground">{TYPE_LABELS[p.type]}</td>
                 <td className="p-3 font-mono text-xs">{p.model}</td>
@@ -286,9 +295,37 @@ export default function AiProvidersPage() {
               <Switch checked={!!form.enabled} onCheckedChange={(v) => setForm({ ...form, enabled: v })} />
             </div>
             <div className="flex items-center justify-between">
-              <Label>Definir como padrão global</Label>
+              <div>
+                <Label>Definir como padrão global (chat/análise/resumo)</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Usado em assistente IA, análise de testes, resumo de reuniões.</p>
+              </div>
               <Switch checked={!!form.isDefault} onCheckedChange={(v) => setForm({ ...form, isDefault: v })} />
             </div>
+            {(form.type === "openai" || form.type === "openai_compatible") && (
+              <>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label>Usar para transcrição de áudio (Whisper)</Label>
+                    <p className="text-xs text-muted-foreground mt-0.5">Necessário para transcrever reuniões. Só providers OpenAI-compatíveis com endpoint /audio/transcriptions (OpenAI, Groq).</p>
+                  </div>
+                  <Switch
+                    checked={!!form.useForTranscription}
+                    onCheckedChange={(v) => setForm({ ...form, useForTranscription: v })}
+                  />
+                </div>
+                {form.useForTranscription && (
+                  <div className="space-y-2">
+                    <Label>Modelo de transcrição</Label>
+                    <Input
+                      placeholder="whisper-1"
+                      value={form.transcriptionModel || ""}
+                      onChange={(e) => setForm({ ...form, transcriptionModel: e.target.value })}
+                    />
+                    <p className="text-xs text-muted-foreground">Ex: <code>whisper-1</code> (OpenAI), <code>whisper-large-v3</code> (Groq).</p>
+                  </div>
+                )}
+              </>
+            )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>

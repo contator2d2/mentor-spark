@@ -13,6 +13,7 @@ import { AiProvider, AiProviderType } from '../../entities/ai-provider.entity';
 export class AiService {
   private readonly logger = new Logger(AiService.name);
   private cachedDefault: AiProvider | null = null;
+  private cachedTranscription: AiProvider | null = null;
   private cachedAt = 0;
 
   constructor(
@@ -26,6 +27,7 @@ export class AiService {
 
   invalidateProviderCache() {
     this.cachedDefault = null;
+    this.cachedTranscription = null;
     this.cachedAt = 0;
   }
 
@@ -36,6 +38,14 @@ export class AiService {
     this.cachedDefault = p || null;
     this.cachedAt = Date.now();
     return this.cachedDefault;
+  }
+
+  /** Pega o provider marcado para transcrição de áudio (Whisper). */
+  async getTranscriptionProvider(): Promise<AiProvider | null> {
+    if (this.cachedTranscription && Date.now() - this.cachedAt < 60_000) return this.cachedTranscription;
+    const p = await this.providers.findOne({ where: { useForTranscription: true, enabled: true } });
+    this.cachedTranscription = p || null;
+    return this.cachedTranscription;
   }
 
   // ---------- Mentor config ----------
