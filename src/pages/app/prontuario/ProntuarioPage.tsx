@@ -312,6 +312,7 @@ export default function ProntuarioPage() {
           />
         </TabsContent>
 
+        <TabsContent value="access"><AcessoTab leadId={lead.id} /></TabsContent>
         <TabsContent value="settings"><PersonalizacaoTab /></TabsContent>
       </Tabs>
     </div>
