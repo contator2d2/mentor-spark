@@ -28,7 +28,7 @@ class GenerateContractDto {
 }
 
 class AiGenerateTemplateDto {
-  @IsString() contractType: string; // mentoria | consultoria | coaching | nda | prestacao_servicos | personalizado
+  @IsString() contractType: string;
   @IsOptional() @IsString() segment?: string;
   @IsOptional() @IsString() objective?: string;
   @IsOptional() @IsString() durationMonths?: string;
@@ -36,7 +36,11 @@ class AiGenerateTemplateDto {
   @IsOptional() @IsString() paymentTerms?: string;
   @IsOptional() @IsString() jurisdiction?: string;
   @IsOptional() @IsString() extraClauses?: string;
-  @IsOptional() @IsString() tone?: string; // formal | acessível
+  @IsOptional() @IsString() tone?: string;
+  @IsOptional() @IsString() paymentCondition?: string; // a_vista | parcelado | mensal
+  @IsOptional() @IsString() installments?: string;
+  @IsOptional() @IsString() totalPrice?: string;
+  @IsOptional() paymentMethods?: string[]; // ['cartao','boleto','pix']
 }
 
 @Controller('contracts')
