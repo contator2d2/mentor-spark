@@ -267,6 +267,7 @@ export default function ProntuarioPage() {
           <TabsTrigger value="alerts"><Bell className="h-3 w-3 mr-1" />Alertas</TabsTrigger>
           <TabsTrigger value="materials"><Folder className="h-3 w-3 mr-1" />Materiais</TabsTrigger>
           <TabsTrigger value="ai"><Brain className="h-3 w-3 mr-1" />IA & Insights</TabsTrigger>
+          <TabsTrigger value="settings"><Settings className="h-3 w-3 mr-1" />Personalização</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
@@ -291,13 +292,16 @@ export default function ProntuarioPage() {
         <TabsContent value="materials"><MateriaisTab recordId={record.id} /></TabsContent>
 
         <TabsContent value="ai">
-          <ComingSoonTab
-            icon={Brain}
-            title="IA & Insights"
-            description="Resumos consolidados, padrões recorrentes, sugestões de pauta e tarefas geradas pela IA com seu prompt e metodologia."
-            phase="Fase 4"
+          <IATab
+            recordId={record.id}
+            onSummaryPromoted={() => {
+              // Recarrega prontuário para refletir novo currentSummary
+              api<ProntuarioPayload>(`/prontuario/${id}`).then(setData).catch(() => {});
+            }}
           />
         </TabsContent>
+
+        <TabsContent value="settings"><PersonalizacaoTab /></TabsContent>
       </Tabs>
     </div>
   );
