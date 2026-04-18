@@ -53,6 +53,11 @@ export class AdminController {
         planName: plan?.name || null,
         planPriceMonthly: plan ? Number(plan.priceMonthly) : 0,
         planExpiresAt: m.planExpiresAt || null,
+        planBillingType: m.planBillingType || null,
+        planPaymentMethods: m.planPaymentMethods || [],
+        planDueDay: m.planDueDay || null,
+        planAmount: m.planAmount != null ? Number(m.planAmount) : null,
+        planNotes: m.planNotes || null,
         isExpired,
       };
     });
@@ -110,6 +115,11 @@ export class AdminController {
       planId?: string | null;
       planExpiresAt?: string | null;
       status?: UserStatus;
+      planBillingType?: 'monthly' | 'upfront' | null;
+      planPaymentMethods?: string[];
+      planDueDay?: number | null;
+      planAmount?: number | null;
+      planNotes?: string | null;
     },
   ) {
     const patch: any = {};
@@ -118,6 +128,13 @@ export class AdminController {
       patch.planExpiresAt = body.planExpiresAt ? new Date(body.planExpiresAt) : null;
     }
     if (body.status) patch.status = body.status;
+    if (body.planBillingType !== undefined) patch.planBillingType = body.planBillingType || null;
+    if (body.planPaymentMethods !== undefined) patch.planPaymentMethods = body.planPaymentMethods || [];
+    if (body.planDueDay !== undefined) {
+      patch.planDueDay = body.planDueDay ? Math.max(1, Math.min(28, Number(body.planDueDay))) : null;
+    }
+    if (body.planAmount !== undefined) patch.planAmount = body.planAmount != null ? Number(body.planAmount) : null;
+    if (body.planNotes !== undefined) patch.planNotes = body.planNotes || null;
     await this.users.update(id, patch);
     return this.users.findOne({ where: { id } });
   }
