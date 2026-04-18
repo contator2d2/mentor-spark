@@ -36,7 +36,7 @@ export default function MentoradoLayout() {
       .then((list) => {
         const arr = Array.isArray(list) ? list : [];
         setNotifications(arr.slice(0, 10));
-        setUnread(arr.filter((n) => !n.readAt).length);
+        setUnread(arr.filter((n) => !n.read).length);
       })
       .catch(() => {});
   }, []);
@@ -44,7 +44,7 @@ export default function MentoradoLayout() {
   async function markAllRead() {
     try {
       await api("/notifications/read-all", { method: "POST" });
-      setNotifications((prev) => prev.map((n) => ({ ...n, readAt: new Date().toISOString() })));
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
       setUnread(0);
     } catch {}
   }
@@ -119,7 +119,7 @@ export default function MentoradoLayout() {
                         key={n.id}
                         className={cn(
                           "flex flex-col items-start gap-0.5 py-2.5",
-                          !n.readAt && "bg-primary/5",
+                          !n.read && "bg-primary/5",
                         )}
                       >
                         <div className="text-sm font-medium">{n.title || "Atualização"}</div>
