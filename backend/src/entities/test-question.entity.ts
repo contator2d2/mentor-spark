@@ -38,4 +38,8 @@ export class TestQuestion {
 
   @Column({ type: 'int', default: 1 })
   weight: number;
+
+  /** Categoria avaliada por essa pergunta (referência a TestTemplate.categories[].key) */
+  @Column({ type: 'varchar', length: 64, nullable: true })
+  categoryKey?: string;
 }
