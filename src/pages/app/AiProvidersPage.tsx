@@ -49,9 +49,56 @@ const TYPE_LABELS: Record<ProviderType, string> = {
 const DEFAULT_MODELS: Record<ProviderType, string> = {
   openai: "gpt-4o-mini",
   gemini: "gemini-2.5-flash",
-  anthropic: "claude-3-5-sonnet-20241022",
+  anthropic: "claude-sonnet-4-5-20250929",
   openai_compatible: "openai/gpt-4o-mini",
 };
+
+// Modelos atualizados (2025) por provedor — usuário pode escolher ou digitar custom
+const MODEL_OPTIONS: Record<ProviderType, { value: string; label: string }[]> = {
+  openai: [
+    { value: "gpt-5", label: "GPT-5 (mais inteligente)" },
+    { value: "gpt-5-mini", label: "GPT-5 Mini (balanceado)" },
+    { value: "gpt-5-nano", label: "GPT-5 Nano (rápido/barato)" },
+    { value: "gpt-4.1", label: "GPT-4.1" },
+    { value: "gpt-4.1-mini", label: "GPT-4.1 Mini" },
+    { value: "gpt-4o", label: "GPT-4o" },
+    { value: "gpt-4o-mini", label: "GPT-4o Mini" },
+    { value: "o3", label: "o3 (raciocínio profundo)" },
+    { value: "o4-mini", label: "o4-mini (raciocínio rápido)" },
+  ],
+  gemini: [
+    { value: "gemini-2.5-pro", label: "Gemini 2.5 Pro (top)" },
+    { value: "gemini-2.5-flash", label: "Gemini 2.5 Flash (balanceado)" },
+    { value: "gemini-2.5-flash-lite", label: "Gemini 2.5 Flash Lite (rápido)" },
+    { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+    { value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
+  ],
+  anthropic: [
+    { value: "claude-opus-4-5-20250929", label: "Claude Opus 4.5 (top)" },
+    { value: "claude-sonnet-4-5-20250929", label: "Claude Sonnet 4.5 (recomendado)" },
+    { value: "claude-3-7-sonnet-20250219", label: "Claude 3.7 Sonnet" },
+    { value: "claude-3-5-sonnet-20241022", label: "Claude 3.5 Sonnet" },
+    { value: "claude-3-5-haiku-20241022", label: "Claude 3.5 Haiku (rápido)" },
+  ],
+  openai_compatible: [
+    { value: "openai/gpt-4o-mini", label: "OpenRouter — GPT-4o Mini" },
+    { value: "openai/gpt-5-mini", label: "OpenRouter — GPT-5 Mini" },
+    { value: "anthropic/claude-sonnet-4.5", label: "OpenRouter — Claude Sonnet 4.5" },
+    { value: "google/gemini-2.5-flash", label: "OpenRouter — Gemini 2.5 Flash" },
+    { value: "meta-llama/llama-3.3-70b-instruct", label: "OpenRouter — Llama 3.3 70B" },
+    { value: "deepseek/deepseek-chat", label: "OpenRouter — DeepSeek V3" },
+    { value: "llama-3.3-70b-versatile", label: "Groq — Llama 3.3 70B" },
+    { value: "mixtral-8x7b-32768", label: "Groq — Mixtral 8x7B" },
+  ],
+};
+
+const TRANSCRIPTION_MODELS = [
+  { value: "whisper-1", label: "whisper-1 (OpenAI)" },
+  { value: "gpt-4o-transcribe", label: "gpt-4o-transcribe (OpenAI, melhor qualidade)" },
+  { value: "gpt-4o-mini-transcribe", label: "gpt-4o-mini-transcribe (OpenAI, rápido)" },
+  { value: "whisper-large-v3", label: "whisper-large-v3 (Groq, ultra rápido)" },
+  { value: "whisper-large-v3-turbo", label: "whisper-large-v3-turbo (Groq)" },
+];
 
 const emptyForm: Partial<Provider> = {
   name: "",
