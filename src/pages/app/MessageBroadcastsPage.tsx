@@ -15,15 +15,18 @@ import { Link } from "react-router-dom";
 import { MediaUpload } from "@/components/MediaUpload";
 
 type Channel = "in_app" | "whatsapp" | "email";
+type Mode = "leads" | "groups";
 
 interface Lead { id: string; name: string; email?: string; phone?: string; }
 interface Step { body: string; subject?: string; delaySeconds?: number; attachments?: any[] }
+interface Group { jid: string; name: string; isChannel?: boolean; participants?: number; }
 interface Broadcast {
   id: string; name: string; channel: Channel; status: string;
   totalRecipients: number; sentCount: number; failedCount: number;
   scheduledAt?: string; startedAt?: string; finishedAt?: string;
   perRecipientDelaySeconds: number; jitter: number;
   sequence: Step[]; leadIds: string[];
+  groupTargets?: { jid: string; name?: string; isChannel?: boolean }[];
 }
 interface Template { id: string; name: string; channel: Channel; subject?: string; body: string; attachments?: any[] }
 
