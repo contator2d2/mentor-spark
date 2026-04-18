@@ -21,6 +21,15 @@ export enum MessageStatus {
   FAILED = 'failed',
 }
 
+export interface MessageAttachment {
+  url: string;
+  mimetype?: string;
+  originalName?: string;
+  /** image | audio | video | document */
+  kind?: string;
+  caption?: string;
+}
+
 @Entity('messages')
 @Index(['mentorId', 'leadId'])
 @Index(['mentorId', 'status'])
@@ -77,6 +86,26 @@ export class Message {
   /** Telefone/email destinatário renderizado */
   @Column({ nullable: true })
   recipientAddress?: string;
+
+  /** Anexos (urls de /uploads ou externas) */
+  @Column({ type: 'jsonb', nullable: true })
+  attachments?: MessageAttachment[];
+
+  /** Se faz parte de uma sequência multi-mensagem */
+  @Column({ type: 'uuid', nullable: true })
+  sequenceId?: string;
+
+  /** Posição dentro da sequência (0-based) */
+  @Column({ type: 'int', nullable: true })
+  sequenceStep?: number;
+
+  /** Se faz parte de um broadcast em massa */
+  @Column({ type: 'uuid', nullable: true })
+  broadcastId?: string;
+
+  /** Marca envio de teste (não conta em métricas) */
+  @Column({ default: false })
+  isTest: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
   metadata?: Record<string, any>;
