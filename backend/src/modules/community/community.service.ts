@@ -19,31 +19,38 @@ export class CommunityService {
     private notifications: NotificationsService,
   ) {}
 
+  /** payload JWT usa `sub`. Normaliza para id do user. */
+  private uid(user: any): string {
+    return user.sub || user.id;
+  }
+
   /** Resolve mentorId a partir do user logado (mentor cria; mentorado vê do seu mentor). */
   private async resolveMentorId(user: any): Promise<string> {
-    if (user.role === 'mentor' || user.role === 'super_admin') return user.id;
+    if (user.role === 'mentor' || user.role === 'super_admin') return this.uid(user);
+    if (user.role === 'mentor_team' && user.parentMentorId) return user.parentMentorId;
     if (user.mentorId) return user.mentorId;
-    // mentorado/prospect: busca via lead
-    const lead = await this.leads.findOne({ where: { userId: user.id } as any });
+    const lead = await this.leads.findOne({ where: { userId: this.uid(user) } as any });
     if (lead) return lead.mentorId;
     throw new ForbiddenException('Sem mentor vinculado');
   }
 
   async listPosts(user: any, audienceFilter?: string) {
     const mentorId = await this.resolveMentorId(user);
+    const userId = this.uid(user);
     const qb = this.posts.createQueryBuilder('p').where('p.mentorId = :m', { m: mentorId });
-    // mentorados só veem audiência 'all' ou 'clients' (e cohorts próprias futuras)
-    if (user.role !== 'mentor' && user.role !== 'super_admin') {
+    if (user.role !== 'mentor' && user.role !== 'super_admin' && user.role !== 'mentor_team') {
       qb.andWhere("p.audience IN ('all', 'clients')");
     }
     if (audienceFilter) qb.andWhere('p.audience = :a', { a: audienceFilter });
     qb.orderBy('p.pinned', 'DESC').addOrderBy('p.createdAt', 'DESC').take(50);
     const list = await qb.getMany();
 
-    // Anexa minhas reações
     const ids = list.map((p) => p.id);
     if (!ids.length) return [];
-    const myRx = await this.reactions.find({ where: ids.map((id) => ({ postId: id, userId: user.id })) });
+    const myRx = await this.reactions
+      .createQueryBuilder('r')
+      .where('r.userId = :uid AND r.postId IN (:...ids)', { uid: userId, ids })
+      .getMany();
     const rxByPost = await this.reactions.createQueryBuilder('r')
       .select('r.postId', 'postId')
       .addSelect('r.emoji', 'emoji')
@@ -60,10 +67,12 @@ export class CommunityService {
 
   async createPost(user: any, dto: Partial<CommunityPost>) {
     const mentorId = await this.resolveMentorId(user);
-    const u = await this.users.findOne({ where: { id: user.id } });
+    const userId = this.uid(user);
+    const u = await this.users.findOne({ where: { id: userId } });
+    const isMentorRole = user.role === 'mentor' || user.role === 'super_admin' || user.role === 'mentor_team';
     const post = this.posts.create({
       mentorId,
-      authorId: user.id,
+      authorId: userId,
       authorRole: user.role,
       authorName: u?.name,
       authorAvatarUrl: u?.brandLogoUrl,
@@ -71,8 +80,8 @@ export class CommunityService {
       title: dto.title,
       media: dto.media || [],
       audience: dto.audience || 'all',
-      pinned: (user.role === 'mentor' || user.role === 'super_admin') ? !!dto.pinned : false,
-      locked: (user.role === 'mentor' || user.role === 'super_admin') ? !!dto.locked : false,
+      pinned: isMentorRole ? !!dto.pinned : false,
+      locked: isMentorRole ? !!dto.locked : false,
     });
     return this.posts.save(post);
   }
@@ -81,8 +90,10 @@ export class CommunityService {
     const p = await this.posts.findOne({ where: { id } });
     if (!p) throw new NotFoundException();
     const mentorId = await this.resolveMentorId(user);
+    const userId = this.uid(user);
     if (p.mentorId !== mentorId) throw new ForbiddenException();
-    if (p.authorId !== user.id && user.role !== 'mentor' && user.role !== 'super_admin') throw new ForbiddenException();
+    const isMentorRole = user.role === 'mentor' || user.role === 'super_admin' || user.role === 'mentor_team';
+    if (p.authorId !== userId && !isMentorRole) throw new ForbiddenException();
     await this.comments.delete({ postId: id });
     await this.reactions.delete({ postId: id });
     await this.posts.delete(id);
@@ -91,7 +102,7 @@ export class CommunityService {
 
   async togglePin(user: any, id: string) {
     if (user.role !== 'mentor' && user.role !== 'super_admin') throw new ForbiddenException();
-    const p = await this.posts.findOne({ where: { id, mentorId: user.id } });
+    const p = await this.posts.findOne({ where: { id, mentorId: this.uid(user) } });
     if (!p) throw new NotFoundException();
     p.pinned = !p.pinned;
     return this.posts.save(p);
@@ -108,14 +119,16 @@ export class CommunityService {
   async addComment(user: any, postId: string, body: string) {
     const p = await this.posts.findOne({ where: { id: postId } });
     if (!p) throw new NotFoundException();
-    if (p.locked && user.role !== 'mentor' && user.role !== 'super_admin') throw new ForbiddenException('Post bloqueado para comentários');
+    const isMentorRole = user.role === 'mentor' || user.role === 'super_admin' || user.role === 'mentor_team';
+    if (p.locked && !isMentorRole) throw new ForbiddenException('Post bloqueado para comentários');
     const mentorId = await this.resolveMentorId(user);
     if (p.mentorId !== mentorId) throw new ForbiddenException();
-    const u = await this.users.findOne({ where: { id: user.id } });
+    const userId = this.uid(user);
+    const u = await this.users.findOne({ where: { id: userId } });
     const c = await this.comments.save(this.comments.create({
       postId,
       mentorId: p.mentorId,
-      authorId: user.id,
+      authorId: userId,
       authorRole: user.role,
       authorName: u?.name,
       authorAvatarUrl: u?.brandLogoUrl,
@@ -123,8 +136,7 @@ export class CommunityService {
     }));
     p.commentCount = (p.commentCount || 0) + 1;
     await this.posts.save(p);
-    // Notifica autor do post se não for ele mesmo
-    if (p.authorId !== user.id) {
+    if (p.authorId !== userId) {
       await this.notifications.create({
         userId: p.authorId,
         type: 'community_comment',
@@ -140,12 +152,13 @@ export class CommunityService {
     if (!p) throw new NotFoundException();
     const mentorId = await this.resolveMentorId(user);
     if (p.mentorId !== mentorId) throw new ForbiddenException();
-    const existing = await this.reactions.findOne({ where: { postId, userId: user.id, emoji } });
+    const userId = this.uid(user);
+    const existing = await this.reactions.findOne({ where: { postId, userId, emoji } });
     if (existing) {
       await this.reactions.delete(existing.id);
       p.reactionCount = Math.max(0, (p.reactionCount || 0) - 1);
     } else {
-      await this.reactions.save(this.reactions.create({ postId, userId: user.id, emoji }));
+      await this.reactions.save(this.reactions.create({ postId, userId, emoji }));
       p.reactionCount = (p.reactionCount || 0) + 1;
     }
     await this.posts.save(p);
