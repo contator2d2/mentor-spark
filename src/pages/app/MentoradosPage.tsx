@@ -15,6 +15,7 @@ import {
 
 interface Mentorado {
   id: string;
+  leadId?: string | null;
   name: string;
   email: string;
   phone?: string;
@@ -86,7 +87,6 @@ export default function MentoradosPage() {
 
   return (
     <div className="space-y-8">
-      {/* HERO */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-hero border border-border/60 p-8 md:p-10">
         <div className="absolute inset-0 bg-grid opacity-40" />
         <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-secondary/20 blur-3xl" />
@@ -189,7 +189,6 @@ export default function MentoradosPage() {
         </div>
       </div>
 
-      {/* SEARCH */}
       <div className="relative animate-fade-in">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
@@ -200,7 +199,6 @@ export default function MentoradosPage() {
         />
       </div>
 
-      {/* GRID */}
       {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -223,7 +221,7 @@ export default function MentoradosPage() {
             return (
               <Card
                 key={m.id}
-                onClick={() => navigate(`/app/leads/${m.id}`)}
+                onClick={() => navigate(`/app/leads/${m.leadId ?? m.id}`)}
                 className={`glass-card glass-card-hover border-border/60 group cursor-pointer animate-fade-in anim-delay-${Math.min((i + 1) * 100, 600)}`}
               >
                 <CardContent className="p-5 space-y-4">

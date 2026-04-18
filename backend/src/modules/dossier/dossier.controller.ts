@@ -1,11 +1,11 @@
 import { Controller, Get, NotFoundException, Param } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Lead } from '../../entities/lead.entity';
+import { Lead, LeadStage } from '../../entities/lead.entity';
 import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
 import { Task } from '../../entities/task.entity';
-import { User } from '../../entities/user.entity';
+import { User, UserRole } from '../../entities/user.entity';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 
@@ -22,10 +22,42 @@ export class DossierController {
 
   @Auth('mentor', 'super_admin')
   @Get('lead/:id')
-  async byLead(@TenantId() mentorId: string, @Param('id') leadId: string) {
-    const lead = await this.leads.findOne({ where: { id: leadId, mentorId } });
+  async byLead(@TenantId() mentorId: string, @Param('id') leadIdOrUserId: string) {
+    let lead = await this.leads.findOne({ where: { id: leadIdOrUserId, mentorId } });
+
+    if (!lead) {
+      const user = await this.users.findOne({ where: { id: leadIdOrUserId, mentorId } });
+      if (user) {
+        lead = await this.leads.findOne({
+          where: [
+            { mentorId, userId: user.id },
+            { mentorId, email: user.email.toLowerCase() },
+          ],
+        });
+
+        if (!lead) {
+          lead = await this.leads.save(
+            this.leads.create({
+              mentorId,
+              userId: user.id,
+              name: user.name,
+              email: user.email.toLowerCase(),
+              phone: user.phone,
+              company: user.company,
+              source: 'manual',
+              stage: user.role === UserRole.MENTORADO ? LeadStage.CLIENT : LeadStage.NEW,
+            }),
+          );
+        } else if (!lead.userId) {
+          lead.userId = user.id;
+          await this.leads.save(lead);
+        }
+      }
+    }
+
     if (!lead) throw new NotFoundException('Lead não encontrado');
 
+    const leadId = lead.id;
     const [tests, meetings, tasks, account] = await Promise.all([
       this.responses.find({ where: { leadId, mentorId }, order: { createdAt: 'DESC' }, relations: ['template'] }),
       this.meetings.find({ where: { leadId, mentorId }, order: { scheduledAt: 'DESC' } }),
@@ -33,7 +65,6 @@ export class DossierController {
       lead.userId ? this.users.findOne({ where: { id: lead.userId } }) : Promise.resolve(null),
     ]);
 
-    // Timeline unificada
     const timeline: Array<{ type: string; at: Date; title: string; ref: string; meta?: any }> = [];
     timeline.push({ type: 'lead_created', at: lead.createdAt, title: 'Lead capturado', ref: lead.id, meta: { source: lead.source } });
     tests.forEach((t) =>
