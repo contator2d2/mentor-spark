@@ -1,26 +1,104 @@
-import { Body, Controller, Get, Param, Patch, Query } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository, In } from 'typeorm';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 import { LeadsService } from './leads.service';
-import { LeadStage } from '../../entities/lead.entity';
+import { Lead, LeadStage } from '../../entities/lead.entity';
+import { CaptureEvent } from '../../entities/capture-event.entity';
+import { User, UserRole, UserStatus } from '../../entities/user.entity';
+import { AuthService } from '../auth/auth.service';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('leads')
 @ApiBearerAuth()
 @Controller('leads')
 export class LeadsController {
-  constructor(private leads: LeadsService) {}
+  constructor(
+    private leads: LeadsService,
+    private authService: AuthService,
+    @InjectRepository(Lead) private leadsRepo: Repository<Lead>,
+    @InjectRepository(CaptureEvent) private events: Repository<CaptureEvent>,
+    @InjectRepository(User) private users: Repository<User>,
+  ) {}
 
   @Auth('mentor', 'super_admin')
   @Get()
-  list(@TenantId() mentorId: string, @Query('stage') stage?: LeadStage, @Query('q') q?: string) {
-    return this.leads.list(mentorId, { stage, q });
+  async list(
+    @TenantId() mentorId: string,
+    @Query('stage') stage?: LeadStage,
+    @Query('q') q?: string,
+    @Query('eventId') eventId?: string,
+  ) {
+    const list = await this.leads.list(mentorId, { stage, q });
+    const filtered = eventId ? list.filter((l) => l.eventId === eventId) : list;
+    if (filtered.length === 0) return [];
+
+    const evIds = Array.from(new Set(filtered.map((l) => l.eventId).filter(Boolean))) as string[];
+    const evs = evIds.length
+      ? await this.events.find({ where: { id: In(evIds), mentorId } })
+      : [];
+    const evMap = new Map(evs.map((e) => [e.id, e.name]));
+
+    const emails = filtered.map((l) => l.email);
+    const usersFound = emails.length
+      ? await this.users.find({ where: { email: In(emails), mentorId, role: UserRole.MENTORADO } })
+      : [];
+    const mentoradoEmails = new Set(usersFound.map((u) => u.email));
+
+    return filtered.map((l) => ({
+      ...l,
+      eventName: l.eventId ? evMap.get(l.eventId) || null : null,
+      isMentorado: mentoradoEmails.has(l.email),
+    }));
   }
 
   @Auth('mentor', 'super_admin')
   @Get('stats')
   stats(@TenantId() mentorId: string) {
     return this.leads.stats(mentorId);
+  }
+
+  /** Agrupa leads por evento (para a tela de captação). */
+  @Auth('mentor', 'super_admin')
+  @Get('by-event')
+  async byEvent(@TenantId() mentorId: string) {
+    const evs = await this.events.find({ where: { mentorId } });
+    const all = await this.leadsRepo.find({ where: { mentorId } });
+
+    const result: Array<{
+      eventId: string | null;
+      eventName: string;
+      startsAt: Date | null;
+      location: string | null;
+      slug: string | null;
+      total: number;
+      mentorados: number;
+    }> = evs.map((e) => {
+      const items = all.filter((l) => l.eventId === e.id);
+      return {
+        eventId: e.id,
+        eventName: e.name,
+        startsAt: e.startsAt || null,
+        location: e.location || null,
+        slug: e.slug,
+        total: items.length,
+        mentorados: items.filter((l) => l.stage === LeadStage.CLIENT).length,
+      };
+    });
+    const orphan = all.filter((l) => !l.eventId);
+    if (orphan.length > 0) {
+      result.push({
+        eventId: null,
+        eventName: 'Sem evento',
+        startsAt: null,
+        location: null,
+        slug: null,
+        total: orphan.length,
+        mentorados: orphan.filter((l) => l.stage === LeadStage.CLIENT).length,
+      });
+    }
+    return result;
   }
 
   @Auth('mentor', 'super_admin')
@@ -33,5 +111,38 @@ export class LeadsController {
   @Patch(':id')
   update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: any) {
     return this.leads.update(mentorId, id, dto);
+  }
+
+  /** Converte lead em mentorado (cria/promove o usuário e marca lead como CLIENT). */
+  @Auth('mentor', 'super_admin')
+  @Post(':id/convert')
+  async convert(@TenantId() mentorId: string, @Param('id') id: string) {
+    const lead = await this.leads.getById(mentorId, id);
+    let user = await this.users.findOne({ where: { email: lead.email } });
+    if (user) {
+      if (user.mentorId && user.mentorId !== mentorId && user.role !== UserRole.PROSPECT) {
+        throw new BadRequestException('Email já pertence a outro mentor.');
+      }
+      await this.users.update(user.id, {
+        mentorId,
+        role: UserRole.MENTORADO,
+        status: UserStatus.ACTIVE,
+        phone: user.phone || lead.phone || null,
+        company: user.company || lead.company || null,
+      });
+    } else {
+      const created = await this.authService.createProspectUser({
+        mentorId,
+        name: lead.name,
+        email: lead.email,
+        phone: lead.phone,
+        company: lead.company,
+        revenue: lead.revenue ? Number(lead.revenue) : undefined,
+      });
+      await this.users.update(created.user.id, { role: UserRole.MENTORADO, status: UserStatus.ACTIVE });
+      user = created.user;
+    }
+    await this.leadsRepo.update(id, { stage: LeadStage.CLIENT, userId: user.id });
+    return { ok: true, userId: user.id };
   }
 }
