@@ -1,5 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -134,6 +135,8 @@ export default function MentoradoLayout() {
                   )}
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-10 w-10" />
 
               <Button
                 variant="ghost"
