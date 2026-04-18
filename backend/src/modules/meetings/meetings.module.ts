@@ -38,7 +38,7 @@ import { IntegrationsModule } from '../integrations/integrations.module';
     IntegrationsModule,
   ],
   controllers: [MeetingsController, MeetingParticipantsController, CaptureSessionsController],
-  providers: [MeetingsService, CapturePipelineService, AudioChunkerService],
+  providers: [MeetingsService, CapturePipelineService, AudioChunkerService, CaptureHealthCron],
   exports: [MeetingsService, CapturePipelineService],
 })
 export class MeetingsModule {}
