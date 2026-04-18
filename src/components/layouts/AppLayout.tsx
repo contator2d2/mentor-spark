@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   LayoutDashboard,
   Users,
