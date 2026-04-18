@@ -276,6 +276,7 @@ export default function ProntuarioPage() {
           <TabsTrigger value="materials"><Folder className="h-3 w-3 mr-1" />Materiais</TabsTrigger>
           <TabsTrigger value="finance"><DollarSign className="h-3 w-3 mr-1" />Financeiro</TabsTrigger>
           <TabsTrigger value="ai"><Brain className="h-3 w-3 mr-1" />IA & Insights</TabsTrigger>
+          <TabsTrigger value="access"><Shield className="h-3 w-3 mr-1" />Acesso & Permissões</TabsTrigger>
           <TabsTrigger value="settings"><Settings className="h-3 w-3 mr-1" />Personalização</TabsTrigger>
         </TabsList>
 
