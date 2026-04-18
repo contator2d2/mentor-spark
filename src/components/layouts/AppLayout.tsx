@@ -26,6 +26,9 @@ import {
   Zap,
   Menu,
   X,
+  GraduationCap,
+  DollarSign,
+  CalendarClock,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -47,7 +50,10 @@ const NAV: NavItem[] = [
   { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/tests", label: "Testes", icon: ClipboardList, roles: ["mentor", "super_admin"] },
   { to: "/app/meetings", label: "Reuniões", icon: Calendar, roles: ["mentor", "super_admin"] },
+  { to: "/app/scheduling", label: "Agenda Pública", icon: CalendarClock, roles: ["mentor", "super_admin"] },
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
+  { to: "/app/billing", label: "Cobranças", icon: DollarSign, roles: ["mentor", "super_admin"] },
+  { to: "/app/trails", label: "Trilhas", icon: GraduationCap, roles: ["mentor", "super_admin"] },
   { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/automations", label: "Automações", icon: Zap, roles: ["mentor", "super_admin"] },
   { to: "/app/team", label: "Equipe", icon: Users, roles: ["mentor", "super_admin"] },

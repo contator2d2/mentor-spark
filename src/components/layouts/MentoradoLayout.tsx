@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut } from "lucide-react";
+import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -17,8 +17,8 @@ import {
 
 const NAV = [
   { to: "/me", label: "Início", icon: Home, end: true },
+  { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
   { to: "/me/tests", label: "Testes", icon: ClipboardList },
-  { to: "/me/contents", label: "Conteúdos", icon: BookOpen },
   { to: "/me/meetings", label: "Agenda", icon: Calendar },
 ];
 

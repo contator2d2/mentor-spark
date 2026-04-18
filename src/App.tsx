@@ -61,6 +61,13 @@ import QuizHostPage from "./pages/app/QuizHostPage";
 import QuizPlayerPage from "./pages/QuizPlayerPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
 import AdminCredentials from "./pages/app/AdminCredentials";
+import SchedulingPage from "./pages/app/SchedulingPage";
+import SchedulingBookingsPage from "./pages/app/SchedulingBookingsPage";
+import SchedulingPublicPage from "./pages/SchedulingPublicPage";
+import MentorBillingPage from "./pages/app/MentorBillingPage";
+import TrailsListPage from "./pages/app/TrailsListPage";
+import TrailEditorPage from "./pages/app/TrailEditorPage";
+import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -95,6 +102,7 @@ const App = () => (
               <Route path="/e/:slug/nps/:ticketCode" element={<EventNpsPage />} />
               <Route path="/quiz/:pin" element={<QuizPlayerPage />} />
               <Route path="/quiz" element={<QuizPlayerPage />} />
+              <Route path="/agendar/:slug" element={<SchedulingPublicPage />} />
 
               {/* Troca de senha (forçada no 1º login) — exige auth, qualquer role */}
               <Route
@@ -152,6 +160,11 @@ const App = () => (
                 <Route path="admin/finance" element={<AdminFinance />} />
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
                 <Route path="admin/credentials" element={<AdminCredentials />} />
+                <Route path="scheduling" element={<SchedulingPage />} />
+                <Route path="scheduling/bookings" element={<SchedulingBookingsPage />} />
+                <Route path="billing" element={<MentorBillingPage />} />
+                <Route path="trails" element={<TrailsListPage />} />
+                <Route path="trails/:id" element={<TrailEditorPage />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}
@@ -177,6 +190,8 @@ const App = () => (
                 <Route path="tests" element={<PlaceholderPage title="Meus testes" description="Testes recebidos do seu mentor." endpoint="/tests/responses" />} />
                 <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
+                <Route path="trails" element={<MentoradoTrailsList />} />
+                <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
