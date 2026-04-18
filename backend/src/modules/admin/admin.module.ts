@@ -5,13 +5,15 @@ import { AiProvider } from '../../entities/ai-provider.entity';
 import { Lead } from '../../entities/lead.entity';
 import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
+import { Plan } from '../../entities/plan.entity';
+import { Subscription } from '../../entities/subscription.entity';
 import { AdminController } from './admin.controller';
 import { AiProvidersController } from './ai-providers.controller';
 import { AiModule } from '../ai/ai.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, AiProvider, Lead, TestResponse, Meeting]),
+    TypeOrmModule.forFeature([User, AiProvider, Lead, TestResponse, Meeting, Plan, Subscription]),
     AiModule,
   ],
   controllers: [AdminController, AiProvidersController],
