@@ -68,7 +68,9 @@ export default function CapturePage() {
         <div className="bg-card border border-border rounded-xl p-10 max-w-md text-center shadow-elegant">
           <CheckCircle2 className="h-14 w-14 text-success mx-auto mb-4" />
           <h2 className="font-display text-2xl font-bold mb-2">Tudo certo!</h2>
-          <p className="text-muted-foreground">Enviamos seu acesso à plataforma por email. Verifique sua caixa de entrada (e o spam).</p>
+          <p className="text-muted-foreground">
+            Enviamos sua <b>senha temporária</b> por <b>WhatsApp</b> e <b>email</b>. Acesse a plataforma e crie sua nova senha no primeiro login.
+          </p>
         </div>
       </div>
     );

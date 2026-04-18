@@ -8,6 +8,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { MailService } from '../../shared/mail.service';
+import { IntegrationsModule } from '../integrations/integrations.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { MailService } from '../../shared/mail.service';
       secret: process.env.JWT_SECRET || 'dev-secret-change-me',
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '7d' },
     }),
+    IntegrationsModule,
   ],
   providers: [AuthService, JwtStrategy, MailService],
   controllers: [AuthController],

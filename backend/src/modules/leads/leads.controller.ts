@@ -52,12 +52,14 @@ export class LeadsController {
       userId = created.user.id;
       if (created.generatedPassword) {
         const mentor = await this.users.findOne({ where: { id: mentorId } });
-        await this.authService.sendWelcomeEmail(
+        await this.authService.sendWelcomeCredentials({
+          mentorId,
           email,
-          dto.name,
-          created.generatedPassword,
-          mentor?.brandName || 'MentorFlow',
-        );
+          name: dto.name,
+          password: created.generatedPassword,
+          brandName: mentor?.brandName || 'MentorFlow',
+          phone: dto.phone,
+        });
       }
     }
 

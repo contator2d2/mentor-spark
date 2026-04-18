@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { v4 as uuid } from 'uuid';
 
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
 import { MailService } from '../../shared/mail.service';
+import { WhatsappService } from '../integrations/whatsapp.service';
 
 @Injectable()
 export class AuthService {
@@ -14,10 +14,19 @@ export class AuthService {
     @InjectRepository(User) private users: Repository<User>,
     private jwt: JwtService,
     private mail: MailService,
+    private whatsapp: WhatsappService,
   ) {}
 
   private slugify(s: string) {
     return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+  }
+
+  /** Gera uma senha temporária legível: 8 chars (letras maiúsculas+números, sem 0/O/I/1) */
+  private generateTempPassword(): string {
+    const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let out = '';
+    for (let i = 0; i < 8; i++) out += alphabet[Math.floor(Math.random() * alphabet.length)];
+    return out;
   }
 
   async signUpMentor(dto: { name: string; email: string; password: string; brandName?: string }) {
@@ -97,17 +106,18 @@ export class AuthService {
         mentorId: user.mentorId,
         parentMentorId: user.parentMentorId,
         teamRole: user.teamRole,
+        mustChangePassword: user.mustChangePassword,
       },
     };
   }
 
-  async createProspectUser(params: { mentorId: string; name: string; email: string; phone?: string; company?: string; revenue?: number }) {
+  async createProspectUser(params: { mentorId: string; name: string; email: string; phone?: string; company?: string; revenue?: number; role?: UserRole }) {
     const existing = await this.users.findOne({ where: { email: params.email.toLowerCase() } });
     if (existing) {
       // Já existe, retorna sem criar de novo
       return { user: existing, generatedPassword: null as string | null };
     }
-    const generatedPassword = uuid().slice(0, 8);
+    const generatedPassword = this.generateTempPassword();
     const user = this.users.create({
       email: params.email.toLowerCase(),
       passwordHash: await bcrypt.hash(generatedPassword, 10),
@@ -115,28 +125,125 @@ export class AuthService {
       phone: params.phone,
       company: params.company,
       revenue: params.revenue,
-      role: UserRole.PROSPECT,
+      role: params.role || UserRole.PROSPECT,
       status: UserStatus.ACTIVE,
       mentorId: params.mentorId,
+      mustChangePassword: true,
     });
     await this.users.save(user);
     return { user, generatedPassword };
   }
 
-  async sendWelcomeEmail(email: string, name: string, password: string, brandName: string) {
+  /**
+   * Envia credenciais de acesso por WhatsApp (preferencial) e email (registro formal).
+   * Falhas em um canal não bloqueiam o outro.
+   */
+  async sendWelcomeCredentials(opts: {
+    mentorId?: string;
+    email: string;
+    name: string;
+    password: string;
+    brandName: string;
+    phone?: string;
+  }) {
     const appUrl = process.env.APP_URL || 'http://localhost:8080';
-    await this.mail.send({
-      to: email,
-      subject: `Bem-vindo a ${brandName}`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
-          <h1 style="font-size:22px;margin:0 0 16px">Olá, ${name} 👋</h1>
-          <p>Sua conta em <b>${brandName}</b> foi criada. Acesse com:</p>
-          <p><b>Email:</b> ${email}<br/><b>Senha temporária:</b> ${password}</p>
-          <p><a href="${appUrl}/login" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
-          <p style="color:#64748b;font-size:13px;margin-top:24px">Recomendamos alterar sua senha no primeiro acesso.</p>
-        </div>
-      `,
+    const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+    const firstName = (opts.name || '').split(' ')[0];
+
+    // 1) Email (sempre tenta — registro formal)
+    try {
+      await this.mail.send({
+        to: opts.email,
+        subject: `Seu acesso a ${opts.brandName}`,
+        html: `
+          <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
+            <h1 style="font-size:22px;margin:0 0 16px">Olá, ${firstName} 👋</h1>
+            <p>Sua conta em <b>${opts.brandName}</b> foi criada. Use as credenciais abaixo:</p>
+            <p><b>Email:</b> ${opts.email}<br/><b>Senha temporária:</b> <code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:16px;letter-spacing:1px">${opts.password}</code></p>
+            <p><a href="${loginUrl}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
+            <p style="color:#64748b;font-size:13px;margin-top:24px">Por segurança, você precisará criar uma nova senha no primeiro acesso.</p>
+          </div>
+        `,
+      });
+    } catch (e) {
+      // segue o jogo, WhatsApp ainda pode entregar
+    }
+
+    // 2) WhatsApp (se telefone + integração disponível)
+    if (opts.phone && opts.mentorId) {
+      try {
+        const text =
+          `Olá ${firstName}! 👋\n\n` +
+          `Sua conta em *${opts.brandName}* foi criada.\n\n` +
+          `🔑 *Acesso:*\n` +
+          `Email: ${opts.email}\n` +
+          `Senha temporária: *${opts.password}*\n\n` +
+          `🔗 ${loginUrl}\n\n` +
+          `_Por segurança, você precisará criar uma nova senha no primeiro acesso._`;
+        await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
+      } catch {
+        // ignora — email já foi enviado
+      }
+    }
+
+    // marca timestamp
+    await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
+  }
+
+  /** Compat: mantém o nome antigo (chama o novo método sem WhatsApp). */
+  async sendWelcomeEmail(email: string, name: string, password: string, brandName: string) {
+    return this.sendWelcomeCredentials({ email, name, password, brandName });
+  }
+
+  /** Troca de senha autenticada (usada no primeiro login forçado e em alterações voluntárias). */
+  async changePassword(userId: string, currentPassword: string, newPassword: string) {
+    if (!newPassword || newPassword.length < 8) {
+      throw new BadRequestException('Nova senha precisa ter pelo menos 8 caracteres');
+    }
+    const user = await this.users
+      .createQueryBuilder('u')
+      .addSelect('u.passwordHash')
+      .where('u.id = :id', { id: userId })
+      .getOne();
+    if (!user) throw new UnauthorizedException('Usuário não encontrado');
+    const ok = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!ok) throw new UnauthorizedException('Senha atual incorreta');
+    await this.users.update(userId, {
+      passwordHash: await bcrypt.hash(newPassword, 10),
+      mustChangePassword: false,
     });
+    return { ok: true };
+  }
+
+  /**
+   * Cadastro público auto-serviço de mentorado/lead vindo de link/QR.
+   * Cria User PROSPECT com senha temporária e dispara credenciais por WhatsApp+email.
+   */
+  async selfSignupProspect(opts: {
+    mentorId: string;
+    mentorBrand: string;
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+  }) {
+    const created = await this.createProspectUser({
+      mentorId: opts.mentorId,
+      name: opts.name,
+      email: opts.email,
+      phone: opts.phone,
+      company: opts.company,
+    });
+    if (created.generatedPassword) {
+      await this.sendWelcomeCredentials({
+        mentorId: opts.mentorId,
+        email: opts.email,
+        name: opts.name,
+        password: created.generatedPassword,
+        brandName: opts.mentorBrand,
+        phone: opts.phone,
+      });
+    }
+    return { user: created.user, accountCreated: !!created.generatedPassword };
   }
 }

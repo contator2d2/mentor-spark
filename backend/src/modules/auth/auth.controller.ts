@@ -20,6 +20,11 @@ class LoginDto {
   @IsString() password: string;
 }
 
+class ChangePasswordDto {
+  @IsString() currentPassword: string;
+  @IsString() @MinLength(8) newPassword: string;
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -37,6 +42,14 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto.email, dto.password);
+  }
+
+  /** Troca de senha autenticada (usada no primeiro login forçado). */
+  @Auth('mentor', 'super_admin', 'mentorado', 'prospect', 'mentor_team')
+  @Post('change-password')
+  @HttpCode(200)
+  changePassword(@CurrentUser() u: any, @Body() dto: ChangePasswordDto) {
+    return this.auth.changePassword(u.sub, dto.currentPassword, dto.newPassword);
   }
 
   /** Alias compatível com clientes que chamam /auth/me */

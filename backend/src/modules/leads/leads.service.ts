@@ -75,7 +75,14 @@ export class LeadsService {
     }
 
     if (generatedPassword) {
-      await this.authService.sendWelcomeEmail(params.email, params.name, generatedPassword, params.mentorBrand);
+      await this.authService.sendWelcomeCredentials({
+        mentorId: params.mentorId,
+        email: params.email,
+        name: params.name,
+        password: generatedPassword,
+        brandName: params.mentorBrand,
+        phone: params.phone,
+      });
     }
 
     return { lead, accountCreated: !!generatedPassword };

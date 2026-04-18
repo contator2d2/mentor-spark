@@ -20,8 +20,13 @@ export default function Login() {
     try {
       const u = await login(email, password);
       toast.success(`Bem-vindo, ${u.name}`);
-      if (u.role === "prospect" || u.role === "mentorado") nav("/me");
-      else nav("/app");
+      if (u.mustChangePassword) {
+        nav("/trocar-senha");
+      } else if (u.role === "prospect" || u.role === "mentorado") {
+        nav("/me");
+      } else {
+        nav("/app");
+      }
     } catch (e: any) {
       toast.error(e.message || "Falha ao entrar");
     } finally {

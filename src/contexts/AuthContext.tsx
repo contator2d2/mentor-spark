@@ -16,6 +16,7 @@ export interface SessionUser {
   brandAccentColor?: string;
   onboardingCompleted?: boolean;
   mentorId?: string;
+  mustChangePassword?: boolean;
   tenantBrand?: {
     brandName?: string;
     brandLogoUrl?: string;
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       brandAccentColor: u.brandAccentColor,
       onboardingCompleted: u.onboardingCompleted,
       mentorId: u.mentorId,
+      mustChangePassword: u.mustChangePassword,
       tenantBrand: u.tenantBrand,
     };
     setUser(sess);
