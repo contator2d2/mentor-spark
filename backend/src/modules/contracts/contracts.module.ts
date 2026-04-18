@@ -7,9 +7,10 @@ import { User } from '../../entities/user.entity';
 import { Plan } from '../../entities/plan.entity';
 import { ContractsController } from './contracts.controller';
 import { ContractsService } from './contracts.service';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ContractTemplate, Contract, Lead, User, Plan])],
+  imports: [TypeOrmModule.forFeature([ContractTemplate, Contract, Lead, User, Plan]), AiModule],
   controllers: [ContractsController],
   providers: [ContractsService],
   exports: [ContractsService],
