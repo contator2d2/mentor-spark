@@ -25,6 +25,7 @@ export class AiProvidersController {
   @Post()
   async create(@Body() dto: Partial<AiProvider>) {
     if (dto.isDefault) await this.repo.update({ isDefault: true }, { isDefault: false });
+    if (dto.useForTranscription) await this.repo.update({ useForTranscription: true }, { useForTranscription: false });
     const saved = await this.repo.save(this.repo.create(dto));
     this.ai.invalidateProviderCache();
     return saved;
@@ -34,6 +35,7 @@ export class AiProvidersController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: Partial<AiProvider>) {
     if (dto.isDefault) await this.repo.update({ isDefault: true }, { isDefault: false });
+    if (dto.useForTranscription) await this.repo.update({ useForTranscription: true }, { useForTranscription: false });
     await this.repo.update(id, dto);
     this.ai.invalidateProviderCache();
     return this.repo.findOne({ where: { id } });
