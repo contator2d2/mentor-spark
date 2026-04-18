@@ -69,6 +69,10 @@ import MentorBillingPage from "./pages/app/MentorBillingPage";
 import TrailsListPage from "./pages/app/TrailsListPage";
 import TrailEditorPage from "./pages/app/TrailEditorPage";
 import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
+import CommunityPage from "./pages/app/CommunityPage";
+import AnalyticsPage from "./pages/app/AnalyticsPage";
+import MentoradoCommunity from "./pages/me/MentoradoCommunity";
+import { PwaPrompts } from "./components/PwaPrompts";
 
 import MentoradoHome from "./pages/me/MentoradoHome";
 
@@ -167,6 +171,8 @@ const App = () => (
                 <Route path="billing" element={<MentorBillingPage />} />
                 <Route path="trails" element={<TrailsListPage />} />
                 <Route path="trails/:id" element={<TrailEditorPage />} />
+                <Route path="community" element={<CommunityPage />} />
+                <Route path="analytics" element={<AnalyticsPage />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}
@@ -194,10 +200,12 @@ const App = () => (
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
                 <Route path="trails" element={<MentoradoTrailsList />} />
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
+                <Route path="community" element={<MentoradoCommunity />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <PwaPrompts />
             </AuthProvider>
           </BrandingProvider>
         </BrowserRouter>

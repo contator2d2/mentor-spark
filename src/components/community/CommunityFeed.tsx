@@ -56,7 +56,7 @@ interface Props {
 
 export default function CommunityFeed({ asMentorado = false }: Props) {
   const { user } = useAuth();
-  const isMentor = user?.role === "mentor" || user?.role === "super_admin" || user?.role === "mentor_team";
+  const isMentor = user?.role === "mentor" || user?.role === "super_admin";
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [composerOpen, setComposerOpen] = useState(false);
