@@ -38,6 +38,26 @@ export class TestTemplate {
   @Column({ type: 'text', nullable: true })
   aiAnalysisPrompt?: string;
 
+  /** Categorias avaliadas: [{ key, label, weight }] — quando presente, habilita score por categoria */
+  @Column({ type: 'jsonb', nullable: true })
+  categories?: Array<{ key: string; label: string; weight: number }>;
+
+  /** Faixas de interpretação por score % */
+  @Column({ type: 'jsonb', nullable: true })
+  interpretation?: Array<{ min: number; max: number; label: string; description: string }>;
+
+  /** Relatório base (template editável pelo mentor) */
+  @Column({ type: 'text', nullable: true })
+  baseReport?: string;
+
+  /** Recomendação inicial (template editável pelo mentor) */
+  @Column({ type: 'text', nullable: true })
+  baseRecommendation?: string;
+
+  /** Origem na biblioteca, se foi clonado de lá */
+  @Column({ type: 'uuid', nullable: true })
+  sourceLibraryId?: string;
+
   @OneToMany(() => TestQuestion, (q) => q.template, { cascade: true })
   questions: TestQuestion[];
 

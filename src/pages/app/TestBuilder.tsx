@@ -7,7 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Loader2, Plus, Trash2, GripVertical, ArrowLeft, Save, Sparkles } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, Plus, Trash2, GripVertical, ArrowLeft, Save, Sparkles, Library, Layers, FileText, ListChecks } from "lucide-react";
 import { toast } from "sonner";
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
@@ -21,7 +23,11 @@ interface Q {
   text: string;
   weight: number;
   config: any;
+  categoryKey?: string;
 }
+
+interface Cat { key: string; label: string; weight: number }
+interface InterpRange { min: number; max: number; label: string; description: string }
 
 const CATEGORIES = [
   { v: "financial", l: "Financeiro" },
@@ -38,7 +44,11 @@ function newQuestion(type: QType): Q {
   return { type, text: "", weight: 1, config: null };
 }
 
-function SortableQuestion({ q, idx, onChange, onRemove }: { q: Q; idx: number; onChange: (q: Q) => void; onRemove: () => void }) {
+function slugify(s: string) {
+  return s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "").slice(0, 32);
+}
+
+function SortableQuestion({ q, idx, cats, onChange, onRemove }: { q: Q; idx: number; cats: Cat[]; onChange: (q: Q) => void; onRemove: () => void }) {
   const id = `q-${idx}`;
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
@@ -50,10 +60,10 @@ function SortableQuestion({ q, idx, onChange, onRemove }: { q: Q; idx: number; o
           <GripVertical className="h-5 w-5" />
         </button>
         <div className="flex-1 space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-semibold bg-muted px-2 py-1 rounded">#{idx + 1}</span>
-            <Select value={q.type} onValueChange={(v) => onChange(newQuestion(v as QType))}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <Select value={q.type} onValueChange={(v) => onChange({ ...newQuestion(v as QType), text: q.text, weight: q.weight, categoryKey: q.categoryKey })}>
+              <SelectTrigger className="w-44"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="multiple_choice">Múltipla escolha</SelectItem>
                 <SelectItem value="scale">Escala 1-10</SelectItem>
@@ -61,7 +71,16 @@ function SortableQuestion({ q, idx, onChange, onRemove }: { q: Q; idx: number; o
               </SelectContent>
             </Select>
             <Input type="number" className="w-20" min={1} value={q.weight} onChange={(e) => onChange({ ...q, weight: +e.target.value || 1 })} title="Peso" />
-            <Button size="icon" variant="ghost" onClick={onRemove}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+            {cats.length > 0 && (
+              <Select value={q.categoryKey || "_none"} onValueChange={(v) => onChange({ ...q, categoryKey: v === "_none" ? undefined : v })}>
+                <SelectTrigger className="w-44"><SelectValue placeholder="Categoria" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="_none">Sem categoria</SelectItem>
+                  {cats.map((c) => <SelectItem key={c.key} value={c.key}>{c.label}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            )}
+            <Button size="icon" variant="ghost" onClick={onRemove} className="ml-auto"><Trash2 className="h-4 w-4 text-destructive" /></Button>
           </div>
           <Textarea
             placeholder="Pergunta..."
@@ -149,6 +168,11 @@ export default function TestBuilder() {
   const [category, setCategory] = useState("custom");
   const [aiPrompt, setAiPrompt] = useState("");
   const [questions, setQuestions] = useState<Q[]>([]);
+  const [cats, setCats] = useState<Cat[]>([]);
+  const [interpretation, setInterpretation] = useState<InterpRange[]>([]);
+  const [baseReport, setBaseReport] = useState("");
+  const [baseRecommendation, setBaseRecommendation] = useState("");
+  const [sourceLibraryId, setSourceLibraryId] = useState<string | null>(null);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -160,7 +184,12 @@ export default function TestBuilder() {
         setDescription(t.description || "");
         setCategory(t.category || "custom");
         setAiPrompt(t.aiAnalysisPrompt || "");
-        setQuestions((t.questions || []).map((q: any) => ({ id: q.id, type: q.type, text: q.text, weight: q.weight || 1, config: q.config })));
+        setCats(t.categories || []);
+        setInterpretation(t.interpretation || []);
+        setBaseReport(t.baseReport || "");
+        setBaseRecommendation(t.baseRecommendation || "");
+        setSourceLibraryId(t.sourceLibraryId || null);
+        setQuestions((t.questions || []).map((q: any) => ({ id: q.id, type: q.type, text: q.text, weight: q.weight || 1, config: q.config, categoryKey: q.categoryKey })));
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
@@ -172,6 +201,20 @@ export default function TestBuilder() {
     const oldIdx = parseInt(String(active.id).slice(2));
     const newIdx = parseInt(String(over.id).slice(2));
     setQuestions((qs) => arrayMove(qs, oldIdx, newIdx));
+  }
+
+  function addCategory() {
+    const label = prompt("Nome da categoria:");
+    if (!label) return;
+    setCats([...cats, { key: slugify(label) || `cat_${cats.length + 1}`, label, weight: 1 }]);
+  }
+  function removeCategory(key: string) {
+    setCats(cats.filter((c) => c.key !== key));
+    setQuestions(questions.map((q) => (q.categoryKey === key ? { ...q, categoryKey: undefined } : q)));
+  }
+
+  function addInterpRange() {
+    setInterpretation([...interpretation, { min: 0, max: 100, label: "Faixa", description: "" }]);
   }
 
   async function save() {
@@ -186,7 +229,11 @@ export default function TestBuilder() {
         description,
         category,
         aiAnalysisPrompt: aiPrompt || undefined,
-        questions: questions.map((q) => ({ type: q.type, text: q.text, weight: q.weight, config: q.config })),
+        categories: cats.length ? cats : undefined,
+        interpretation: interpretation.length ? interpretation : undefined,
+        baseReport: baseReport || undefined,
+        baseRecommendation: baseRecommendation || undefined,
+        questions: questions.map((q) => ({ type: q.type, text: q.text, weight: q.weight, config: q.config, categoryKey: q.categoryKey })),
       };
       if (isNew) {
         const t = await api<any>("/tests/templates", { method: "POST", body: payload });
@@ -219,6 +266,15 @@ export default function TestBuilder() {
         </Button>
       </div>
 
+      {sourceLibraryId && (
+        <Card className="p-3 bg-accent/5 border-accent/30 flex items-center gap-2">
+          <Library className="h-4 w-4 text-accent" />
+          <span className="text-sm">
+            Este teste foi <strong>duplicado da biblioteca</strong>. Personalize livremente — sua cópia é independente.
+          </span>
+        </Card>
+      )}
+
       <Card className="p-6 space-y-4">
         <div>
           <Label>Título *</Label>
@@ -230,7 +286,7 @@ export default function TestBuilder() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label>Categoria</Label>
+            <Label>Categoria interna</Label>
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -239,54 +295,140 @@ export default function TestBuilder() {
             </Select>
           </div>
         </div>
-        <div>
+      </Card>
+
+      <Tabs defaultValue="questions">
+        <TabsList className="grid grid-cols-4 w-full">
+          <TabsTrigger value="questions"><ListChecks className="h-3 w-3 mr-1" />Perguntas</TabsTrigger>
+          <TabsTrigger value="categories"><Layers className="h-3 w-3 mr-1" />Categorias</TabsTrigger>
+          <TabsTrigger value="report"><FileText className="h-3 w-3 mr-1" />Relatório</TabsTrigger>
+          <TabsTrigger value="ai"><Sparkles className="h-3 w-3 mr-1" />IA</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="questions" className="pt-4">
+          <div>
+            <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
+              <h2 className="font-display text-xl font-bold">Perguntas ({questions.length})</h2>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("multiple_choice")])}>
+                  <Plus className="h-3 w-3 mr-1" />Múltipla
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("scale")])}>
+                  <Plus className="h-3 w-3 mr-1" />Escala
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("open_text")])}>
+                  <Plus className="h-3 w-3 mr-1" />Aberta
+                </Button>
+              </div>
+            </div>
+
+            {questions.length === 0 ? (
+              <Card className="p-10 text-center text-muted-foreground">Adicione a primeira pergunta acima.</Card>
+            ) : (
+              <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                <SortableContext items={questions.map((_, i) => `q-${i}`)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-3">
+                    {questions.map((q, i) => (
+                      <SortableQuestion
+                        key={i}
+                        q={q}
+                        idx={i}
+                        cats={cats}
+                        onChange={(nq) => setQuestions(questions.map((x, j) => (j === i ? nq : x)))}
+                        onRemove={() => setQuestions(questions.filter((_, j) => j !== i))}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="categories" className="pt-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-display text-lg font-bold">Categorias avaliadas</h3>
+              <p className="text-sm text-muted-foreground">Defina dimensões para gerar score por categoria no relatório.</p>
+            </div>
+            <Button size="sm" variant="outline" onClick={addCategory}><Plus className="h-3 w-3 mr-1" />Categoria</Button>
+          </div>
+          {cats.length === 0 ? (
+            <Card className="p-8 text-center text-muted-foreground">Nenhuma categoria. O teste calculará apenas score total.</Card>
+          ) : (
+            <div className="space-y-2">
+              {cats.map((c, i) => (
+                <Card key={c.key} className="p-3 flex items-center gap-2">
+                  <Badge variant="outline" className="font-mono text-xs">{c.key}</Badge>
+                  <Input
+                    value={c.label}
+                    onChange={(e) => setCats(cats.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))}
+                    className="flex-1"
+                  />
+                  <Input
+                    type="number"
+                    min={1}
+                    value={c.weight}
+                    onChange={(e) => setCats(cats.map((x, j) => (j === i ? { ...x, weight: +e.target.value || 1 } : x)))}
+                    className="w-20"
+                    title="Peso"
+                  />
+                  <Button size="icon" variant="ghost" onClick={() => removeCategory(c.key)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </Card>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="report" className="pt-4 space-y-4">
+          <div>
+            <Label>Relatório base</Label>
+            <Textarea value={baseReport} onChange={(e) => setBaseReport(e.target.value)} rows={6} placeholder="Texto que será exibido ao final do teste..." />
+          </div>
+          <div>
+            <Label>Recomendação inicial</Label>
+            <Textarea value={baseRecommendation} onChange={(e) => setBaseRecommendation(e.target.value)} rows={4} placeholder="Próximos passos sugeridos..." />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <Label>Faixas de interpretação (por % de score)</Label>
+              <Button size="sm" variant="outline" onClick={addInterpRange}><Plus className="h-3 w-3 mr-1" />Faixa</Button>
+            </div>
+            {interpretation.length === 0 ? (
+              <Card className="p-6 text-center text-sm text-muted-foreground">Sem faixas. Adicione para gerar interpretação automática.</Card>
+            ) : (
+              <div className="space-y-2">
+                {interpretation.map((r, i) => (
+                  <Card key={i} className="p-3 space-y-2">
+                    <div className="flex gap-2 items-center">
+                      <Input type="number" min={0} max={100} value={r.min} onChange={(e) => setInterpretation(interpretation.map((x, j) => j === i ? { ...x, min: +e.target.value } : x))} className="w-20" placeholder="min" />
+                      <span className="text-xs text-muted-foreground">a</span>
+                      <Input type="number" min={0} max={100} value={r.max} onChange={(e) => setInterpretation(interpretation.map((x, j) => j === i ? { ...x, max: +e.target.value } : x))} className="w-20" placeholder="max" />
+                      <span className="text-xs text-muted-foreground">%</span>
+                      <Input value={r.label} onChange={(e) => setInterpretation(interpretation.map((x, j) => j === i ? { ...x, label: e.target.value } : x))} placeholder="Rótulo (ex: Atenção)" className="flex-1" />
+                      <Button size="icon" variant="ghost" onClick={() => setInterpretation(interpretation.filter((_, j) => j !== i))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                    </div>
+                    <Textarea value={r.description} onChange={(e) => setInterpretation(interpretation.map((x, j) => j === i ? { ...x, description: e.target.value } : x))} rows={2} placeholder="Descrição da faixa" />
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai" className="pt-4">
           <Label className="flex items-center gap-2"><Sparkles className="h-3 w-3" />Prompt customizado de IA (opcional)</Label>
           <Textarea
             value={aiPrompt}
             onChange={(e) => setAiPrompt(e.target.value)}
-            rows={3}
+            rows={6}
             placeholder="Ex: Analise como consultor financeiro sênior, focando em fluxo de caixa..."
+            className="mt-2"
           />
           <p className="text-xs text-muted-foreground mt-1">Substitui o prompt padrão. A IA gera análise + classificação Frio/Morno/Quente automaticamente.</p>
-        </div>
-      </Card>
-
-      <div>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="font-display text-xl font-bold">Perguntas ({questions.length})</h2>
-          <div className="flex gap-2">
-            <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("multiple_choice")])}>
-              <Plus className="h-3 w-3 mr-1" />Múltipla
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("scale")])}>
-              <Plus className="h-3 w-3 mr-1" />Escala
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setQuestions([...questions, newQuestion("open_text")])}>
-              <Plus className="h-3 w-3 mr-1" />Aberta
-            </Button>
-          </div>
-        </div>
-
-        {questions.length === 0 ? (
-          <Card className="p-10 text-center text-muted-foreground">Adicione a primeira pergunta acima.</Card>
-        ) : (
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={questions.map((_, i) => `q-${i}`)} strategy={verticalListSortingStrategy}>
-              <div className="space-y-3">
-                {questions.map((q, i) => (
-                  <SortableQuestion
-                    key={i}
-                    q={q}
-                    idx={i}
-                    onChange={(nq) => setQuestions(questions.map((x, j) => (j === i ? nq : x)))}
-                    onRemove={() => setQuestions(questions.filter((_, j) => j !== i))}
-                  />
-                ))}
-              </div>
-            </SortableContext>
-          </DndContext>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

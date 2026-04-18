@@ -45,6 +45,14 @@ export class TestResponse {
   @Column({ nullable: true })
   classification?: string; // cold | warm | hot
 
+  /** Score por categoria: { [categoryKey]: { earned, max, pct, label } } */
+  @Column({ type: 'jsonb', nullable: true })
+  categoryScores?: Record<string, { earned: number; max: number; pct: number; label: string }>;
+
+  /** Interpretação automática derivada das faixas do template */
+  @Column({ type: 'text', nullable: true })
+  interpretation?: string;
+
   @CreateDateColumn()
   createdAt: Date;
 }

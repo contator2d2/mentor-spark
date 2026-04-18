@@ -28,8 +28,19 @@ export class TestsService {
     return t;
   }
 
-  async createTemplate(mentorId: string, dto: { title: string; description?: string; category?: any; aiAnalysisPrompt?: string; questions?: any[] }) {
-    const t = this.templates.create({ mentorId, title: dto.title, description: dto.description, category: dto.category, aiAnalysisPrompt: dto.aiAnalysisPrompt });
+  async createTemplate(mentorId: string, dto: { title: string; description?: string; category?: any; aiAnalysisPrompt?: string; categories?: any; interpretation?: any; baseReport?: string; baseRecommendation?: string; sourceLibraryId?: string; questions?: any[] }) {
+    const t = this.templates.create({
+      mentorId,
+      title: dto.title,
+      description: dto.description,
+      category: dto.category,
+      aiAnalysisPrompt: dto.aiAnalysisPrompt,
+      categories: dto.categories,
+      interpretation: dto.interpretation,
+      baseReport: dto.baseReport,
+      baseRecommendation: dto.baseRecommendation,
+      sourceLibraryId: dto.sourceLibraryId,
+    });
     if (dto.questions?.length) {
       t.questions = dto.questions.map((q, i) => this.questions.create({ ...q, order: i } as Partial<TestQuestion>) as TestQuestion);
     }
@@ -64,6 +75,13 @@ export class TestsService {
 
     let total = 0;
     let max = 0;
+
+    // Buckets para score por categoria
+    const catMap = new Map<string, { earned: number; max: number; label: string }>();
+    for (const c of template.categories || []) {
+      catMap.set(c.key, { earned: 0, max: 0, label: c.label });
+    }
+
     const enriched = params.answers.map((a) => {
       const q = template.questions.find((qq) => qq.id === a.questionId);
       if (!q) return { ...a, scoreEarned: 0 };
@@ -83,12 +101,39 @@ export class TestsService {
       } else {
         qmax = 0; // texto aberto não pontua
       }
-      total += earned * weight;
-      max += qmax * weight;
-      return { ...a, scoreEarned: earned * weight };
+      const earnedW = earned * weight;
+      const maxW = qmax * weight;
+      total += earnedW;
+      max += maxW;
+
+      // Acumula no bucket da categoria, se houver
+      if ((q as any).categoryKey && catMap.has((q as any).categoryKey)) {
+        const bucket = catMap.get((q as any).categoryKey)!;
+        bucket.earned += earnedW;
+        bucket.max += maxW;
+      }
+      return { ...a, scoreEarned: earnedW };
     });
 
     const scorePct = max > 0 ? Math.round((total / max) * 10000) / 100 : 0;
+
+    // Score por categoria
+    const categoryScores: Record<string, { earned: number; max: number; pct: number; label: string }> = {};
+    for (const [key, b] of catMap.entries()) {
+      categoryScores[key] = {
+        earned: b.earned,
+        max: b.max,
+        pct: b.max > 0 ? Math.round((b.earned / b.max) * 10000) / 100 : 0,
+        label: b.label,
+      };
+    }
+
+    // Interpretação automática a partir das faixas do template
+    let interpretation: string | undefined;
+    if (template.interpretation?.length) {
+      const range = template.interpretation.find((r: any) => scorePct >= r.min && scorePct <= r.max);
+      if (range) interpretation = `${range.label}: ${range.description}`;
+    }
 
     const response = await this.responses.save(
       this.responses.create({
@@ -99,6 +144,8 @@ export class TestsService {
         totalScore: total,
         maxScore: max,
         scorePct,
+        categoryScores: Object.keys(categoryScores).length ? categoryScores : undefined,
+        interpretation,
       }),
     );
 
