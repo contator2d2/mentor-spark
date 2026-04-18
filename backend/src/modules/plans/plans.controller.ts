@@ -12,14 +12,31 @@ class UpsertPlanDto {
   @IsString() slug: string;
   @IsString() name: string;
   @IsOptional() @IsString() description?: string;
+  @IsOptional() @IsString() stripePriceId?: string;
   @IsOptional() @IsNumber() priceMonthly?: number;
+
+  // Limites (-1 = ilimitado)
   @IsOptional() @IsInt() @Min(-1) maxMentorados?: number;
   @IsOptional() @IsInt() @Min(-1) maxLeads?: number;
   @IsOptional() @IsInt() @Min(-1) maxAiMessagesMonth?: number;
+  @IsOptional() @IsInt() @Min(-1) maxTeamMembers?: number;
+  @IsOptional() @IsInt() @Min(-1) maxKanbanBoards?: number;
+
+  // Módulos / features
   @IsOptional() @IsBoolean() allowWhatsapp?: boolean;
   @IsOptional() @IsBoolean() allowAi?: boolean;
   @IsOptional() @IsBoolean() allowCustomDomain?: boolean;
   @IsOptional() @IsBoolean() allowMeetings?: boolean;
+  @IsOptional() @IsBoolean() allowGoogleCalendar?: boolean;
+  @IsOptional() @IsBoolean() allowAutomations?: boolean;
+  @IsOptional() @IsBoolean() allowLandingBuilder?: boolean;
+  @IsOptional() @IsBoolean() allowMessaging?: boolean;
+  @IsOptional() @IsBoolean() allowScheduling?: boolean;
+  @IsOptional() @IsBoolean() allowMentorBilling?: boolean;
+  @IsOptional() @IsBoolean() allowTrails?: boolean;
+  @IsOptional() @IsBoolean() allowCommunity?: boolean;
+  @IsOptional() @IsBoolean() allowAdvancedAnalytics?: boolean;
+
   @IsOptional() @IsBoolean() isActive?: boolean;
   @IsOptional() @IsInt() sortOrder?: number;
 }
