@@ -15,6 +15,8 @@ export enum TimelineEventType {
   ALERT_RESOLVED = 'alert_resolved',
   PRIVATE_NOTE = 'private_note',
   MATERIAL_SHARED = 'material_shared',
+  MATERIAL_VIEWED = 'material_viewed',
+  MATERIAL_DOWNLOADED = 'material_downloaded',
   MENTOR_ACTION = 'mentor_action',
   CUSTOM = 'custom',
 }
