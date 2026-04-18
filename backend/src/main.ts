@@ -3,12 +3,14 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import { IoAdapter } from '@nestjs/platform-socket.io';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { cors: false, rawBody: true });
   const logger = new Logger('Bootstrap');
 
-  app.use(helmet());
+  app.useWebSocketAdapter(new IoAdapter(app));
+  app.use(helmet({ crossOriginResourcePolicy: false }));
 
   // CORS robusto: aceita lista CSV, ignora barras finais/espaços, libera *.easypanel.host
   const allowList = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173')
