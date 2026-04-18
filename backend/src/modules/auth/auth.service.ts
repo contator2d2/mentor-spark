@@ -214,6 +214,49 @@ export class AuthService {
     return this.sendWelcomeCredentials({ email, name, password, brandName });
   }
 
+  /**
+   * Envia mensagem de boas-vindas SEM credenciais (quando o usuário definiu a própria senha).
+   */
+  async sendWelcomeNotice(opts: {
+    mentorId?: string;
+    email: string;
+    name: string;
+    brandName: string;
+    phone?: string;
+  }) {
+    const appUrl = process.env.APP_URL || 'http://localhost:8080';
+    const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+    const firstName = (opts.name || '').split(' ')[0];
+
+    try {
+      await this.mail.send({
+        to: opts.email,
+        subject: `Bem-vindo a ${opts.brandName}`,
+        html: `
+          <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
+            <h1 style="font-size:22px;margin:0 0 16px">Olá, ${firstName} 👋</h1>
+            <p>Sua conta em <b>${opts.brandName}</b> foi criada com sucesso.</p>
+            <p>Use o email <b>${opts.email}</b> e a senha que você cadastrou para entrar.</p>
+            <p><a href="${loginUrl}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
+          </div>
+        `,
+      });
+    } catch {}
+
+    if (opts.phone && opts.mentorId) {
+      try {
+        const text =
+          `Olá ${firstName}! 👋\n\n` +
+          `Sua conta em *${opts.brandName}* foi criada com sucesso.\n\n` +
+          `Use o email *${opts.email}* e a senha que você cadastrou para entrar.\n\n` +
+          `🔗 ${loginUrl}`;
+        await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
+      } catch {}
+    }
+
+    await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
+  }
+
   /** Troca de senha autenticada (usada no primeiro login forçado e em alterações voluntárias). */
   async changePassword(userId: string, currentPassword: string, newPassword: string) {
     if (!newPassword || newPassword.length < 8) {

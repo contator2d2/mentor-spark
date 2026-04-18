@@ -77,14 +77,19 @@ export class PublicController {
     return { url, qr: dataUrl };
   }
 
-  /** Submissão pública de lead. Aceita ?event=<slug> para vincular a um evento. */
+  /** Submissão pública de lead. Aceita ?event=<slug> para vincular a um evento.
+   *  No auto-cadastro, o lead define a própria senha (mínimo 8 caracteres). */
   @Post('mentor/:slug/lead')
   async createLead(
     @Param('slug') slug: string,
-    @Body() body: { name: string; email: string; phone?: string; company?: string; revenue?: number; source?: string; eventSlug?: string },
+    @Body() body: { name: string; email: string; phone?: string; company?: string; revenue?: number; source?: string; eventSlug?: string; password?: string },
   ) {
     const mentor = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
     if (!mentor) throw new NotFoundException('Mentor não encontrado');
+
+    if (!body.password || body.password.length < 8) {
+      throw new BadRequestException('Senha obrigatória (mínimo 8 caracteres)');
+    }
 
     let eventId: string | undefined;
     if (body.eventSlug) {
@@ -98,7 +103,7 @@ export class PublicController {
       eventId,
       ...body,
     });
-    return { ok: true, leadId: result.lead.id, accountCreated: result.accountCreated };
+    return { ok: true, leadId: result.lead.id, accountCreated: result.accountCreated, userChosePassword: result.userChosePassword };
   }
 
   /** Lista pública de testes ativos do mentor (para o lead escolher após capturar) */
