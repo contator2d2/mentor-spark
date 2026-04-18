@@ -31,8 +31,20 @@ interface Mentor {
   planName: string | null;
   planPriceMonthly: number;
   planExpiresAt: string | null;
+  planBillingType: "monthly" | "upfront" | null;
+  planPaymentMethods: string[];
+  planDueDay: number | null;
+  planAmount: number | null;
+  planNotes: string | null;
   isExpired: boolean;
 }
+
+type PaymentMethod = "pix" | "boleto" | "credit_card";
+const PAYMENT_METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: "pix", label: "Pix" },
+  { value: "boleto", label: "Boleto" },
+  { value: "credit_card", label: "Cartão de crédito" },
+];
 
 interface Plan {
   id: string;
