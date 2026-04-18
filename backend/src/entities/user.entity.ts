@@ -67,6 +67,14 @@ export class User {
   @Column({ default: false })
   onboardingCompleted: boolean;
 
+  /** Quando true, força a troca de senha no próximo login (senha temporária). */
+  @Column({ default: false })
+  mustChangePassword: boolean;
+
+  /** Última vez que recebeu credenciais temporárias por WhatsApp/email. */
+  @Column({ type: 'timestamptz', nullable: true })
+  credentialsSentAt?: Date;
+
   /** Para PROSPECT/MENTORADO: id do mentor dono (multi-tenant) */
   @Column({ type: 'uuid', nullable: true })
   mentorId?: string;
