@@ -195,6 +195,44 @@ export class ProntuarioPrivateController {
     return { ok: true };
   }
 
+  /** Marca material como visto/baixado — chamado pelo mentor (tracking manual)
+   *  ou pelo mentorado (futuro, pela área dele).  */
+  @Auth('mentor', 'super_admin', 'mentorado')
+  @Post(':recordId/materials/:id/track')
+  async trackMaterial(
+    @TenantId() mentorId: string,
+    @Param('recordId') recordId: string,
+    @Param('id') id: string,
+    @Body() dto: { action: 'view' | 'download'; actor?: 'mentor' | 'mentorado' },
+  ) {
+    const mat = await this.materials.findOne({ where: { id, recordId } });
+    if (!mat) throw new NotFoundException('Material não encontrado');
+    const now = new Date();
+    const actor = dto.actor || 'mentorado';
+    if (dto.action === 'view') {
+      mat.viewCount = (mat.viewCount || 0) + 1;
+      if (!mat.firstViewedAt) mat.firstViewedAt = now;
+      mat.lastViewedAt = now;
+      if (actor === 'mentorado') {
+        await this.alertsService.logEvent(
+          mat.mentorId, recordId, TimelineEventType.MATERIAL_VIEWED,
+          `Mentorado visualizou: ${mat.title}`, { source: 'mentorado' },
+        );
+      }
+    } else if (dto.action === 'download') {
+      mat.downloadCount = (mat.downloadCount || 0) + 1;
+      if (!mat.firstDownloadedAt) mat.firstDownloadedAt = now;
+      mat.lastDownloadedAt = now;
+      if (actor === 'mentorado') {
+        await this.alertsService.logEvent(
+          mat.mentorId, recordId, TimelineEventType.MATERIAL_DOWNLOADED,
+          `Mentorado baixou: ${mat.title}`, { source: 'mentorado' },
+        );
+      }
+    }
+    return this.materials.save(mat);
+  }
+
   // ============ Timeline persistida ============
   @Auth('mentor', 'super_admin')
   @Get(':recordId/events')
