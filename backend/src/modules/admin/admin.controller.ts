@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Post, Body, BadRequestException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { User, UserRole, UserStatus } from '../../entities/user.entity';
@@ -7,7 +7,10 @@ import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
 import { Plan } from '../../entities/plan.entity';
 import { Subscription, SubscriptionStatus } from '../../entities/subscription.entity';
+import { Charge, ChargeStatus, ChargeMethod } from '../../entities/charge.entity';
 import { Auth } from '../auth/auth.decorators';
+import { AuthService } from '../auth/auth.service';
+import { MentorBillingService } from '../billing/mentor-billing.service';
 
 @Controller('admin')
 export class AdminController {
@@ -18,6 +21,9 @@ export class AdminController {
     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
     @InjectRepository(Plan) private plans: Repository<Plan>,
     @InjectRepository(Subscription) private subs: Repository<Subscription>,
+    @InjectRepository(Charge) private charges: Repository<Charge>,
+    private authService: AuthService,
+    private billing: MentorBillingService,
   ) {}
 
   /** Lista mentores com plano resolvido e métricas básicas para a tela de aprovação. */
