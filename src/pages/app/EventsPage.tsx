@@ -23,7 +23,7 @@ export default function EventsPage() {
 
   async function load() {
     try {
-      const [evs, user] = await Promise.all([api<Event[]>("/events"), api<any>("/auth/me")]);
+      const [evs, user] = await Promise.all([api<Event[]>("/events"), api<any>("/me")]);
       setItems(evs); setMe(user);
     } catch (e: any) { toast.error(e.message); }
   }
