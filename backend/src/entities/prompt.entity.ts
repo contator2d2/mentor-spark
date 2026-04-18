@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Index, Unique } from 'typeorm';
 
 @Entity('prompt_library')
 @Index(['mentorId'])
+@Unique('uq_prompt_mentor_seed', ['mentorId', 'seedKey'])
 export class Prompt {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -17,6 +18,14 @@ export class Prompt {
 
   @Column({ nullable: true })
   category?: string;
+
+  /** Identificador estável para seeds de sistema (idempotência) */
+  @Column({ nullable: true })
+  seedKey?: string;
+
+  /** Marca prompts entregues pelo sistema (não editáveis por padrão) */
+  @Column({ default: false })
+  isSystem: boolean;
 
   @CreateDateColumn()
   createdAt: Date;
