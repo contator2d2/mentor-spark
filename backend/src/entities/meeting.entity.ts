@@ -86,6 +86,10 @@ export class Meeting {
   @Column({ nullable: true })
   googleCalendarEventId?: string;
 
+  /** Anexos da reunião (PDFs, slides, materiais de apoio, áudios externos). */
+  @Column({ type: 'jsonb', nullable: true })
+  attachments?: Array<{ url: string; name: string; kind: string; mimetype: string; size: number; uploadedAt: string }>;
+
   @CreateDateColumn()
   createdAt: Date;
 
