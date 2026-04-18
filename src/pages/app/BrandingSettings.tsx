@@ -264,44 +264,32 @@ export default function BrandingSettings() {
         </div>
       </section>
 
-      {/* ============== SUBDOMÍNIO AUTOMÁTICO ============== */}
-      <section className="bg-card border border-border rounded-xl p-6 space-y-3">
-        <div className="flex items-center gap-2">
-          <Globe className="h-4 w-4 text-accent" />
-          <h2 className="font-semibold">Subdomínio automático</h2>
-          {APP_BASE_DOMAIN ? (
+      {/* ============== SUBDOMÍNIO AUTOMÁTICO (só aparece quando configurado) ============== */}
+      {APP_BASE_DOMAIN && (
+        <section className="bg-card border border-border rounded-xl p-6 space-y-3">
+          <div className="flex items-center gap-2">
+            <Globe className="h-4 w-4 text-accent" />
+            <h2 className="font-semibold">Subdomínio automático</h2>
             <Badge variant="secondary" className="ml-2">Disponível</Badge>
-          ) : (
-            <Badge variant="outline" className="ml-2">Indisponível neste ambiente</Badge>
-          )}
-        </div>
-        {APP_BASE_DOMAIN ? (
-          <>
-            <p className="text-sm text-muted-foreground">
-              Cada mentor ganha automaticamente um subdomínio baseado no seu slug. Não precisa configurar nada.
-            </p>
-            <div className="flex gap-2">
-              <Input value={subdomainLink || ""} readOnly className="font-mono text-sm" />
-              <Button variant="outline" size="icon" onClick={() => subdomainLink && copy(subdomainLink, "Subdomínio")}>
-                <Copy className="h-4 w-4" />
-              </Button>
-              {subdomainLink && (
-                <Button variant="outline" size="icon" asChild>
-                  <a href={subdomainLink} target="_blank" rel="noreferrer">
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </Button>
-              )}
-            </div>
-          </>
-        ) : (
+          </div>
           <p className="text-sm text-muted-foreground">
-            Para habilitar subdomínios automáticos (ex: <code className="text-xs bg-muted px-1 rounded">joao.suaplataforma.com</code>),
-            o administrador precisa configurar a variável <code className="text-xs bg-muted px-1 rounded">VITE_APP_BASE_DOMAIN</code> no
-            frontend e <code className="text-xs bg-muted px-1 rounded">APP_BASE_DOMAIN</code> no backend, além de apontar um <b>wildcard DNS</b> (<code>*.suaplataforma.com</code>) para o servidor.
+            Cada mentor ganha automaticamente um subdomínio baseado no seu slug. Não precisa configurar nada.
           </p>
-        )}
-      </section>
+          <div className="flex gap-2">
+            <Input value={subdomainLink || ""} readOnly className="font-mono text-sm" />
+            <Button variant="outline" size="icon" onClick={() => subdomainLink && copy(subdomainLink, "Subdomínio")}>
+              <Copy className="h-4 w-4" />
+            </Button>
+            {subdomainLink && (
+              <Button variant="outline" size="icon" asChild>
+                <a href={subdomainLink} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              </Button>
+            )}
+          </div>
+        </section>
+      )}
 
       {/* ============== DOMÍNIO PRÓPRIO ============== */}
       <section className="bg-card border border-border rounded-xl p-6 space-y-4">
