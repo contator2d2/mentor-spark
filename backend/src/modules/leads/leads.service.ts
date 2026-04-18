@@ -42,15 +42,18 @@ export class LeadsService {
     revenue?: number;
     source?: string;
     eventId?: string;
+    /** Senha definida pelo próprio lead no auto-cadastro público. */
+    password?: string;
   }) {
-    // Cria usuário PROSPECT + envia email com senha
-    const { user, generatedPassword } = await this.authService.createProspectUser({
+    // Cria usuário PROSPECT — usa a senha do lead se informada; senão, gera temporária
+    const { user, generatedPassword, userChosePassword } = await this.authService.createProspectUser({
       mentorId: params.mentorId,
       name: params.name,
       email: params.email,
       phone: params.phone,
       company: params.company,
       revenue: params.revenue,
+      password: params.password,
     });
 
     // Verifica se já existe lead com o mesmo email para este mentor
@@ -74,6 +77,7 @@ export class LeadsService {
       await this.leads.save(lead);
     }
 
+    // Se usou senha temporária, dispara WhatsApp/email com credenciais.
     if (generatedPassword) {
       await this.authService.sendWelcomeCredentials({
         mentorId: params.mentorId,
@@ -83,9 +87,18 @@ export class LeadsService {
         brandName: params.mentorBrand,
         phone: params.phone,
       });
+    } else if (userChosePassword) {
+      // Lead definiu a própria senha — envia apenas confirmação de boas-vindas (sem senha)
+      await this.authService.sendWelcomeNotice({
+        mentorId: params.mentorId,
+        email: params.email,
+        name: params.name,
+        brandName: params.mentorBrand,
+        phone: params.phone,
+      });
     }
 
-    return { lead, accountCreated: !!generatedPassword };
+    return { lead, accountCreated: !!user, userChosePassword };
   }
 
   async stats(mentorId: string) {

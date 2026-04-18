@@ -111,16 +111,31 @@ export class AuthService {
     };
   }
 
-  async createProspectUser(params: { mentorId: string; name: string; email: string; phone?: string; company?: string; revenue?: number; role?: UserRole }) {
+  /**
+   * Cria usuário PROSPECT.
+   * - Se `password` for informado: usa essa senha (definida pelo próprio usuário no auto-cadastro), sem mustChangePassword.
+   * - Se não: gera senha temporária e marca mustChangePassword=true (fluxo do mentor cadastrando manualmente).
+   */
+  async createProspectUser(params: {
+    mentorId: string;
+    name: string;
+    email: string;
+    phone?: string;
+    company?: string;
+    revenue?: number;
+    role?: UserRole;
+    password?: string;
+  }) {
     const existing = await this.users.findOne({ where: { email: params.email.toLowerCase() } });
     if (existing) {
       // Já existe, retorna sem criar de novo
-      return { user: existing, generatedPassword: null as string | null };
+      return { user: existing, generatedPassword: null as string | null, userChosePassword: false };
     }
-    const generatedPassword = this.generateTempPassword();
+    const userChosePassword = !!(params.password && params.password.length >= 8);
+    const passwordToUse = userChosePassword ? params.password! : this.generateTempPassword();
     const user = this.users.create({
       email: params.email.toLowerCase(),
-      passwordHash: await bcrypt.hash(generatedPassword, 10),
+      passwordHash: await bcrypt.hash(passwordToUse, 10),
       name: params.name,
       phone: params.phone,
       company: params.company,
@@ -128,10 +143,14 @@ export class AuthService {
       role: params.role || UserRole.PROSPECT,
       status: UserStatus.ACTIVE,
       mentorId: params.mentorId,
-      mustChangePassword: true,
+      mustChangePassword: !userChosePassword,
     });
     await this.users.save(user);
-    return { user, generatedPassword };
+    return {
+      user,
+      generatedPassword: userChosePassword ? null : passwordToUse,
+      userChosePassword,
+    };
   }
 
   /**
