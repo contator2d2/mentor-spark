@@ -141,6 +141,34 @@ export default function EventsPage() {
                     </div>
                   )}
                 </div>
+                <div className="bg-muted/30 rounded-lg p-3 space-y-3">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="checkbox" checked={form.isPaid} onChange={(e) => setForm({ ...form, isPaid: e.target.checked })} />
+                    Evento pago (cobrar inscrição)
+                  </label>
+                  {form.isPaid && (
+                    <div className="space-y-2 pl-6">
+                      <Label className="text-xs">Provedor de pagamento</Label>
+                      {providers.length === 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          Nenhum provedor configurado. Vá em <Link to="/app/integrations" className="text-primary underline">Integrações</Link> para adicionar Asaas, Mercado Pago, Stripe ou link manual.
+                        </p>
+                      ) : (
+                        <Select value={form.paymentProviderId} onValueChange={(v) => setForm({ ...form, paymentProviderId: v })}>
+                          <SelectTrigger><SelectValue placeholder="Escolher provedor..." /></SelectTrigger>
+                          <SelectContent>
+                            {providers.map((p) => (
+                              <SelectItem key={p.id} value={p.id}>
+                                {p.label || p.type} {p.environment === "sandbox" && "(sandbox)"}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+                      <p className="text-[10px] text-muted-foreground">Após criar, configure os lotes na página do evento.</p>
+                    </div>
+                  )}
+                </div>
               </div>
               <DialogFooter>
                 <Button onClick={create} disabled={saving || !form.name} className="bg-gradient-primary hover:opacity-90">
