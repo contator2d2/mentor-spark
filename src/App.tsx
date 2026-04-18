@@ -48,6 +48,7 @@ import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
 import OnboardingPublicPage from "./pages/OnboardingPublicPage";
 import BoardsListPage from "./pages/app/BoardsListPage";
 import BoardDetailPage from "./pages/app/BoardDetailPage";
+import BoardSettingsPage from "./pages/app/BoardSettingsPage";
 import TeamPage from "./pages/app/TeamPage";
 import MessageTemplatesPage from "./pages/app/MessageTemplatesPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
@@ -107,6 +108,7 @@ const App = () => (
                 <Route path="contents" element={<ContentsPage />} />
                 <Route path="boards" element={<BoardsListPage />} />
                 <Route path="boards/:id" element={<BoardDetailPage />} />
+                <Route path="boards/:id/settings" element={<BoardSettingsPage />} />
                 <Route path="team" element={<TeamPage />} />
                 <Route path="messages/templates" element={<MessageTemplatesPage />} />
                 <Route path="automations" element={<AutomationsPage />} />
