@@ -171,30 +171,37 @@ export class MessagesService {
     name: string;
     channel: MessageChannel;
     sequence: BroadcastSequenceStep[];
-    leadIds: string[];
+    leadIds?: string[];
+    groupTargets?: { jid: string; name?: string; isChannel?: boolean }[];
     perRecipientDelaySeconds?: number;
     jitter?: number;
     scheduledAt?: Date | null;
   }) {
     if (!dto.sequence?.length) throw new BadRequestException('Sequência vazia');
-    if (!dto.leadIds?.length) throw new BadRequestException('Sem destinatários');
+    const hasLeads = !!dto.leadIds?.length;
+    const hasGroups = !!dto.groupTargets?.length;
+    if (!hasLeads && !hasGroups) throw new BadRequestException('Sem destinatários');
+    if (hasGroups && dto.channel !== MessageChannel.WHATSAPP) {
+      throw new BadRequestException('Grupos/canais só são suportados via WhatsApp');
+    }
+    const total = hasGroups ? dto.groupTargets!.length : dto.leadIds!.length;
     const broadcast = this.broadcasts.create({
       mentorId: dto.mentorId,
       createdBy: dto.createdBy,
       name: dto.name,
       channel: dto.channel,
       sequence: dto.sequence,
-      leadIds: dto.leadIds,
+      leadIds: dto.leadIds || [],
+      groupTargets: dto.groupTargets,
       perRecipientDelaySeconds: dto.perRecipientDelaySeconds ?? 8,
       jitter: dto.jitter ?? 0.3,
-      totalRecipients: dto.leadIds.length,
+      totalRecipients: total,
       scheduledAt: dto.scheduledAt || null,
       status: dto.scheduledAt ? BroadcastStatus.SCHEDULED : BroadcastStatus.RUNNING,
       startedAt: dto.scheduledAt ? null : new Date(),
     });
     const saved = await this.broadcasts.save(broadcast);
     if (!dto.scheduledAt) {
-      // dispara em background
       this.runBroadcast(saved.id).catch((e) => this.logger.error(`broadcast falhou: ${e.message}`));
     }
     return saved;
@@ -212,9 +219,42 @@ export class MessagesService {
     let sentCount = 0;
     let failedCount = 0;
 
+    // Modo grupos/canais
+    if (b.groupTargets && b.groupTargets.length > 0) {
+      for (const target of b.groupTargets) {
+        try {
+          // delay anti-bloqueio
+          if (cursor > baseStart) {
+            const base = b.perRecipientDelaySeconds * 1000;
+            const variance = base * b.jitter * (Math.random() * 2 - 1);
+            const wait = Math.max(1000, base + variance);
+            await new Promise((r) => setTimeout(r, wait));
+          }
+          for (let i = 0; i < b.sequence.length; i++) {
+            const step = b.sequence[i];
+            if (i > 0 && step.delaySeconds) await new Promise((r) => setTimeout(r, step.delaySeconds! * 1000));
+            const r = await this.whatsapp.sendTextToGroup(b.mentorId, target.jid, step.body);
+            if (!r.ok) throw new Error(r.error || 'falha envio grupo');
+          }
+          sentCount++;
+          cursor = Date.now();
+        } catch (e: any) {
+          this.logger.error(`broadcast ${broadcastId} group ${target.jid}: ${e.message}`);
+          failedCount++;
+        }
+      }
+      await this.broadcasts.update(broadcastId, {
+        status: BroadcastStatus.COMPLETED,
+        finishedAt: new Date(),
+        sentCount,
+        failedCount,
+      });
+      return;
+    }
+
+    // Modo leads (existente)
     for (const leadId of b.leadIds) {
       try {
-        // delay anti-bloqueio entre destinatários (com jitter)
         if (cursor > baseStart) {
           const base = b.perRecipientDelaySeconds * 1000;
           const variance = base * b.jitter * (Math.random() * 2 - 1);
@@ -229,7 +269,6 @@ export class MessagesService {
           startAt: new Date(cursor),
           broadcastId: b.id,
         });
-        // após sequência, avança cursor pelo total da sequência
         for (let i = 1; i < b.sequence.length; i++) cursor += (b.sequence[i].delaySeconds || 0) * 1000;
         sentCount++;
       } catch (e: any) {
