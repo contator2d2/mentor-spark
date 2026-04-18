@@ -57,7 +57,7 @@ export default function EventDetailPage() {
         api<any[]>(`/events/${id}/registrations`),
         api<any[]>(`/events/${id}/actions`),
         api(`/events/${id}/nps/summary`),
-        api<any[]>("/tests"),
+        api<any[]>("/tests/templates").catch(() => []),
         api("/me"),
       ]);
       setEvent(ev); setRegs(rg); setActions(acts); setNps(n); setTests(ts); setMe(user);
