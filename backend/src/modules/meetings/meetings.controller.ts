@@ -81,7 +81,7 @@ export class MeetingsController {
     const m = await this.meetings.findOne({ where: { id, mentorId } });
     if (!m) throw new BadRequestException('Reunião não encontrada');
     m.audioUrl = `/uploads/meetings/${file.filename}`;
-    m.status = 'transcribing';
+    m.status = 'processing';
     await this.meetings.save(m);
     // Dispara transcrição em background
     this.service.transcribeAndSummarize(mentorId, id, file.path).catch(() => {});
@@ -96,9 +96,16 @@ export class MeetingsController {
     const { summary, insights } = await this.ai.summarizeMeeting(mentorId, m.transcript);
     m.aiSummary = summary;
     m.aiInsights = insights;
-    m.status = 'done';
+    m.status = 'completed';
     await this.meetings.save(m);
     return m;
+  }
+
+  /** Alias REST do spec: POST /meetings/:id/generate-summary */
+  @Auth('mentor', 'super_admin')
+  @Post(':id/generate-summary')
+  generateSummary(@TenantId() mentorId: string, @Param('id') id: string) {
+    return this.summarize(mentorId, id);
   }
 
   @Auth('mentor', 'super_admin')

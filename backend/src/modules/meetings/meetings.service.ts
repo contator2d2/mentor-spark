@@ -37,7 +37,7 @@ export class MeetingsService {
         m.aiSummary = summary;
         m.aiInsights = insights;
       }
-      m.status = 'done';
+      m.status = 'completed';
       await this.meetings.save(m);
     } catch (e: any) {
       this.logger.error(`Transcrição falhou (meeting ${meetingId}): ${e.message}`);
