@@ -34,6 +34,8 @@ import AdminPlans from "./pages/app/AdminPlans";
 import TestsListPage from "./pages/app/TestsListPage";
 import TestBuilder from "./pages/app/TestBuilder";
 import LeadDossier from "./pages/app/LeadDossier";
+import LeadCreatePage from "./pages/app/LeadCreatePage";
+import CompanyDossier from "./pages/app/CompanyDossier";
 import PromptsPage from "./pages/app/PromptsPage";
 import TasksKanban from "./pages/app/TasksKanban";
 import ContentsPage from "./pages/app/ContentsPage";
@@ -84,7 +86,9 @@ const App = () => (
               >
                 <Route index element={<Dashboard />} />
                 <Route path="leads" element={<LeadsPage />} />
+                <Route path="leads/novo" element={<LeadCreatePage />} />
                 <Route path="leads/:id" element={<LeadDossier />} />
+                <Route path="companies/:id" element={<CompanyDossier />} />
                 <Route path="mentorados" element={<MentoradosPage />} />
                 <Route path="tests" element={<TestsListPage />} />
                 <Route path="tests/new" element={<TestBuilder />} />
