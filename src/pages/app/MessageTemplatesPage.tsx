@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Loader2, Plus, Trash2, MessageSquare, Mail, Smartphone, Bell, Send, Library, Copy, Paperclip, X, Megaphone } from "lucide-react";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
-import MediaUpload from "@/components/MediaUpload";
+import { MediaUpload } from "@/components/MediaUpload";
 
 type Channel = "in_app" | "whatsapp" | "email";
 type Category = "welcome" | "followup" | "event" | "reminder" | "sales" | "onboarding" | "reengage" | "thankyou" | "custom";
@@ -174,7 +174,7 @@ export default function MessageTemplatesPage() {
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <Badge variant="outline" className={meta.color}><Icon className="h-3 w-3 mr-1" />{meta.label}</Badge>
                     <Badge variant="secondary" className="text-xs">{CATEGORY_LABELS[t.category] || t.category}</Badge>
-                    {t.isLibrary && <Badge className="text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30">Biblioteca</Badge>}
+                    {t.isLibrary && <Badge variant="outline" className="text-xs">Biblioteca</Badge>}
                     <span className="font-medium">{t.name}</span>
                   </div>
                   {t.subject && <div className="text-xs text-muted-foreground mb-1">Assunto: {t.subject}</div>}
@@ -187,9 +187,9 @@ export default function MessageTemplatesPage() {
                 </div>
                 <div className="flex flex-col gap-1">
                   <Button variant="ghost" size="icon" title="Enviar teste" onClick={() => openTest(t)}><Send className="h-4 w-4" /></Button>
-                  {t.isLibrary
+                    {t.isLibrary
                     ? <Button variant="ghost" size="icon" title="Clonar" onClick={() => clone(t)}><Copy className="h-4 w-4" /></Button>
-                    : <Button variant="ghost" size="icon" onClick={() => remove(t)}><Trash2 className="h-4 w-4 text-rose-400" /></Button>}
+                    : <Button variant="ghost" size="icon" onClick={() => remove(t)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                 </div>
               </div>
             </Card>
@@ -251,7 +251,7 @@ export default function MessageTemplatesPage() {
                 ))}
               </div>
               <div className="mt-2">
-                <MediaUpload onUploaded={(res) => addAttachment({ url: res.url, mimetype: res.mimetype, originalName: res.originalName, kind: res.kind })} />
+                <MediaUpload compact onChange={(res) => { if (res) addAttachment({ url: res.url, mimetype: res.mimetype, originalName: res.originalName, kind: res.kind }); }} />
               </div>
             </div>
           </div>
