@@ -143,13 +143,14 @@ export default function ContentsPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label>Tipo</Label>
-                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v, url: "" })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="article">Artigo</SelectItem>
+                    <SelectItem value="article">Artigo (texto)</SelectItem>
                     <SelectItem value="video">Vídeo</SelectItem>
-                    <SelectItem value="pdf">PDF</SelectItem>
-                    <SelectItem value="link">Link</SelectItem>
+                    <SelectItem value="audio">Áudio</SelectItem>
+                    <SelectItem value="image">Imagem</SelectItem>
+                    <SelectItem value="pdf">Documento (PDF / DOCX)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -165,8 +166,16 @@ export default function ContentsPage() {
                 </Select>
               </div>
             </div>
-            {(form.type === "video" || form.type === "pdf" || form.type === "link") && (
-              <div className="space-y-2"><Label>URL</Label><Input placeholder="https://..." value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} /></div>
+            {TYPE_TO_UPLOAD[form.type] && (
+              <div className="space-y-2">
+                <Label>Arquivo</Label>
+                <MediaUpload
+                  accept={[TYPE_TO_UPLOAD[form.type] as UploadKind]}
+                  value={form.url}
+                  onChange={(m) => setForm({ ...form, url: m?.url || "" })}
+                  hint={`Envie um arquivo do tipo ${form.type} do seu computador`}
+                />
+              </div>
             )}
             <div className="space-y-2"><Label>Corpo / Descrição</Label><Textarea rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} /></div>
             <div className="space-y-2">
