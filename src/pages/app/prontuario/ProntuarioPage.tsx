@@ -16,7 +16,7 @@ import {
 import {
   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
   Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder, Settings,
-  Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign,
+  Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign, Shield,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProntuarioPayload, MentoredRecord, STAGE_META } from "./types";
