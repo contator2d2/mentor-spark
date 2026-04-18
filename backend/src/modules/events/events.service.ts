@@ -430,8 +430,9 @@ export class EventsService {
     for (const reg of targets) {
       try {
         // Gera dossiê IA simples baseado no nome da empresa
-        const prompt = `Você é um consultor de negócios. Crie um mini-dossiê (300 palavras max) sobre a empresa "${reg.company}". Inclua: setor provável, oportunidades de mentoria, dores comuns nesse segmento, e 3 perguntas estratégicas que um mentor faria. Tom profissional e brasileiro.`;
-        const dossier = await this.ai.complete(mentorId, prompt).catch(() => 'Dossiê não disponível.');
+        const sys = 'Você é um consultor de negócios sênior. Escreva em português do Brasil, tom profissional e direto.';
+        const prompt = `Crie um mini-dossiê estratégico (300 palavras max) sobre a empresa "${reg.company}". Inclua: 1) setor provável, 2) oportunidades de mentoria, 3) dores comuns nesse segmento, 4) três perguntas estratégicas que um mentor faria.`;
+        const dossier = await this.ai.chat(sys, prompt).catch(() => 'Dossiê não disponível neste momento.');
         await this.mail.send({
           to: reg.email,
           subject: `🎁 Análise estratégica gratuita: ${reg.company}`,
