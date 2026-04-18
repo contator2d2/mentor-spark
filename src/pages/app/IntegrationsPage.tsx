@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Loader2, CheckCircle2, AlertCircle, Send, Lock, Calendar, Link2, Unlink } from "lucide-react";
 import { toast } from "sonner";
+import PaymentProvidersSection from "@/components/payments/PaymentProvidersSection";
 
 interface WhatsappState {
   allowed: boolean;
@@ -233,6 +234,9 @@ export default function IntegrationsPage() {
           </div>
         )}
       </div>
+
+      {/* PAGAMENTOS DE EVENTOS */}
+      <PaymentProvidersSection />
 
       <div className="text-xs text-muted-foreground">
         Documentação uazapi:{" "}
