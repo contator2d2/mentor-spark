@@ -71,7 +71,7 @@ export default function ContractTemplatesPage() {
   function openNew() { setEditing(null); setForm({ name: "", body: "", isActive: true }); setOpen(true); }
   function openEdit(t: Tpl) { setEditing(t); setForm({ name: t.name, body: t.body, isActive: t.isActive }); setOpen(true); }
   function openAi() {
-    setAiForm({ contractType: "mentoria", segment: "", objective: "", durationMonths: "12", priceMonthly: "", paymentTerms: "Mensal via PIX/cartão", jurisdiction: "", extraClauses: "", tone: "formal" });
+    setAiForm({ contractType: "mentoria", segment: "", objective: "", durationMonths: "12", priceMonthly: "", totalPrice: "", paymentCondition: "mensal", installments: "12", paymentMethods: ["pix", "cartao"], jurisdiction: "", extraClauses: "", tone: "formal" });
     setAiOpen(true);
   }
 
