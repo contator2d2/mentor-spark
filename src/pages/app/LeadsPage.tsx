@@ -1,14 +1,17 @@
 // Kanban do Funil — /app/leads (Dark Premium)
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2, Kanban as KanbanIcon, ExternalLink, Flame, Snowflake, Cloud,
-  TrendingUp, Users, Sparkles, Plus, Zap,
+  Loader2, Kanban as KanbanIcon, Flame, Snowflake, Cloud,
+  TrendingUp, Users, Sparkles, Plus, Zap, Filter,
 } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -39,6 +42,8 @@ interface Lead {
   createdAt: string;
 }
 
+type FunnelView = "principal" | "hot" | "tested" | "negotiating" | "clients" | "lost";
+
 const STAGES = [
   { id: "new",         label: "Novo Lead",   gradient: "from-slate-500/20 to-slate-700/10",   dot: "bg-slate-400" },
   { id: "tested",      label: "Fez Teste",   gradient: "from-blue-500/20 to-blue-700/10",     dot: "bg-blue-400" },
@@ -46,6 +51,15 @@ const STAGES = [
   { id: "negotiating", label: "Negociação",  gradient: "from-violet-500/20 to-violet-700/10", dot: "bg-violet-400" },
   { id: "client",      label: "Mentorado",   gradient: "from-emerald-500/20 to-emerald-700/10", dot: "bg-emerald-400" },
   { id: "lost",        label: "Perdido",     gradient: "from-rose-500/20 to-rose-700/10",     dot: "bg-rose-400" },
+];
+
+const FUNNEL_VIEWS: { id: FunnelView; label: string; description: string; stages: string[] }[] = [
+  { id: "principal",   label: "Funil principal",       description: "Todas as etapas do pipeline",         stages: STAGES.map((s) => s.id) },
+  { id: "hot",         label: "Hot leads",             description: "Apenas leads com temperatura HOT",     stages: ["new", "tested", "engaged", "negotiating"] },
+  { id: "tested",      label: "Fizeram teste",         description: "Leads que já responderam um teste",    stages: ["tested", "engaged", "negotiating", "client"] },
+  { id: "negotiating", label: "Em negociação",         description: "Pipeline final — fechamento",          stages: ["negotiating", "client", "lost"] },
+  { id: "clients",     label: "Mentorados ativos",     description: "Apenas quem já é cliente",             stages: ["client"] },
+  { id: "lost",        label: "Perdidos / reengajar",  description: "Recuperação de oportunidades",         stages: ["lost"] },
 ];
 
 function tempBadge(t?: string) {
@@ -85,13 +99,23 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
   const style = transform
     ? { transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`, opacity: isDragging ? 0.4 : 1 }
     : undefined;
+
+  // Diferencia clique de drag: só dispara onOpen se o ponteiro mal se moveu
+  let downX = 0, downY = 0;
+
   return (
     <Card
       ref={setNodeRef}
       style={style}
       {...attributes}
       {...listeners}
-      className="group glass-card border-border/60 p-3 cursor-grab active:cursor-grabbing hover:border-primary/40 hover:shadow-glow transition-all space-y-2"
+      onPointerDown={(e) => { downX = e.clientX; downY = e.clientY; (listeners as any)?.onPointerDown?.(e); }}
+      onClick={(e) => {
+        const dx = Math.abs(e.clientX - downX);
+        const dy = Math.abs(e.clientY - downY);
+        if (dx < 4 && dy < 4) onOpen();
+      }}
+      className="group glass-card border-border/60 p-3 cursor-pointer hover:border-primary/40 hover:shadow-glow transition-all space-y-2"
     >
       <div className="flex items-start gap-2.5">
         <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center text-xs font-bold text-primary-foreground shadow-glow shrink-0">
@@ -102,6 +126,7 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
             {lead.name}
           </div>
           {lead.company && <div className="text-[11px] text-muted-foreground truncate">{lead.company}</div>}
+          {!lead.company && <div className="text-[11px] text-muted-foreground truncate">{lead.email}</div>}
         </div>
       </div>
       <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/40">
@@ -113,15 +138,9 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
             </Badge>
           )}
         </div>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => { e.stopPropagation(); onOpen(); }}
-        >
-          <ExternalLink className="h-3 w-3" />
-        </Button>
+        <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+          Abrir →
+        </span>
       </div>
     </Card>
   );
@@ -175,6 +194,7 @@ export default function LeadsPage() {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickSaving, setQuickSaving] = useState(false);
   const [quick, setQuick] = useState({ name: "", email: "", phone: "", company: "", sendInvite: false });
+  const [funnelView, setFunnelView] = useState<FunnelView>("principal");
   const nav = useNavigate();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
@@ -221,6 +241,20 @@ export default function LeadsPage() {
     }
   }
 
+  const view = useMemo(() => FUNNEL_VIEWS.find((v) => v.id === funnelView)!, [funnelView]);
+
+  const filteredLeads = useMemo(() => {
+    if (!leads) return [];
+    let result = leads.filter((l) => view.stages.includes(l.stage));
+    if (funnelView === "hot") result = result.filter((l) => l.temperature === "hot");
+    return result;
+  }, [leads, view, funnelView]);
+
+  const visibleStages = useMemo(
+    () => STAGES.filter((s) => view.stages.includes(s.id)),
+    [view],
+  );
+
   if (!leads) {
     return (
       <div className="flex items-center justify-center py-24">
@@ -241,18 +275,6 @@ export default function LeadsPage() {
         <div className="absolute inset-0 bg-grid opacity-40" />
         <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-accent/20 blur-3xl" />
 
-        <div className="relative animate-fade-in">
-          <Badge variant="outline" className="mb-3 border-accent/40 bg-accent/10 text-accent">
-            <KanbanIcon className="h-3 w-3 mr-1" /> Pipeline de vendas
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-display tracking-tight text-balance">
-            Funil de <span className="text-gradient">leads</span>
-          </h1>
-          <p className="text-muted-foreground mt-2 max-w-lg">
-            Arraste cards entre as etapas. Clique no ícone para abrir o prontuário completo.
-          </p>
-        </div>
-
         <div className="relative animate-fade-in flex flex-wrap items-start justify-between gap-4">
           <div>
             <Badge variant="outline" className="mb-3 border-accent/40 bg-accent/10 text-accent">
@@ -262,7 +284,7 @@ export default function LeadsPage() {
               Funil de <span className="text-gradient">leads</span>
             </h1>
             <p className="text-muted-foreground mt-2 max-w-lg">
-              Arraste cards entre as etapas. Clique no ícone para abrir o prontuário completo.
+              Arraste cards entre as etapas. Clique no card para abrir o prontuário completo.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -321,15 +343,41 @@ export default function LeadsPage() {
         </div>
       </div>
 
+      {/* SELETOR DE FUNIL */}
+      <div className="flex flex-wrap items-center gap-3 -mt-2">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Filter className="h-4 w-4 text-primary" />
+          <span>Visualizar funil:</span>
+        </div>
+        <Select value={funnelView} onValueChange={(v) => setFunnelView(v as FunnelView)}>
+          <SelectTrigger className="w-[260px] bg-card/50 border-border/60">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {FUNNEL_VIEWS.map((v) => (
+              <SelectItem key={v.id} value={v.id}>
+                <div className="flex flex-col">
+                  <span className="font-medium">{v.label}</span>
+                  <span className="text-[11px] text-muted-foreground">{v.description}</span>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Badge variant="outline" className="border-border/60 bg-card/40">
+          {filteredLeads.length} leads nesta visão
+        </Badge>
+      </div>
+
       {/* KANBAN */}
       <DndContext sensors={sensors} onDragStart={onStart} onDragEnd={onEnd}>
         <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4">
-          {STAGES.map((s, i) => (
+          {visibleStages.map((s, i) => (
             <Column
               key={s.id}
               index={i}
               stage={s}
-              leads={leads.filter((l) => l.stage === s.id)}
+              leads={filteredLeads.filter((l) => l.stage === s.id)}
               onOpen={(id) => nav(`/app/leads/${id}`)}
             />
           ))}
