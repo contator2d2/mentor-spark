@@ -16,7 +16,7 @@ export function OfflineIndicator() {
   }, []);
   if (!offline) return null;
   return (
-    <div className="fixed top-0 inset-x-0 z-[60] bg-amber-500 text-amber-950 text-xs font-medium py-1 px-3 flex items-center justify-center gap-2 shadow-md">
+    <div className="fixed top-0 inset-x-0 z-[60] bg-destructive text-destructive-foreground text-xs font-medium py-1 px-3 flex items-center justify-center gap-2 shadow-md">
       <WifiOff className="h-3.5 w-3.5" />
       Você está offline — algumas ações ficam pausadas até reconectar.
     </div>
