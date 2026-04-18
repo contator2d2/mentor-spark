@@ -306,7 +306,7 @@ function ComposerDialog({ onClose }: { onClose: () => void }) {
                       <div className="text-xs text-muted-foreground">{channel === "email" ? l.email : l.phone}</div>
                     </div>
                     {v && (v.isWhatsapp
-                      ? <Badge variant="outline" className="text-xs"><CheckCircle2 className="h-3 w-3 mr-1 text-emerald-500" />WA</Badge>
+                      ? <Badge variant="outline" className="text-xs"><CheckCircle2 className="h-3 w-3 mr-1 text-primary" />WA</Badge>
                       : <Badge variant="destructive" className="text-xs"><AlertTriangle className="h-3 w-3 mr-1" />{v.error || "Sem WA"}</Badge>)}
                   </div>
                 );
@@ -341,8 +341,8 @@ function ReportDialog({ id, onClose }: { id: string; onClose: () => void }) {
               <h3 className="font-medium mb-2">{data.broadcast.name}</h3>
               <div className="grid grid-cols-4 gap-3 text-center">
                 <div><div className="text-2xl font-bold">{data.broadcast.totalRecipients}</div><div className="text-xs text-muted-foreground">Destinatários</div></div>
-                <div><div className="text-2xl font-bold text-emerald-500">{data.summary.sent || 0}</div><div className="text-xs text-muted-foreground">Enviadas</div></div>
-                <div><div className="text-2xl font-bold text-amber-500">{(data.summary.scheduled || 0) + (data.summary.queued || 0)}</div><div className="text-xs text-muted-foreground">Pendentes</div></div>
+                <div><div className="text-2xl font-bold text-primary">{data.summary.sent || 0}</div><div className="text-xs text-muted-foreground">Enviadas</div></div>
+                <div><div className="text-2xl font-bold text-muted-foreground">{(data.summary.scheduled || 0) + (data.summary.queued || 0)}</div><div className="text-xs text-muted-foreground">Pendentes</div></div>
                 <div><div className="text-2xl font-bold text-destructive">{data.summary.failed || 0}</div><div className="text-xs text-muted-foreground">Falhas</div></div>
               </div>
             </Card>
