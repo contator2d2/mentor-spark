@@ -1,5 +1,5 @@
-import { ReactNode } from "react";
-import { NavLink, Outlet, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -23,11 +23,14 @@ import {
   KanbanSquare,
   MessageSquare,
   Zap,
+  Menu,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 interface NavItem {
   to: string;
@@ -62,67 +65,171 @@ const NAV: NavItem[] = [
   { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
 ];
 
+// Atalhos rápidos para a bottom nav mobile
+const MOBILE_QUICK = [
+  { to: "/app", label: "Início", icon: LayoutDashboard, end: true },
+  { to: "/app/leads", label: "Leads", icon: Kanban },
+  { to: "/app/mentorados", label: "Pessoas", icon: Users },
+  { to: "/app/tasks", label: "Tarefas", icon: CheckSquare },
+];
+
 export default function AppLayout() {
   const { user, logout } = useAuth();
   const { brand } = useBranding();
   const loc = useLocation();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   const items = NAV.filter((i) => !i.roles || i.roles.includes(user?.role || ""));
   const displayName = brand?.brandName || user?.brandName || "MentorFlow";
 
+  const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
+    <>
+      <div className="px-6 py-6 border-b border-sidebar-border flex items-center gap-3">
+        {brand?.brandLogoUrl ? (
+          <img src={brand.brandLogoUrl} alt={displayName} className="h-9 w-9 rounded object-contain bg-white/5 p-1" />
+        ) : null}
+        <div className="min-w-0">
+          <div className="font-display text-lg text-white tracking-tight truncate">{displayName}</div>
+          <div className="text-xs text-sidebar-foreground/60 mt-0.5">Mentoria Inteligente</div>
+        </div>
+      </div>
+
+      <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        {items.map((it) => {
+          const Icon = it.icon;
+          const active = loc.pathname === it.to || (it.to !== "/app" && loc.pathname.startsWith(it.to));
+          return (
+            <NavLink
+              key={it.to}
+              to={it.to}
+              end={it.to === "/app"}
+              onClick={onNavigate}
+              className={cn(
+                "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                active
+                  ? "bg-sidebar-accent text-white"
+                  : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white",
+              )}
+            >
+              <Icon className="h-4 w-4" />
+              {it.label}
+            </NavLink>
+          );
+        })}
+      </nav>
+
+      <div className="p-4 border-t border-sidebar-border">
+        <div className="flex items-center justify-between">
+          <div className="min-w-0">
+            <div className="text-sm text-white truncate">{user?.name}</div>
+            <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="flex h-screen bg-background">
+      {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-sidebar text-sidebar-foreground">
-        <div className="px-6 py-6 border-b border-sidebar-border flex items-center gap-3">
-          {brand?.brandLogoUrl ? (
-            <img src={brand.brandLogoUrl} alt={displayName} className="h-9 w-9 rounded object-contain bg-white/5 p-1" />
-          ) : null}
-          <div className="min-w-0">
-            <div className="font-display text-lg text-white tracking-tight truncate">{displayName}</div>
-            <div className="text-xs text-sidebar-foreground/60 mt-0.5">Mentoria Inteligente</div>
-          </div>
-        </div>
-
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {items.map((it) => {
-            const Icon = it.icon;
-            const active = loc.pathname === it.to || (it.to !== "/app" && loc.pathname.startsWith(it.to));
-            return (
-              <NavLink
-                key={it.to}
-                to={it.to}
-                end={it.to === "/app"}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                  active
-                    ? "bg-sidebar-accent text-white"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white",
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {it.label}
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <div className="text-sm text-white truncate">{user?.name}</div>
-              <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
-            </div>
-            <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white">
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <SidebarContent />
       </aside>
 
-      <main className="flex-1 overflow-y-auto">
-        <div className="p-6 md:p-10 max-w-7xl mx-auto animate-fade-in">
-          <Outlet />
-        </div>
-      </main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Header Mobile */}
+        <header className="md:hidden sticky top-0 z-40 bg-sidebar text-sidebar-foreground border-b border-sidebar-border/50 shadow-soft">
+          <div className="px-3 pt-[env(safe-area-inset-top)]">
+            <div className="h-14 flex items-center justify-between gap-2">
+              <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-white h-10 w-10">
+                    <Menu className="h-5 w-5" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="p-0 w-72 bg-sidebar text-sidebar-foreground border-sidebar-border flex flex-col">
+                  <SidebarContent onNavigate={() => setMobileOpen(false)} />
+                </SheetContent>
+              </Sheet>
+
+              <button
+                onClick={() => navigate("/app")}
+                className="flex items-center gap-2 min-w-0 flex-1 justify-center"
+              >
+                {brand?.brandLogoUrl ? (
+                  <img src={brand.brandLogoUrl} alt={displayName} className="h-8 w-8 rounded object-contain bg-white/10 p-0.5 shrink-0" />
+                ) : (
+                  <div className="h-8 w-8 rounded bg-gradient-primary shrink-0 flex items-center justify-center text-white font-display font-bold text-sm">
+                    {displayName.charAt(0)}
+                  </div>
+                )}
+                <div className="font-display text-base text-white truncate">{displayName}</div>
+              </button>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative text-sidebar-foreground hover:bg-sidebar-accent hover:text-white h-10 w-10"
+                onClick={() => navigate("/app/mentorados")}
+              >
+                <Bell className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+        </header>
+
+        <main className="flex-1 overflow-y-auto">
+          <div className="p-4 md:p-10 max-w-7xl mx-auto animate-fade-in pb-[calc(72px+env(safe-area-inset-bottom))] md:pb-10">
+            <Outlet />
+          </div>
+        </main>
+
+        {/* Bottom Nav Mobile - atalhos rápidos */}
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border/50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
+          <div className="grid grid-cols-5">
+            {MOBILE_QUICK.map((n) => {
+              const Icon = n.icon;
+              return (
+                <NavLink
+                  key={n.to}
+                  to={n.to}
+                  end={n.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] transition-all relative",
+                      isActive ? "text-white" : "text-sidebar-foreground/60",
+                    )
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      {isActive && (
+                        <span className="absolute top-0 left-1/2 -translate-x-1/2 h-0.5 w-8 bg-accent rounded-full" />
+                      )}
+                      <div className={cn("h-8 w-8 rounded-lg flex items-center justify-center", isActive && "bg-accent/20")}>
+                        <Icon className={cn("h-4 w-4", isActive && "text-accent")} />
+                      </div>
+                      <span className="font-medium">{n.label}</span>
+                    </>
+                  )}
+                </NavLink>
+              );
+            })}
+            <button
+              onClick={() => setMobileOpen(true)}
+              className="flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] text-sidebar-foreground/60"
+            >
+              <div className="h-8 w-8 rounded-lg flex items-center justify-center">
+                <Menu className="h-4 w-4" />
+              </div>
+              <span className="font-medium">Mais</span>
+            </button>
+          </div>
+        </nav>
+      </div>
     </div>
   );
 }
