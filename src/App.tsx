@@ -23,6 +23,7 @@ import CaptureSettings from "./pages/app/CaptureSettings";
 import AiAssistant from "./pages/app/AiAssistant";
 import AdminPage from "./pages/app/AdminPage";
 import AdminTenants from "./pages/app/AdminTenants";
+import AdminFinance from "./pages/app/AdminFinance";
 import AiProvidersPage from "./pages/app/AiProvidersPage";
 import PlaceholderPage from "./pages/app/PlaceholderPage";
 import Onboarding from "./pages/app/Onboarding";
@@ -97,6 +98,7 @@ const App = () => (
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="admin/plans" element={<AdminPlans />} />
                 <Route path="admin/tenants" element={<AdminTenants />} />
+                <Route path="admin/finance" element={<AdminFinance />} />
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
               </Route>
 
