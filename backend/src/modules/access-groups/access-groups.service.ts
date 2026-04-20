@@ -122,14 +122,14 @@ export class AccessGroupsService {
           const haystack = `${l.source || ''} ${l.notes || ''}`.toLowerCase();
           if (haystack.includes(tag)) set.add(l.id);
         });
-      } else if (group.kind === AccessGroupKind.PLAN && group.filter?.planId) {
-        // mentor_subscription.userId aponta para o usuário do mentorado (lead.userId)
-        const activeSubs = await this.subs.find({ where: { planId: group.filter.planId, mentorId: group.mentorId } });
-        const userIds = activeSubs.filter((s: any) => s.status === 'active' || s.status === 'trialing').map((s: any) => s.userId);
-        if (userIds.length) {
-          const matched = await this.leads.find({ where: { mentorId: group.mentorId, userId: In(userIds) } });
-          matched.forEach((l) => set.add(l.id));
-        }
+      } else if (group.kind === AccessGroupKind.PLAN && (group.filter?.productName || group.filter?.planId)) {
+        // No contexto de MentorSubscription, "plano" = productName (ex.: "Mentoria Premium").
+        // Mantemos compat com filter.planId tratando-o como productName se productName ausente.
+        const productName = String(group.filter.productName || group.filter.planId);
+        const activeSubs = await this.subs.find({ where: { productName, mentorId: group.mentorId } });
+        activeSubs
+          .filter((s) => s.status === 'active')
+          .forEach((s) => { if (s.leadId) set.add(s.leadId); });
       }
     } catch (e: any) {
       this.logger.warn(`resolveMemberLeadIds(${group.id}) falhou: ${e?.message}`);
