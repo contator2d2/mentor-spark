@@ -71,6 +71,7 @@ import SchedulingPublicPage from "./pages/SchedulingPublicPage";
 import MentorBillingPage from "./pages/app/MentorBillingPage";
 import TrailsListPage from "./pages/app/TrailsListPage";
 import TrailEditorPage from "./pages/app/TrailEditorPage";
+import AccessGroupsPage from "./pages/app/AccessGroupsPage";
 import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
 import CommunityPage from "./pages/app/CommunityPage";
 import AnalyticsPage from "./pages/app/AnalyticsPage";
@@ -180,6 +181,7 @@ const App = () => (
                 <Route path="billing" element={<MentorBillingPage />} />
                 <Route path="trails" element={<TrailsListPage />} />
                 <Route path="trails/:id" element={<TrailEditorPage />} />
+                <Route path="access-groups" element={<AccessGroupsPage />} />
                 <Route path="community" element={<CommunityPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
               </Route>
