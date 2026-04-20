@@ -11,6 +11,7 @@ import { MessageChannel } from '../../entities/message.entity';
 import { AsaasService } from './asaas.service';
 import { WhatsappService } from '../integrations/whatsapp.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { TrailAccessService } from '../trail-access/trail-access.service';
 
 /**
  * Chaves dos templates editáveis pelo mentor.
@@ -50,6 +51,7 @@ export class MentorBillingService {
     private asaas: AsaasService,
     private whatsapp: WhatsappService,
     private notifications: NotificationsService,
+    private trailAccess: TrailAccessService,
   ) {}
 
   // ============ Templates personalizáveis ============
@@ -464,6 +466,12 @@ export class MentorBillingService {
     if (!wasPaid && saved.status === ChargeStatus.PAID) {
       const lead = await this.leads.findOne({ where: { id: charge.leadId } });
       if (lead) await this.notify(charge.mentorId, saved, lead, BILLING_TEMPLATE_KEYS.PAID);
+      // Libera trilha vinculada (se for cobrança de paywall de trilha)
+      try {
+        await this.trailAccess.onChargePaid(saved.id);
+      } catch (e: any) {
+        this.logger.warn(`onChargePaid falhou: ${e?.message}`);
+      }
     }
     await this.notifications.create({
       userId: charge.mentorId,

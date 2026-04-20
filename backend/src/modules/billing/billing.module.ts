@@ -19,6 +19,7 @@ import { AsaasService } from './asaas.service';
 import { AdminModule } from '../admin/admin.module';
 import { IntegrationsModule } from '../integrations/integrations.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { TrailAccessModule } from '../trail-access/trail-access.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     AdminModule,
     IntegrationsModule,
     NotificationsModule,
+    TrailAccessModule,
   ],
   controllers: [
     BillingController,
