@@ -8,10 +8,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChevronLeft, Plus, Trash2, GripVertical, Save, Video, FileText, Headphones } from "lucide-react";
+import { ChevronLeft, Plus, Trash2, GripVertical, Save, Video, FileText, Headphones, Lock, Users, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const LESSON_ICONS: any = { video: Video, article: FileText, audio: Headphones, pdf: FileText };
 
@@ -21,11 +23,30 @@ export default function TrailEditorPage() {
   const [trail, setTrail] = useState<any>(null);
   const [editingLesson, setEditingLesson] = useState<any>(null);
   const [editingModule, setEditingModule] = useState<any>(null);
+  const [groups, setGroups] = useState<any[]>([]);
+  const [allTrails, setAllTrails] = useState<any[]>([]);
+  const [grants, setGrants] = useState<any[]>([]);
+  const [leads, setLeads] = useState<any[]>([]);
+  const [requests, setRequests] = useState<any[]>([]);
 
   async function load() {
     try { setTrail(await api(`/trails/${id}`)); } catch (e: any) { toast.error(e.message); }
   }
-  useEffect(() => { if (id) load(); }, [id]);
+  async function loadAccess() {
+    if (!id) return;
+    try {
+      const [g, t, gr, l, rq] = await Promise.all([
+        api<any[]>("/access-groups"),
+        api<any[]>("/trails"),
+        api<any[]>(`/trail-access/trails/${id}/grants`),
+        api<any[]>("/leads"),
+        api<any[]>("/trail-access/requests?status=pending"),
+      ]);
+      setGroups(g); setAllTrails(t.filter((x) => x.id !== id));
+      setGrants(gr); setLeads(l); setRequests(rq.filter((r) => r.trailId === id));
+    } catch {}
+  }
+  useEffect(() => { if (id) { load(); loadAccess(); } }, [id]);
 
   async function saveTrail() {
     try {
@@ -70,10 +91,20 @@ export default function TrailEditorPage() {
 
   if (!trail) return <div>Carregando...</div>;
 
+  const groupIds: string[] = trail.groupIds || [];
+  const prereqIds: string[] = trail.prerequisiteTrailIds || [];
+
   return (
     <div className="space-y-6">
       <Button variant="ghost" onClick={() => navigate("/app/trails")}><ChevronLeft className="h-4 w-4 mr-1" />Trilhas</Button>
 
+      <Tabs defaultValue="content">
+        <TabsList>
+          <TabsTrigger value="content">Conteúdo</TabsTrigger>
+          <TabsTrigger value="access"><Lock className="h-3 w-3 mr-1" />Acesso & Paywall</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="content">
       <div className="grid md:grid-cols-3 gap-6">
         <div className="md:col-span-1 space-y-3">
           <Card className="p-4 space-y-3">
@@ -147,6 +178,122 @@ export default function TrailEditorPage() {
           {(!trail.modules?.length) && <Card className="p-8 text-center text-muted-foreground">Adicione o primeiro módulo.</Card>}
         </div>
       </div>
+        </TabsContent>
+
+        <TabsContent value="access" className="space-y-4">
+          <Card className="p-4 space-y-4">
+            <div>
+              <Label className="text-base font-bold flex items-center gap-2"><DollarSign className="h-4 w-4" />Modo de acesso</Label>
+              <Select value={trail.accessMode || "open"} onValueChange={(v) => setTrail({ ...trail, accessMode: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="open">Aberto (segue regras de grupo/pré-req)</SelectItem>
+                  <SelectItem value="request">Solicitar acesso (mentor aprova)</SelectItem>
+                  <SelectItem value="paid">Pago (cobrança via Asaas)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            {trail.accessMode === "paid" && (
+              <div>
+                <Label>Preço (R$)</Label>
+                <Input type="number" step="0.01" value={(trail.priceCents || 0) / 100}
+                  onChange={(e) => setTrail({ ...trail, priceCents: Math.round(parseFloat(e.target.value || "0") * 100) })} />
+              </div>
+            )}
+            <div>
+              <Label>Texto exibido no card bloqueado (CTA)</Label>
+              <Textarea value={trail.upgradeCallout || ""} placeholder="Ex.: Faça upgrade para o plano Premium e acesse essa trilha."
+                onChange={(e) => setTrail({ ...trail, upgradeCallout: e.target.value })} />
+            </div>
+            <div>
+              <Label>Disponível a partir de</Label>
+              <Input type="datetime-local" value={trail.availableAt ? new Date(trail.availableAt).toISOString().slice(0, 16) : ""}
+                onChange={(e) => setTrail({ ...trail, availableAt: e.target.value || null })} />
+            </div>
+          </Card>
+
+          <Card className="p-4 space-y-3">
+            <Label className="text-base font-bold flex items-center gap-2"><Users className="h-4 w-4" />Grupos com acesso</Label>
+            <p className="text-xs text-muted-foreground">Vazio = todos os mentorados/prospects podem ver. Selecione grupos para restringir.</p>
+            <div className="flex flex-wrap gap-2">
+              {groups.map((g) => {
+                const on = groupIds.includes(g.id);
+                return (
+                  <Badge key={g.id} variant={on ? "default" : "outline"} className="cursor-pointer"
+                    onClick={() => setTrail({ ...trail, groupIds: on ? groupIds.filter((x) => x !== g.id) : [...groupIds, g.id] })}>
+                    {g.name} <span className="ml-1 opacity-70">({g.memberCount})</span>
+                  </Badge>
+                );
+              })}
+              {!groups.length && <span className="text-xs text-muted-foreground">Crie grupos em "Grupos de Acesso".</span>}
+            </div>
+          </Card>
+
+          <Card className="p-4 space-y-3">
+            <Label className="text-base font-bold">Pré-requisitos (concluir antes)</Label>
+            <div className="flex flex-wrap gap-2">
+              {allTrails.map((t) => {
+                const on = prereqIds.includes(t.id);
+                return (
+                  <Badge key={t.id} variant={on ? "default" : "outline"} className="cursor-pointer"
+                    onClick={() => setTrail({ ...trail, prerequisiteTrailIds: on ? prereqIds.filter((x) => x !== t.id) : [...prereqIds, t.id] })}>
+                    {t.title}
+                  </Badge>
+                );
+              })}
+              {!allTrails.length && <span className="text-xs text-muted-foreground">Sem outras trilhas.</span>}
+            </div>
+          </Card>
+
+          <Button onClick={saveTrail} className="w-full"><Save className="h-4 w-4 mr-1" />Salvar configurações de acesso</Button>
+
+          <Card className="p-4 space-y-3">
+            <Label className="text-base font-bold">Acessos manuais individuais</Label>
+            <Select value="" onValueChange={async (leadId) => {
+              if (!leadId) return;
+              await api(`/trail-access/trails/${id}/grants`, { method: "POST", body: { leadId } });
+              toast.success("Acesso liberado"); loadAccess();
+            }}>
+              <SelectTrigger><SelectValue placeholder="Liberar para mentorado..." /></SelectTrigger>
+              <SelectContent>
+                {leads.filter((l) => !grants.some((g) => g.leadId === l.id)).map((l) => (
+                  <SelectItem key={l.id} value={l.id}>{l.name} — {l.email}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="space-y-1">
+              {grants.map((g) => (
+                <div key={g.id} className="flex items-center justify-between p-2 border rounded">
+                  <div className="text-sm">{g.lead?.name} <span className="text-muted-foreground">— {g.source}</span></div>
+                  <Button size="sm" variant="ghost" onClick={async () => {
+                    await api(`/trail-access/trails/${id}/grants/${g.leadId}`, { method: "DELETE" });
+                    loadAccess();
+                  }}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+              {!grants.length && <div className="text-xs text-muted-foreground">Ninguém liberado manualmente ainda.</div>}
+            </div>
+          </Card>
+
+          {requests.length > 0 && (
+            <Card className="p-4 space-y-3">
+              <Label className="text-base font-bold">Solicitações pendentes</Label>
+              {requests.map((r) => (
+                <div key={r.id} className="flex items-center justify-between p-2 border rounded">
+                  <div className="text-sm">
+                    <div className="font-medium">{r.lead?.name}</div>
+                    {r.message && <div className="text-xs text-muted-foreground">"{r.message}"</div>}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="outline" onClick={async () => { await api(`/trail-access/requests/${r.id}/deny`, { method: "POST" }); loadAccess(); }}>Negar</Button>
+                    <Button size="sm" onClick={async () => { await api(`/trail-access/requests/${r.id}/approve`, { method: "POST" }); loadAccess(); }}>Aprovar</Button>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
 
       {/* Lesson editor */}
       <Dialog open={!!editingLesson} onOpenChange={(o) => !o && setEditingLesson(null)}>

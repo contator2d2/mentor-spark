@@ -1,10 +1,12 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Trail } from '../../entities/trail.entity';
 import { TrailModule as TrailModuleEntity } from '../../entities/trail-module.entity';
 import { TrailLesson } from '../../entities/trail-lesson.entity';
 import { TrailProgress } from '../../entities/trail-progress.entity';
+import { Lead } from '../../entities/lead.entity';
+import { TrailAccessService, AccessResult } from '../trail-access/trail-access.service';
 
 @Injectable()
 export class TrailsService {
@@ -15,6 +17,8 @@ export class TrailsService {
     @InjectRepository(TrailModuleEntity) private modules: Repository<TrailModuleEntity>,
     @InjectRepository(TrailLesson) private lessons: Repository<TrailLesson>,
     @InjectRepository(TrailProgress) private progress: Repository<TrailProgress>,
+    @InjectRepository(Lead) private leads: Repository<Lead>,
+    private accessSvc: TrailAccessService,
   ) {}
 
   // ---------- Mentor: CRUD ----------
@@ -104,21 +108,50 @@ export class TrailsService {
 
   // ---------- Mentorado: consumo ----------
   async listForMentorado(userId: string, mentorId?: string) {
-    const qb = this.trails.createQueryBuilder('t')
-      .where('t.published = true');
+    const qb = this.trails.createQueryBuilder('t').where('t.published = true');
     if (mentorId) qb.andWhere('t.mentorId = :m', { m: mentorId });
     const all = await qb.getMany();
     const progress = await this.progress.find({ where: { userId } });
-    return all.map((t) => {
-      const trailLessons = progress.filter((p) => p.trailId === t.id);
-      const completedCount = trailLessons.filter((p) => p.completed).length;
-      return { ...t, completedLessons: completedCount };
-    });
+
+    const out: any[] = [];
+    for (const t of all) {
+      const lead = await this.accessSvc.resolveLeadOf(userId, t.mentorId);
+      const access: AccessResult = await this.accessSvc.evaluateTrailAccess(t, lead);
+      const trailProgress = progress.filter((p) => p.trailId === t.id);
+      const completedCount = trailProgress.filter((p) => p.completed).length;
+      out.push({
+        ...t,
+        completedLessons: completedCount,
+        locked: !access.allowed,
+        accessReason: access.reason,
+        accessMessage: access.message,
+        cta: access.cta,
+      });
+    }
+    return out;
   }
 
   async getForMentorado(userId: string, trailId: string) {
     const t = await this.trails.findOne({ where: { id: trailId, published: true } });
     if (!t) throw new NotFoundException();
+
+    const lead = await this.accessSvc.resolveLeadOf(userId, t.mentorId);
+    const access = await this.accessSvc.evaluateTrailAccess(t, lead);
+    if (!access.allowed) {
+      // devolve metadados mas sem módulos/lições (o front exibe o paywall/cadeado)
+      return {
+        ...t,
+        locked: true,
+        accessReason: access.reason,
+        accessMessage: access.message,
+        cta: access.cta,
+        modules: [],
+        totalLessons: 0,
+        completedLessons: 0,
+        allDone: false,
+      };
+    }
+
     const mods = await this.modules.find({ where: { trailId }, order: { order: 'ASC' } });
     const modIds = mods.map((m) => m.id);
     const lessons = modIds.length
@@ -126,9 +159,15 @@ export class TrailsService {
       : [];
     const userProgress = await this.progress.find({ where: { userId, trailId } });
 
+    // data de "matrícula" = primeiro acesso/progresso ou createdAt do TrailAccess
+    const firstProgress = userProgress.length
+      ? userProgress.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))[0]
+      : null;
+    const enrolledAt = firstProgress?.createdAt || new Date();
+
     const modulesWithLessons = mods.map((m, idx) => ({
       ...m,
-      locked: this.isModuleLocked(t, idx, mods, lessons, userProgress),
+      locked: this.isModuleLocked(t, idx, mods, lessons, userProgress, enrolledAt),
       lessons: lessons.filter((l) => l.moduleId === m.id).map((l) => {
         const p = userProgress.find((x) => x.lessonId === l.id);
         return { ...l, completed: !!p?.completed, progressPercent: p?.progressPercent || 0 };
@@ -139,10 +178,35 @@ export class TrailsService {
     const completedLessons = userProgress.filter((p) => p.completed).length;
     const allDone = totalLessons > 0 && completedLessons === totalLessons;
 
-    return { ...t, modules: modulesWithLessons, totalLessons, completedLessons, allDone };
+    return { ...t, locked: false, modules: modulesWithLessons, totalLessons, completedLessons, allDone };
   }
 
-  private isModuleLocked(trail: Trail, idx: number, mods: TrailModuleEntity[], lessons: TrailLesson[], progress: TrailProgress[]): boolean {
+  private isModuleLocked(
+    trail: Trail,
+    idx: number,
+    mods: TrailModuleEntity[],
+    lessons: TrailLesson[],
+    progress: TrailProgress[],
+    enrolledAt: Date,
+  ): boolean {
+    const mod = mods[idx];
+    // 1) data fixa por módulo
+    if (mod.availableAt && new Date(mod.availableAt) > new Date()) return true;
+    // 2) drip por dias após inscrição
+    if (mod.dripDaysAfterEnroll && mod.dripDaysAfterEnroll > 0) {
+      const releaseAt = new Date(+new Date(enrolledAt) + mod.dripDaysAfterEnroll * 86_400_000);
+      if (new Date() < releaseAt) return true;
+    }
+    // 3) pré-requisitos de outros módulos
+    if (Array.isArray(mod.prerequisiteModuleIds) && mod.prerequisiteModuleIds.length) {
+      for (const pid of mod.prerequisiteModuleIds) {
+        const prereqLessons = lessons.filter((l) => l.moduleId === pid);
+        if (!prereqLessons.length) continue;
+        const done = prereqLessons.every((l) => progress.find((p) => p.lessonId === l.id)?.completed);
+        if (!done) return true;
+      }
+    }
+    // 4) modo de liberação da trilha (legado)
     if (idx === 0) return false;
     if (trail.releaseMode === 'immediate') return false;
     if (trail.releaseMode === 'sequential') {
@@ -153,9 +217,7 @@ export class TrailsService {
     }
     if (trail.releaseMode === 'drip') {
       // libera idx*dripDays após primeira lição completada
-      const first = progress.sort((a, b) => +new Date(a.createdAt) - +new Date(b.createdAt))[0];
-      if (!first) return true;
-      const releaseAt = new Date(+new Date(first.createdAt) + idx * trail.dripDays * 86_400_000);
+      const releaseAt = new Date(+new Date(enrolledAt) + idx * trail.dripDays * 86_400_000);
       return new Date() < releaseAt;
     }
     return false;

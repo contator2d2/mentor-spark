@@ -58,6 +58,7 @@ const NAV: NavItem[] = [
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/billing", label: "Cobranças", icon: DollarSign, roles: ["mentor", "super_admin"], feature: "allowMentorBilling" },
   { to: "/app/trails", label: "Trilhas", icon: GraduationCap, roles: ["mentor", "super_admin"], feature: "allowTrails" },
+  { to: "/app/access-groups", label: "Grupos de Acesso", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/community", label: "Comunidade", icon: Users, roles: ["mentor", "super_admin"], feature: "allowCommunity" },
   { to: "/app/analytics", label: "Analytics", icon: Sparkles, roles: ["mentor", "super_admin"], feature: "allowAdvancedAnalytics" },
   { to: "/app/messages/templates", label: "Mensagens", icon: MessageSquare, roles: ["mentor", "super_admin"], feature: "allowMessaging" },
