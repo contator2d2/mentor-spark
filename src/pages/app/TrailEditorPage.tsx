@@ -337,6 +337,52 @@ export default function TrailEditorPage() {
             <div className="space-y-3">
               <div><Label>Título</Label><Input value={editingModule.title} onChange={(e) => setEditingModule({ ...editingModule, title: e.target.value })} /></div>
               <div><Label>Descrição</Label><Textarea value={editingModule.description || ""} onChange={(e) => setEditingModule({ ...editingModule, description: e.target.value })} /></div>
+              <div className="border-t pt-3 space-y-3">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Regras de liberação</div>
+                <div>
+                  <Label>Drip — dias após inscrição</Label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={editingModule.dripDaysAfterEnroll ?? 0}
+                    onChange={(e) => setEditingModule({ ...editingModule, dripDaysAfterEnroll: +e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">0 = sem espera. Ex.: 7 = libera 7 dias após o aluno receber acesso à trilha.</p>
+                </div>
+                <div>
+                  <Label>Disponível a partir de (data fixa)</Label>
+                  <Input
+                    type="datetime-local"
+                    value={editingModule.availableAt ? new Date(editingModule.availableAt).toISOString().slice(0, 16) : ""}
+                    onChange={(e) => setEditingModule({ ...editingModule, availableAt: e.target.value || null })}
+                  />
+                </div>
+                <div>
+                  <Label>Pré-requisitos (concluir módulos antes)</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {(trail.modules || []).filter((m: any) => m.id !== editingModule.id).map((m: any) => {
+                      const prereqs: string[] = editingModule.prerequisiteModuleIds || [];
+                      const on = prereqs.includes(m.id);
+                      return (
+                        <Badge
+                          key={m.id}
+                          variant={on ? "default" : "outline"}
+                          className="cursor-pointer"
+                          onClick={() => setEditingModule({
+                            ...editingModule,
+                            prerequisiteModuleIds: on ? prereqs.filter((x) => x !== m.id) : [...prereqs, m.id],
+                          })}
+                        >
+                          {m.title}
+                        </Badge>
+                      );
+                    })}
+                    {(trail.modules || []).filter((m: any) => m.id !== editingModule.id).length === 0 && (
+                      <span className="text-xs text-muted-foreground">Não há outros módulos nesta trilha.</span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
           <DialogFooter>
