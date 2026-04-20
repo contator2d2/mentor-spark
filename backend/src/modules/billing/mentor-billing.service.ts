@@ -383,6 +383,7 @@ export class MentorBillingService {
     const saved = await this.charges.save(c);
     const lead = await this.leads.findOne({ where: { id: c.leadId } });
     if (lead) await this.notify(mentorId, saved, lead, BILLING_TEMPLATE_KEYS.PAID);
+    try { await this.trailAccess.onChargePaid(saved.id); } catch {}
     return saved;
   }
 
