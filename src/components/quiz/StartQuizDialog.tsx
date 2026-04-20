@@ -47,7 +47,8 @@ export default function StartQuizDialog({ open, onClose, eventId }: Props) {
 
   useEffect(() => {
     if (open) {
-      api<any[]>("/tests").then(setTemplates).catch(() => {});
+      // Lista quizzes salvos do mentor (novo modelo)
+      api<any[]>("/quiz/templates").then(setTemplates).catch(() => {});
     }
   }, [open]);
 

@@ -61,6 +61,7 @@ import MessageBroadcastsPage from "./pages/app/MessageBroadcastsPage";
 import WhatsappGroupsPage from "./pages/app/WhatsappGroupsPage";
 import QuizHostPage from "./pages/app/QuizHostPage";
 import QuizPlayerPage from "./pages/QuizPlayerPage";
+import QuizzesPage from "./pages/app/QuizzesPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
 import AdminCredentials from "./pages/app/AdminCredentials";
 import AdminAiUsage from "./pages/app/AdminAiUsage";
@@ -163,6 +164,7 @@ const App = () => (
                 <Route path="events" element={<EventsPage />} />
                 <Route path="events/:id" element={<EventDetailPage />} />
                 <Route path="quiz/host/:sessionId" element={<QuizHostPage />} />
+                <Route path="quiz" element={<QuizzesPage />} />
                 <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
                 <Route path="integrations" element={<IntegrationsPage />} />

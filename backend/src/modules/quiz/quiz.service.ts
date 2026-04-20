@@ -6,6 +6,7 @@ import { QuizPlayer } from '../../entities/quiz-player.entity';
 import { QuizAnswer } from '../../entities/quiz-answer.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
 import { TestQuestion, QuestionType } from '../../entities/test-question.entity';
+import { QuizTemplate, QuizLibraryTemplate, QuizSegment } from '../../entities/quiz-template.entity';
 import { AiService } from '../ai/ai.service';
 
 @Injectable()
@@ -16,6 +17,8 @@ export class QuizService {
     @InjectRepository(QuizAnswer) private answers: Repository<QuizAnswer>,
     @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
     @InjectRepository(TestQuestion) private questions: Repository<TestQuestion>,
+    @InjectRepository(QuizTemplate) private quizTemplates: Repository<QuizTemplate>,
+    @InjectRepository(QuizLibraryTemplate) private quizLibrary: Repository<QuizLibraryTemplate>,
     private readonly ai: AiService,
   ) {}
 
@@ -24,29 +27,46 @@ export class QuizService {
   }
 
   async createSession(mentorId: string, dto: { templateId: string; eventId?: string; questionTimeLimit?: number; title?: string }) {
-    const template = await this.templates.findOne({ where: { id: dto.templateId, mentorId } });
-    if (!template) throw new NotFoundException('Template não encontrado');
+    // Tenta primeiro como QuizTemplate (novo); se não, cai para TestTemplate (legado)
+    let title = dto.title || '';
+    let timeLimit = dto.questionTimeLimit;
+    let snapshot: Array<{ id: string; text: string; options: Array<{ index: number; label: string; correct: boolean }> }> = [];
 
-    const qs = await this.questions.find({
-      where: { templateId: dto.templateId, type: QuestionType.MULTIPLE_CHOICE },
-      order: { order: 'ASC' },
-    });
-    if (qs.length === 0) throw new BadRequestException('O template precisa ter ao menos 1 pergunta de múltipla escolha');
-
-    // Snapshot: marca como correta a opção com maior score
-    const snapshot = qs.map((q) => {
-      const opts: Array<{ label: string; score?: number }> = q.config?.options || [];
-      const maxScore = Math.max(...opts.map((o) => o.score ?? 0));
-      return {
-        id: q.id,
+    const quizTpl = await this.quizTemplates.findOne({ where: { id: dto.templateId, mentorId } });
+    if (quizTpl) {
+      if (!quizTpl.questions?.length) throw new BadRequestException('Quiz sem perguntas');
+      title = title || quizTpl.title;
+      timeLimit = timeLimit || quizTpl.defaultTimeLimit;
+      snapshot = quizTpl.questions.map((q, qi) => ({
+        id: `q${qi}`,
         text: q.text,
-        options: opts.map((o, i) => ({
-          index: i,
-          label: o.label,
-          correct: (o.score ?? 0) === maxScore && maxScore > 0,
-        })),
-      };
-    });
+        options: (q.options || []).map((o, i) => ({ index: i, label: o.label, correct: !!o.correct })),
+      }));
+    } else {
+      const template = await this.templates.findOne({ where: { id: dto.templateId, mentorId } });
+      if (!template) throw new NotFoundException('Template não encontrado');
+
+      const qs = await this.questions.find({
+        where: { templateId: dto.templateId, type: QuestionType.MULTIPLE_CHOICE },
+        order: { order: 'ASC' },
+      });
+      if (qs.length === 0) throw new BadRequestException('O template precisa ter ao menos 1 pergunta de múltipla escolha');
+
+      title = title || template.title;
+      snapshot = qs.map((q) => {
+        const opts: Array<{ label: string; score?: number }> = q.config?.options || [];
+        const maxScore = Math.max(...opts.map((o) => o.score ?? 0));
+        return {
+          id: q.id,
+          text: q.text,
+          options: opts.map((o, i) => ({
+            index: i,
+            label: o.label,
+            correct: (o.score ?? 0) === maxScore && maxScore > 0,
+          })),
+        };
+      });
+    }
 
     // PIN único (tenta até 5x)
     let pin = '';
@@ -62,10 +82,10 @@ export class QuizService {
       templateId: dto.templateId,
       eventId: dto.eventId,
       pin,
-      title: dto.title || template.title,
+      title,
       status: QuizSessionStatus.LOBBY,
       currentQuestionIndex: -1,
-      questionTimeLimit: dto.questionTimeLimit || 20,
+      questionTimeLimit: timeLimit || 20,
       questionsSnapshot: snapshot,
     });
     return this.sessions.save(session);
@@ -267,43 +287,110 @@ export class QuizService {
 
   // ===================== Geração de quiz =====================
 
-  /** Cria um TestTemplate "rápido" para quiz a partir de perguntas manuais. */
+  private cleanQuestions(input: Array<{ text: string; options: Array<{ label: string; correct?: boolean }> }>) {
+    return input.map((q, i) => {
+      if (!q.text?.trim()) throw new BadRequestException(`Pergunta ${i + 1} sem texto`);
+      const opts = (q.options || [])
+        .map((o) => ({ label: (o.label || '').trim(), correct: !!o.correct }))
+        .filter((o) => o.label);
+      if (opts.length < 2) throw new BadRequestException(`Pergunta ${i + 1}: mínimo 2 opções`);
+      if (!opts.some((o) => o.correct)) opts[0].correct = true;
+      return { text: q.text.trim(), options: opts };
+    });
+  }
+
+  // ----- Meus quizzes (CRUD) -----
+  listMyQuizzes(mentorId: string) {
+    return this.quizTemplates.find({ where: { mentorId }, order: { updatedAt: 'DESC' } });
+  }
+
+  async getMyQuiz(mentorId: string, id: string) {
+    const t = await this.quizTemplates.findOne({ where: { id, mentorId } });
+    if (!t) throw new NotFoundException('Quiz não encontrado');
+    return t;
+  }
+
   async createManualQuizTemplate(
     mentorId: string,
-    dto: { title: string; description?: string; questions: Array<{ text: string; options: Array<{ label: string; correct?: boolean }> }> },
+    dto: { title: string; description?: string; segment?: QuizSegment; defaultTimeLimit?: number; questions: Array<{ text: string; options: Array<{ label: string; correct?: boolean }> }> },
   ) {
     if (!dto.title?.trim()) throw new BadRequestException('Título é obrigatório');
     if (!dto.questions?.length) throw new BadRequestException('Inclua ao menos 1 pergunta');
-
-    const cleanQs = dto.questions.map((q, i) => {
-      if (!q.text?.trim()) throw new BadRequestException(`Pergunta ${i + 1} sem texto`);
-      const opts = (q.options || []).filter((o) => o.label?.trim());
-      if (opts.length < 2) throw new BadRequestException(`Pergunta ${i + 1}: mínimo 2 opções`);
-      const hasCorrect = opts.some((o) => o.correct);
-      if (!hasCorrect) throw new BadRequestException(`Pergunta ${i + 1}: marque ao menos 1 opção como correta`);
-      return {
-        type: QuestionType.MULTIPLE_CHOICE,
-        text: q.text.trim(),
-        weight: 1,
-        config: { options: opts.map((o) => ({ label: o.label.trim(), score: o.correct ? 10 : 0 })) },
-      };
-    });
-
-    const template = this.templates.create({
+    const questions = this.cleanQuestions(dto.questions);
+    const t = this.quizTemplates.create({
       mentorId,
       title: dto.title.trim(),
       description: dto.description?.trim(),
+      segment: dto.segment || QuizSegment.GERAL,
+      defaultTimeLimit: dto.defaultTimeLimit || 20,
+      questions,
+      aiGenerated: false,
     });
-    const saved = await this.templates.save(template);
-    const qEntities = cleanQs.map((q, i) => this.questions.create({ ...q, order: i, templateId: saved.id } as Partial<TestQuestion>) as TestQuestion);
-    await this.questions.save(qEntities);
-    return this.templates.findOne({ where: { id: saved.id }, relations: ['questions'] });
+    return this.quizTemplates.save(t);
   }
 
-  /** Gera um TestTemplate completo via IA a partir de uma ideia/conteúdo. */
+  async updateMyQuiz(mentorId: string, id: string, dto: any) {
+    const t = await this.getMyQuiz(mentorId, id);
+    if (dto.title !== undefined) t.title = String(dto.title).trim();
+    if (dto.description !== undefined) t.description = dto.description ? String(dto.description).trim() : undefined;
+    if (dto.segment) t.segment = dto.segment;
+    if (dto.defaultTimeLimit) t.defaultTimeLimit = Number(dto.defaultTimeLimit);
+    if (Array.isArray(dto.questions)) t.questions = this.cleanQuestions(dto.questions);
+    return this.quizTemplates.save(t);
+  }
+
+  async deleteMyQuiz(mentorId: string, id: string) {
+    await this.getMyQuiz(mentorId, id);
+    await this.quizTemplates.delete(id);
+    return { ok: true };
+  }
+
+  async duplicateMyQuiz(mentorId: string, id: string) {
+    const orig = await this.getMyQuiz(mentorId, id);
+    const copy = this.quizTemplates.create({
+      mentorId,
+      title: `${orig.title} (cópia)`,
+      description: orig.description,
+      segment: orig.segment,
+      defaultTimeLimit: orig.defaultTimeLimit,
+      questions: orig.questions,
+      aiGenerated: orig.aiGenerated,
+    });
+    return this.quizTemplates.save(copy);
+  }
+
+  // ----- Biblioteca pública -----
+  listLibrary(segment?: QuizSegment) {
+    const where: any = { active: true };
+    if (segment) where.segment = segment;
+    return this.quizLibrary.find({ where, order: { segment: 'ASC', title: 'ASC' } });
+  }
+
+  async getLibrary(id: string) {
+    const t = await this.quizLibrary.findOne({ where: { id } });
+    if (!t) throw new NotFoundException('Modelo não encontrado');
+    return t;
+  }
+
+  async cloneFromLibrary(mentorId: string, libraryId: string) {
+    const src = await this.getLibrary(libraryId);
+    const copy = this.quizTemplates.create({
+      mentorId,
+      title: src.title,
+      description: src.description,
+      segment: src.segment,
+      defaultTimeLimit: src.defaultTimeLimit,
+      questions: src.questions,
+      sourceLibraryId: src.id,
+      aiGenerated: false,
+    });
+    return this.quizTemplates.save(copy);
+  }
+
+  // ----- Geração via IA -----
   async generateQuizTemplateWithAI(
     mentorId: string,
-    dto: { topic: string; content?: string; numQuestions?: number; numOptions?: number; difficulty?: 'easy' | 'medium' | 'hard'; language?: string },
+    dto: { topic: string; content?: string; numQuestions?: number; numOptions?: number; difficulty?: 'easy' | 'medium' | 'hard'; language?: string; segment?: QuizSegment },
   ) {
     const topic = (dto.topic || '').trim();
     if (!topic) throw new BadRequestException('Informe o tema/ideia do quiz');
@@ -349,7 +436,6 @@ Retorne APENAS um JSON com este formato exato:
     let parsed: any = null;
     try {
       const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-      // tenta extrair o primeiro bloco JSON
       const match = cleaned.match(/\{[\s\S]*\}/);
       parsed = JSON.parse(match ? match[0] : cleaned);
     } catch (e: any) {
@@ -358,10 +444,16 @@ Retorne APENAS um JSON com este formato exato:
 
     if (!parsed?.questions?.length) throw new BadRequestException('A IA não retornou perguntas. Tente novamente.');
 
-    return this.createManualQuizTemplate(mentorId, {
-      title: parsed.title || topic,
-      description: parsed.description,
-      questions: parsed.questions,
+    const questions = this.cleanQuestions(parsed.questions);
+    const t = this.quizTemplates.create({
+      mentorId,
+      title: String(parsed.title || topic).slice(0, 200),
+      description: parsed.description ? String(parsed.description).slice(0, 500) : undefined,
+      segment: dto.segment || QuizSegment.GERAL,
+      defaultTimeLimit: 20,
+      questions,
+      aiGenerated: true,
     });
+    return this.quizTemplates.save(t);
   }
 }
