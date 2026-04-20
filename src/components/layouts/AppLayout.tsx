@@ -52,6 +52,7 @@ const NAV: NavItem[] = [
   { to: "/app/boards", label: "Meus Kanbans", icon: KanbanSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin"] },
   { to: "/app/tests", label: "Testes", icon: ClipboardList, roles: ["mentor", "super_admin"] },
+  { to: "/app/quiz", label: "Quizzes PVP", icon: Zap, roles: ["mentor", "super_admin"] },
   { to: "/app/meetings", label: "Reuniões", icon: Calendar, roles: ["mentor", "super_admin"], feature: "allowMeetings" },
   { to: "/app/scheduling", label: "Agenda Pública", icon: CalendarClock, roles: ["mentor", "super_admin"], feature: "allowScheduling" },
   { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin"] },
