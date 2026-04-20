@@ -6,6 +6,7 @@ import { QuizPlayer } from '../../entities/quiz-player.entity';
 import { QuizAnswer } from '../../entities/quiz-answer.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
 import { TestQuestion, QuestionType } from '../../entities/test-question.entity';
+import { QuizTemplate, QuizLibraryTemplate, QuizSegment } from '../../entities/quiz-template.entity';
 import { AiService } from '../ai/ai.service';
 
 @Injectable()
@@ -16,6 +17,8 @@ export class QuizService {
     @InjectRepository(QuizAnswer) private answers: Repository<QuizAnswer>,
     @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
     @InjectRepository(TestQuestion) private questions: Repository<TestQuestion>,
+    @InjectRepository(QuizTemplate) private quizTemplates: Repository<QuizTemplate>,
+    @InjectRepository(QuizLibraryTemplate) private quizLibrary: Repository<QuizLibraryTemplate>,
     private readonly ai: AiService,
   ) {}
 
@@ -24,29 +27,46 @@ export class QuizService {
   }
 
   async createSession(mentorId: string, dto: { templateId: string; eventId?: string; questionTimeLimit?: number; title?: string }) {
-    const template = await this.templates.findOne({ where: { id: dto.templateId, mentorId } });
-    if (!template) throw new NotFoundException('Template não encontrado');
+    // Tenta primeiro como QuizTemplate (novo); se não, cai para TestTemplate (legado)
+    let title = dto.title || '';
+    let timeLimit = dto.questionTimeLimit;
+    let snapshot: Array<{ id: string; text: string; options: Array<{ index: number; label: string; correct: boolean }> }> = [];
 
-    const qs = await this.questions.find({
-      where: { templateId: dto.templateId, type: QuestionType.MULTIPLE_CHOICE },
-      order: { order: 'ASC' },
-    });
-    if (qs.length === 0) throw new BadRequestException('O template precisa ter ao menos 1 pergunta de múltipla escolha');
-
-    // Snapshot: marca como correta a opção com maior score
-    const snapshot = qs.map((q) => {
-      const opts: Array<{ label: string; score?: number }> = q.config?.options || [];
-      const maxScore = Math.max(...opts.map((o) => o.score ?? 0));
-      return {
-        id: q.id,
+    const quizTpl = await this.quizTemplates.findOne({ where: { id: dto.templateId, mentorId } });
+    if (quizTpl) {
+      if (!quizTpl.questions?.length) throw new BadRequestException('Quiz sem perguntas');
+      title = title || quizTpl.title;
+      timeLimit = timeLimit || quizTpl.defaultTimeLimit;
+      snapshot = quizTpl.questions.map((q, qi) => ({
+        id: `q${qi}`,
         text: q.text,
-        options: opts.map((o, i) => ({
-          index: i,
-          label: o.label,
-          correct: (o.score ?? 0) === maxScore && maxScore > 0,
-        })),
-      };
-    });
+        options: (q.options || []).map((o, i) => ({ index: i, label: o.label, correct: !!o.correct })),
+      }));
+    } else {
+      const template = await this.templates.findOne({ where: { id: dto.templateId, mentorId } });
+      if (!template) throw new NotFoundException('Template não encontrado');
+
+      const qs = await this.questions.find({
+        where: { templateId: dto.templateId, type: QuestionType.MULTIPLE_CHOICE },
+        order: { order: 'ASC' },
+      });
+      if (qs.length === 0) throw new BadRequestException('O template precisa ter ao menos 1 pergunta de múltipla escolha');
+
+      title = title || template.title;
+      snapshot = qs.map((q) => {
+        const opts: Array<{ label: string; score?: number }> = q.config?.options || [];
+        const maxScore = Math.max(...opts.map((o) => o.score ?? 0));
+        return {
+          id: q.id,
+          text: q.text,
+          options: opts.map((o, i) => ({
+            index: i,
+            label: o.label,
+            correct: (o.score ?? 0) === maxScore && maxScore > 0,
+          })),
+        };
+      });
+    }
 
     // PIN único (tenta até 5x)
     let pin = '';
@@ -62,10 +82,10 @@ export class QuizService {
       templateId: dto.templateId,
       eventId: dto.eventId,
       pin,
-      title: dto.title || template.title,
+      title,
       status: QuizSessionStatus.LOBBY,
       currentQuestionIndex: -1,
-      questionTimeLimit: dto.questionTimeLimit || 20,
+      questionTimeLimit: timeLimit || 20,
       questionsSnapshot: snapshot,
     });
     return this.sessions.save(session);
