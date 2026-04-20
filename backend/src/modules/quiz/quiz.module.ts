@@ -8,9 +8,10 @@ import { TestQuestion } from '../../entities/test-question.entity';
 import { QuizService } from './quiz.service';
 import { QuizController } from './quiz.controller';
 import { QuizGateway } from './quiz.gateway';
+import { AiModule } from '../ai/ai.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([QuizSession, QuizPlayer, QuizAnswer, TestTemplate, TestQuestion])],
+  imports: [TypeOrmModule.forFeature([QuizSession, QuizPlayer, QuizAnswer, TestTemplate, TestQuestion]), AiModule],
   controllers: [QuizController],
   providers: [QuizService, QuizGateway],
   exports: [QuizService],
