@@ -73,7 +73,7 @@ export function MentoradoTrailsList() {
                 <div className="p-3 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="font-semibold truncate">{t.title}</div>
-                    {locked && <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600">Bloqueada</Badge>}
+                    {locked && <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Bloqueada</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-1">{locked ? t.accessMessage : t.description}</div>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -232,7 +232,7 @@ export default function MentoradoTrailPlayer() {
                 <div key={l.id}
                   className={`flex items-center gap-2 p-2 rounded ${m.locked ? "" : "hover:bg-muted/30 cursor-pointer"}`}
                   onClick={() => !m.locked && setActiveLesson(l)}>
-                  {l.completed ? <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" /> : <Icon className="h-4 w-4 text-muted-foreground shrink-0" />}
+                  {l.completed ? <CheckCircle2 className="h-4 w-4 text-success shrink-0" /> : <Icon className="h-4 w-4 text-muted-foreground shrink-0" />}
                   <div className="text-sm flex-1 min-w-0 truncate">{l.title}</div>
                   {l.durationMinutes > 0 && <span className="text-xs text-muted-foreground">{l.durationMinutes}min</span>}
                   {!m.locked && !l.completed && <PlayCircle className="h-4 w-4 text-primary" />}
