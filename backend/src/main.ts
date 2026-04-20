@@ -10,28 +10,50 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
   app.useWebSocketAdapter(new IoAdapter(app));
-  app.use(helmet({ crossOriginResourcePolicy: false }));
+  app.use(helmet({ crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false }));
 
-  // CORS robusto: aceita lista CSV, ignora barras finais/espaços, libera *.easypanel.host
+  // CORS robusto: aceita lista CSV (CORS_ORIGIN), libera *.easypanel.host,
+  // *.lovable.app, *.lovableproject.com, localhost e (opcionalmente) qualquer
+  // origem extra via CORS_ALLOW_ALL=true. NUNCA lança erro — apenas omite os
+  // headers quando a origem não é permitida, evitando 500 no preflight.
   const allowList = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173')
     .split(',')
     .map((s) => s.trim().replace(/\/+$/, ''))
     .filter(Boolean);
+  const allowAll = String(process.env.CORS_ALLOW_ALL || '').toLowerCase() === 'true' || allowList.includes('*');
+
+  const isAllowed = (origin: string) => {
+    if (allowAll) return true;
+    const clean = origin.replace(/\/+$/, '');
+    if (allowList.includes(clean)) return true;
+    try {
+      const host = new URL(clean).hostname;
+      if (/\.easypanel\.host$/i.test(host)) return true;
+      if (/\.lovable\.app$/i.test(host)) return true;
+      if (/\.lovableproject\.com$/i.test(host)) return true;
+      if (/^localhost$/i.test(host)) return true;
+      // libera todos os hosts que constam no allowList por sufixo de domínio
+      // (ex.: CORS_ORIGIN=https://gleego.com.br libera mentor.gleego.com.br)
+      for (const entry of allowList) {
+        try {
+          const eh = new URL(entry).hostname;
+          if (host === eh || host.endsWith('.' + eh)) return true;
+        } catch {}
+      }
+    } catch {}
+    return false;
+  };
 
   app.enableCors({
     origin: (origin, cb) => {
-      if (!origin) return cb(null, true); // curl/healthchecks
-      const clean = origin.replace(/\/+$/, '');
-      const ok =
-        allowList.includes('*') ||
-        allowList.includes(clean) ||
-        /\.easypanel\.host$/i.test(new URL(clean).hostname) ||
-        /^http:\/\/localhost(:\d+)?$/i.test(clean);
-      cb(ok ? null : new Error(`CORS bloqueado para origem: ${origin}`), ok);
+      if (!origin) return cb(null, true); // curl/healthchecks/SSR
+      cb(null, isAllowed(origin)); // false → sem headers, mas sem 500
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'X-Tenant-Id'],
+    exposedHeaders: ['Content-Disposition'],
+    maxAge: 86400,
   });
 
   app.setGlobalPrefix('api');
