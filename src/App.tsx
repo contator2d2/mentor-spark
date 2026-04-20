@@ -75,6 +75,7 @@ import AccessGroupsPage from "./pages/app/AccessGroupsPage";
 import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
 import CommunityPage from "./pages/app/CommunityPage";
 import AnalyticsPage from "./pages/app/AnalyticsPage";
+import AgendaPage from "./pages/app/AgendaPage";
 import MentoradoCommunity from "./pages/me/MentoradoCommunity";
 import { PwaPrompts } from "./components/PwaPrompts";
 import { OfflineIndicator } from "./components/OfflineIndicator";
@@ -184,6 +185,7 @@ const App = () => (
                 <Route path="access-groups" element={<AccessGroupsPage />} />
                 <Route path="community" element={<CommunityPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
+                <Route path="agenda" element={<AgendaPage />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}

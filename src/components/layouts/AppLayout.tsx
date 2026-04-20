@@ -48,6 +48,7 @@ interface NavItem {
 
 const NAV: NavItem[] = [
   { to: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ["mentor", "super_admin"] },
+  { to: "/app/agenda", label: "Agenda", icon: CalendarClock, roles: ["mentor", "super_admin"] },
   { to: "/app/leads", label: "Leads & Funil", icon: Kanban, roles: ["mentor", "super_admin"] },
   { to: "/app/boards", label: "Meus Kanbans", icon: KanbanSquare, roles: ["mentor", "super_admin"] },
   { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin"] },
