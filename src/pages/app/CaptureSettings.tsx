@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import { api } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Copy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 export default function CaptureSettings() {
   const { user } = useAuth();
@@ -13,8 +13,10 @@ export default function CaptureSettings() {
 
   useEffect(() => {
     if (!user?.slug) return;
-    api(`/public/mentor/${user.slug}/qrcode`, { auth: false })
-      .then(setQr)
+    const url = `${window.location.origin}/c/${user.slug}`;
+    QRCode.toDataURL(url, { width: 512, margin: 2 })
+      .then((dataUrl) => setQr({ url, qr: dataUrl }))
+      .catch(() => toast.error("Erro ao gerar QR Code"))
       .finally(() => setLoading(false));
   }, [user?.slug]);
 
