@@ -6,6 +6,7 @@ import { QuizPlayer } from '../../entities/quiz-player.entity';
 import { QuizAnswer } from '../../entities/quiz-answer.entity';
 import { TestTemplate } from '../../entities/test-template.entity';
 import { TestQuestion, QuestionType } from '../../entities/test-question.entity';
+import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class QuizService {
@@ -15,6 +16,7 @@ export class QuizService {
     @InjectRepository(QuizAnswer) private answers: Repository<QuizAnswer>,
     @InjectRepository(TestTemplate) private templates: Repository<TestTemplate>,
     @InjectRepository(TestQuestion) private questions: Repository<TestQuestion>,
+    private readonly ai: AiService,
   ) {}
 
   private generatePin(): string {
@@ -261,5 +263,105 @@ export class QuizService {
       currentQuestion,
       stats,
     };
+  }
+
+  // ===================== Geração de quiz =====================
+
+  /** Cria um TestTemplate "rápido" para quiz a partir de perguntas manuais. */
+  async createManualQuizTemplate(
+    mentorId: string,
+    dto: { title: string; description?: string; questions: Array<{ text: string; options: Array<{ label: string; correct?: boolean }> }> },
+  ) {
+    if (!dto.title?.trim()) throw new BadRequestException('Título é obrigatório');
+    if (!dto.questions?.length) throw new BadRequestException('Inclua ao menos 1 pergunta');
+
+    const cleanQs = dto.questions.map((q, i) => {
+      if (!q.text?.trim()) throw new BadRequestException(`Pergunta ${i + 1} sem texto`);
+      const opts = (q.options || []).filter((o) => o.label?.trim());
+      if (opts.length < 2) throw new BadRequestException(`Pergunta ${i + 1}: mínimo 2 opções`);
+      const hasCorrect = opts.some((o) => o.correct);
+      if (!hasCorrect) throw new BadRequestException(`Pergunta ${i + 1}: marque ao menos 1 opção como correta`);
+      return {
+        type: QuestionType.MULTIPLE_CHOICE,
+        text: q.text.trim(),
+        weight: 1,
+        config: { options: opts.map((o) => ({ label: o.label.trim(), score: o.correct ? 10 : 0 })) },
+      };
+    });
+
+    const template = this.templates.create({
+      mentorId,
+      title: dto.title.trim(),
+      description: dto.description?.trim(),
+    });
+    const saved = await this.templates.save(template);
+    const qEntities = cleanQs.map((q, i) => this.questions.create({ ...q, order: i, templateId: saved.id } as Partial<TestQuestion>) as TestQuestion);
+    await this.questions.save(qEntities);
+    return this.templates.findOne({ where: { id: saved.id }, relations: ['questions'] });
+  }
+
+  /** Gera um TestTemplate completo via IA a partir de uma ideia/conteúdo. */
+  async generateQuizTemplateWithAI(
+    mentorId: string,
+    dto: { topic: string; content?: string; numQuestions?: number; numOptions?: number; difficulty?: 'easy' | 'medium' | 'hard'; language?: string },
+  ) {
+    const topic = (dto.topic || '').trim();
+    if (!topic) throw new BadRequestException('Informe o tema/ideia do quiz');
+    const numQuestions = Math.min(20, Math.max(3, dto.numQuestions || 8));
+    const numOptions = Math.min(4, Math.max(2, dto.numOptions || 4));
+    const difficulty = dto.difficulty || 'medium';
+    const language = dto.language || 'pt-BR';
+
+    const sys = `Você é um especialista em criar quizzes educativos no estilo Kahoot. 
+Sempre retorna JSON puro válido, sem markdown, sem comentários. Use o idioma ${language}.`;
+
+    const userPrompt = `Crie um quiz competitivo (estilo PVP/Kahoot) sobre o tema: "${topic}".
+${dto.content ? `\nUse este conteúdo de referência (não copie literalmente, extraia conhecimento):\n"""${dto.content.slice(0, 6000)}"""\n` : ''}
+Regras:
+- Gere exatamente ${numQuestions} perguntas de múltipla escolha
+- Cada pergunta deve ter exatamente ${numOptions} opções
+- Apenas 1 opção correta por pergunta
+- Dificuldade: ${difficulty}
+- Perguntas curtas (até 140 caracteres) e claras
+- Opções curtas (até 60 caracteres)
+- Não inclua "Todas as anteriores" / "Nenhuma das anteriores"
+- Varie o assunto dentro do tema
+
+Retorne APENAS um JSON com este formato exato:
+{
+  "title": "Título curto e atrativo do quiz",
+  "description": "Descrição em 1 frase",
+  "questions": [
+    {
+      "text": "Pergunta?",
+      "options": [
+        { "label": "Opção 1", "correct": false },
+        { "label": "Opção 2", "correct": true },
+        { "label": "Opção 3", "correct": false },
+        { "label": "Opção 4", "correct": false }
+      ]
+    }
+  ]
+}`;
+
+    const raw = await this.ai.chat(sys, userPrompt, { mentorId, useCase: 'generate_quiz' });
+
+    let parsed: any = null;
+    try {
+      const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+      // tenta extrair o primeiro bloco JSON
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(match ? match[0] : cleaned);
+    } catch (e: any) {
+      throw new BadRequestException('A IA retornou um formato inválido. Tente novamente ou ajuste o tema.');
+    }
+
+    if (!parsed?.questions?.length) throw new BadRequestException('A IA não retornou perguntas. Tente novamente.');
+
+    return this.createManualQuizTemplate(mentorId, {
+      title: parsed.title || topic,
+      description: parsed.description,
+      questions: parsed.questions,
+    });
   }
 }
