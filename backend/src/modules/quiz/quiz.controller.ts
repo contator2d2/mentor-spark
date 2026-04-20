@@ -18,6 +18,26 @@ export class QuizController {
 
   @ApiBearerAuth()
   @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('templates/manual')
+  createManualTemplate(
+    @TenantId() mentorId: string,
+    @Body() dto: { title: string; description?: string; questions: Array<{ text: string; options: Array<{ label: string; correct?: boolean }> }> },
+  ) {
+    return this.svc.createManualQuizTemplate(mentorId, dto);
+  }
+
+  @ApiBearerAuth()
+  @Auth('mentor', 'super_admin', 'mentor_team')
+  @Post('templates/generate-ai')
+  generateAiTemplate(
+    @TenantId() mentorId: string,
+    @Body() dto: { topic: string; content?: string; numQuestions?: number; numOptions?: number; difficulty?: 'easy' | 'medium' | 'hard'; language?: string },
+  ) {
+    return this.svc.generateQuizTemplateWithAI(mentorId, dto);
+  }
+
+  @ApiBearerAuth()
+  @Auth('mentor', 'super_admin', 'mentor_team')
   @Get('sessions')
   list(@TenantId() mentorId: string) {
     return this.svc.listForMentor(mentorId);
