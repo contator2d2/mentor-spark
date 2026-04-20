@@ -5,8 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { GraduationCap, PlayCircle, Lock, CheckCircle2, Award, ChevronLeft, FileText, Video, Headphones } from "lucide-react";
+import { GraduationCap, PlayCircle, Lock, CheckCircle2, Award, ChevronLeft, FileText, Video, Headphones, DollarSign, Clock } from "lucide-react";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 
 const LESSON_ICONS: any = { video: Video, article: FileText, audio: Headphones, pdf: FileText };
 
@@ -24,7 +26,23 @@ function getEmbedUrl(url: string): string {
 export function MentoradoTrailsList() {
   const navigate = useNavigate();
   const [trails, setTrails] = useState<any[]>([]);
-  useEffect(() => { api<any[]>("/trails").then(setTrails).catch(() => setTrails([])); }, []);
+  const [reqOpen, setReqOpen] = useState<any>(null);
+  const [reqMsg, setReqMsg] = useState("");
+  function load() { api<any[]>("/trails").then(setTrails).catch(() => setTrails([])); }
+  useEffect(() => { load(); }, []);
+
+  async function requestAccess(trail: any) {
+    try {
+      const r: any = await api(`/trail-access/trails/${trail.id}/request`, { method: "POST", body: { message: reqMsg } });
+      if (r?.chargeId) {
+        toast.success("Cobrança gerada! Verifique seu Financeiro.");
+        setReqOpen(null); setReqMsg("");
+        return;
+      }
+      toast.success("Solicitação enviada ao mentor!");
+      setReqOpen(null); setReqMsg(""); load();
+    } catch (e: any) { toast.error(e.message); }
+  }
 
   return (
     <div className="space-y-4">
@@ -32,24 +50,78 @@ export function MentoradoTrailsList() {
         <GraduationCap className="h-6 w-6 text-primary" /> Minhas Trilhas
       </h1>
       <div className="grid gap-3">
-        {trails.map(t => (
-          <Card key={t.id} className="overflow-hidden cursor-pointer hover:border-primary" onClick={() => navigate(`/me/trails/${t.id}`)}>
-            <div className="flex">
-              <div className="w-24 h-24 bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center shrink-0">
-                {t.coverUrl ? <img src={t.coverUrl} className="h-full w-full object-cover" alt="" /> : <GraduationCap className="h-8 w-8 text-white/60" />}
-              </div>
-              <div className="p-3 flex-1 min-w-0">
-                <div className="font-semibold truncate">{t.title}</div>
-                <div className="text-xs text-muted-foreground line-clamp-1">{t.description}</div>
-                <div className="flex items-center gap-2 mt-2">
-                  <Badge variant="secondary" className="text-[10px]">{t.completedLessons || 0} aulas concluídas</Badge>
+        {trails.map(t => {
+          const locked = t.locked;
+          const cta = t.cta;
+          return (
+            <Card key={t.id} className="overflow-hidden hover:border-primary transition-colors">
+              <div className="flex">
+                <div className="relative w-28 h-28 bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center shrink-0">
+                  {t.coverUrl ? (
+                    <img src={t.coverUrl} className={`h-full w-full object-cover ${locked ? "blur-sm scale-110" : ""}`} alt="" />
+                  ) : (
+                    <GraduationCap className="h-8 w-8 text-white/60" />
+                  )}
+                  {locked && (
+                    <div className="absolute inset-0 bg-background/60 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="h-10 w-10 rounded-full bg-background/90 border border-primary/40 flex items-center justify-center shadow">
+                        <Lock className="h-5 w-5 text-primary" />
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="p-3 flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <div className="font-semibold truncate">{t.title}</div>
+                    {locked && <Badge variant="outline" className="text-[10px] border-amber-500/40 text-amber-600">Bloqueada</Badge>}
+                  </div>
+                  <div className="text-xs text-muted-foreground line-clamp-1">{locked ? t.accessMessage : t.description}</div>
+                  <div className="flex items-center gap-2 mt-2 flex-wrap">
+                    {!locked && <Badge variant="secondary" className="text-[10px]">{t.completedLessons || 0} aulas concluídas</Badge>}
+                    {locked && cta?.kind === "pay" && (
+                      <Button size="sm" onClick={() => setReqOpen(t)}>
+                        <DollarSign className="h-3 w-3 mr-1" /> {cta.label}
+                      </Button>
+                    )}
+                    {locked && cta?.kind === "request" && (
+                      <Button size="sm" variant="outline" disabled={!!cta.pendingRequestId} onClick={() => setReqOpen(t)}>
+                        {cta.pendingRequestId ? "Solicitação enviada" : cta.label}
+                      </Button>
+                    )}
+                    {locked && cta?.kind === "wait" && (
+                      <Badge variant="outline" className="text-[10px]"><Clock className="h-3 w-3 mr-1" />{cta.label}</Badge>
+                    )}
+                    {!locked && (
+                      <Button size="sm" variant="ghost" onClick={() => navigate(`/me/trails/${t.id}`)}>Acessar →</Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </Card>
-        ))}
+            </Card>
+          );
+        })}
         {trails.length === 0 && <Card className="p-8 text-center text-muted-foreground">Nenhuma trilha disponível ainda.</Card>}
       </div>
+
+      <Dialog open={!!reqOpen} onOpenChange={(o) => { if (!o) { setReqOpen(null); setReqMsg(""); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{reqOpen?.cta?.kind === "pay" ? "Desbloquear trilha" : "Solicitar acesso"}</DialogTitle></DialogHeader>
+          <div className="space-y-3">
+            <div className="text-sm text-muted-foreground">{reqOpen?.title}</div>
+            {reqOpen?.cta?.kind === "pay" && (
+              <div className="text-sm">Será gerada uma cobrança PIX no valor de <strong>R$ {((reqOpen.priceCents || 0) / 100).toFixed(2).replace(".", ",")}</strong>. Você poderá pagar pelo seu Financeiro.</div>
+            )}
+            <div>
+              <label className="text-xs text-muted-foreground">Mensagem ao mentor (opcional)</label>
+              <Textarea value={reqMsg} onChange={(e) => setReqMsg(e.target.value)} placeholder="Por que você quer essa trilha?" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setReqOpen(null)}>Cancelar</Button>
+            <Button onClick={() => requestAccess(reqOpen)}>{reqOpen?.cta?.kind === "pay" ? "Gerar cobrança" : "Enviar solicitação"}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
