@@ -193,37 +193,65 @@ export default function Landing() {
          </div>
        </section>
 
-      {/* ============ FEATURES ============ */}
-      <section id="recursos" className="relative py-24 md:py-32">
-        <div className="absolute inset-0 bg-gradient-mesh opacity-40" />
-        <div className="relative max-w-7xl mx-auto px-6">
-          <div className="text-center mb-16 max-w-2xl mx-auto">
-            <Badge variant="outline" className="mb-4">O que fazemos</Badge>
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 text-balance">
-              O Mentor Glee-go centraliza toda a sua <span className="text-gradient">operação</span>
-            </h2>
-            <p className="text-muted-foreground text-lg">
-              Da entrada do lead até a evolução do mentorado, tudo conectado em um único sistema profissional.
-            </p>
+       {/* ============ PROBLEM ============ */}
+       <section className="py-24 bg-muted/30">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quando a mentoria cresce, a operação começa a travar</h2>
+             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Muitos mentores entregam valor, mas operam no improviso, o que limita o crescimento e a percepção de valor.</p>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {problemCards.map((card, i) => (
+               <Card key={i} className="p-6 glass-card border-destructive/10 hover:border-destructive/30 transition-colors animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+                 <div className="h-12 w-12 rounded-xl bg-destructive/5 flex items-center justify-center mb-4">
+                   <card.icon className="h-6 w-6 text-destructive/70" />
+                 </div>
+                 <h3 className="font-bold text-lg mb-2">{card.title}</h3>
+                 <p className="text-sm text-muted-foreground">{card.desc}</p>
+               </Card>
+             ))}
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ SOLUTION ============ */}
+       <section id="recursos" className="py-24 relative overflow-hidden">
+         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full" />
+         <div className="max-w-7xl mx-auto px-6 relative">
+           <div className="text-center mb-16">
+             <Badge variant="outline" className="mb-4">Módulos Mentor Glee-go</Badge>
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O Mentor Glee-go centraliza toda a operação</h2>
+             <p className="text-muted-foreground text-lg">Da entrada do lead até a evolução do mentorado, tudo conectado em um único sistema.</p>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {modules.map((m, i) => (
+               <Card key={i} className="p-6 glass-card glass-card-hover border-primary/10">
+                 <div className="flex items-center gap-3 mb-4">
+                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                     <m.icon className="h-5 w-5 text-primary" />
+                   </div>
+                   <h3 className="font-bold text-xl">{m.title}</h3>
+                 </div>
+                 <ul className="space-y-2">
+                   {m.items.map((item, idx) => (
+                     <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
+                       <CheckCircle2 className="h-4 w-4 text-primary/60 shrink-0" />
+                       {item}
+                     </li>
+                   ))}
+                 </ul>
+               </Card>
+             ))}
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ LEAD FORM 1 ============ */}
+       <section id="diagnosticos" className="py-24 bg-gradient-to-b from-background to-muted/30">
+          <div className="max-w-7xl mx-auto px-6">
+            <LeadForm />
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map((f, i) => {
-              const Icon = f.icon;
-              return (
-                <Card key={f.title} className="group relative p-6 glass-card glass-card-hover overflow-hidden animate-fade-in" style={{ animationDelay: `${i * 60}ms` }}>
-                  <div className={`absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${f.color} opacity-10 group-hover:opacity-20 transition-opacity blur-2xl`} />
-                  <div className={`relative w-12 h-12 rounded-xl bg-gradient-to-br ${f.color} flex items-center justify-center mb-4 shadow-md group-hover:scale-110 transition-transform`}>
-                    <Icon className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="font-display font-bold text-lg mb-2">{f.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{f.body}</p>
-                </Card>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+       </section>
 
       {/* ============ HOW IT WORKS ============ */}
       <section id="como-funciona" className="py-24 md:py-32 bg-muted/30">
