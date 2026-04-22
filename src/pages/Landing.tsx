@@ -129,114 +129,69 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ============ HEADER ============ */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
-        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-              <Sparkles className="h-5 w-5 text-white" />
-            </div>
-            <div className="font-display text-xl font-bold">Mentor Glee-go <span className="text-xs font-normal text-muted-foreground ml-1">by Gleego</span></div>
-          </div>
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
-            <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
-            <a href="#app" className="text-muted-foreground hover:text-foreground transition-colors">App Mentorado</a>
-            <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
-            <a href="#biblioteca" className="text-muted-foreground hover:text-foreground transition-colors">Biblioteca</a>
-            <a href="#demonstracao" className="text-muted-foreground hover:text-foreground transition-colors">Demonstração</a>
-          </nav>
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
-            <Link to="/signup"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Agendar Demonstração</Button></Link>
-          </div>
-        </div>
-      </header>
+       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
+         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+           <div className="flex items-center gap-2">
+             <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+               <Sparkles className="h-5 w-5 text-white" />
+             </div>
+             <div className="font-display text-xl font-bold">Mentor Glee-go <span className="text-xs font-normal text-muted-foreground ml-1">by Gleego</span></div>
+           </div>
+           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
+             <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+             <a href="#para-quem" className="text-muted-foreground hover:text-foreground transition-colors">Para quem serve</a>
+             <a href="#app" className="text-muted-foreground hover:text-foreground transition-colors">App Mentorado</a>
+             <a href="#diagnosticos" className="text-muted-foreground hover:text-foreground transition-colors">Diagnósticos</a>
+             <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
+             <a href="#demonstracao" className="text-muted-foreground hover:text-foreground transition-colors">Demonstração</a>
+           </nav>
+           <div className="flex items-center gap-2">
+             <ThemeToggle />
+             <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
+             <a href="#demonstracao"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Agendar Demonstração</Button></a>
+           </div>
+         </div>
+       </header>
 
       {/* ============ HERO ============ */}
-      <section className="relative overflow-hidden bg-gradient-hero">
-        <div className="absolute inset-0 bg-grid opacity-40" />
-        <div className="absolute inset-0 bg-gradient-mesh" />
-
-        <div className="blob bg-primary/30 h-[500px] w-[500px] -top-40 -left-40" />
-        <div className="blob bg-secondary/20 h-[400px] w-[400px] top-20 -right-20" style={{ animationDelay: "5s" }} />
-        <div className="blob bg-accent/20 h-[350px] w-[350px] bottom-0 left-1/3" style={{ animationDelay: "10s" }} />
-
-        <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
-          <div className="animate-fade-in">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm mb-6 backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium">Infraestrutura digital para mentores</span>
-            </div>
-            <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] text-balance mb-6">
-              Transforme sua mentoria em uma operação <span className="text-gradient">organizada, escalável e inteligente</span>
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              Com o Mentor Glee-go, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
-            </p>
-            <div className="flex flex-wrap gap-3 mb-8">
-              <Link to="/signup">
-                <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow text-base h-12 px-6 group">
-                  Quero Ver uma Demonstração <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="text-base h-12 px-6 group">
-                Falar com Especialista
-              </Button>
-            </div>
-            <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-              <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> App para mentorados</span>
-              <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> Testes e diagnósticos</span>
-              <span className="flex items-center gap-1"><CheckCircle className="h-4 w-4 text-primary" /> IA Aplicada</span>
-            </div>
-          </div>
-
-          {/* Hero visual: dashboard mock */}
-          <div className="relative animate-scale-in anim-delay-200">
-            <div className="absolute -inset-4 bg-gradient-primary opacity-30 blur-3xl rounded-full" />
-            <Card className="relative p-6 shadow-elegant glass-card overflow-hidden">
-              <div className="flex items-center justify-between mb-5">
-                <div>
-                  <div className="text-xs text-muted-foreground">Dashboard ao vivo</div>
-                  <div className="font-display font-bold text-lg">Hoje, 14:32</div>
-                </div>
-                <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400">● ao vivo</Badge>
-              </div>
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {stats.map((s, i) => (
-                  <div key={s.l} className="p-3 rounded-xl bg-muted/40 border border-border/50 animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                    <div className="text-xs text-muted-foreground">{s.l}</div>
-                    <div className="text-2xl font-bold text-gradient">{s.v}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="space-y-2">
-                {[
-                  { icon: Users, t: "Maria Silva entrou no funil", c: "violet" },
-                  { icon: Calendar, t: "Reunião agendada com João", c: "blue" },
-                  { icon: DollarSign, t: "Pagamento Pix recebido R$ 297", c: "emerald" },
-                ].map((item, i) => {
-                  const Icon = item.icon;
-                  return (
-                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg bg-background/40 border border-border/30 animate-fade-in" style={{ animationDelay: `${300 + i * 150}ms` }}>
-                      <div className={`h-8 w-8 rounded-lg bg-${item.c}-500/10 flex items-center justify-center`}>
-                        <Icon className={`h-4 w-4 text-${item.c}-500`} />
-                      </div>
-                      <div className="flex-1 text-sm">{item.t}</div>
-                      <span className="text-[10px] text-muted-foreground">agora</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
-          </div>
-        </div>
-
-        <div className="relative border-t border-border/40 bg-background/40 backdrop-blur">
-          <div className="max-w-7xl mx-auto px-6 py-6 text-center">
-             <p className="text-sm font-medium text-muted-foreground">Mentor Glee-go by Gleego</p>
-          </div>
-        </div>
-      </section>
+       {/* ============ HERO ============ */}
+       <section className="relative overflow-hidden bg-gradient-hero border-b border-border/40">
+         <div className="absolute inset-0 bg-grid opacity-20" />
+         <div className="absolute inset-0 bg-gradient-mesh" />
+         <div className="blob bg-primary/20 h-[600px] w-[600px] -top-80 -left-80" />
+         <div className="blob bg-accent/15 h-[500px] w-[500px] bottom-0 -right-40" />
+         
+         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
+           <div className="animate-fade-in">
+             <Badge variant="outline" className="mb-6 bg-primary/5 border-primary/20 text-primary">Infraestrutura digital para mentores</Badge>
+             <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] mb-6">
+               Transforme sua mentoria em uma operação <span className="text-gradient">organizada, escalável e inteligente</span>
+             </h1>
+             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
+               Com o Mentor Glee-go, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
+             </p>
+             <div className="flex flex-wrap gap-3 mb-8">
+               <a href="#demonstracao">
+                 <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow h-12 px-8 group font-bold">
+                   Quero Ver uma Demonstração <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                 </Button>
+               </a>
+               <Button size="lg" variant="outline" className="h-12 px-8 font-semibold">Falar com Especialista</Button>
+             </div>
+             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground font-medium">
+               {["App para mentorados", "Testes e diagnósticos", "Reuniões com histórico", "IA Aplicada"].map((t) => (
+                 <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> {t}</span>
+               ))}
+             </div>
+           </div>
+           <div className="relative animate-scale-in anim-delay-200">
+             <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full" />
+             <Card className="relative overflow-hidden shadow-elegant border-primary/20 p-2 glass-card">
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" alt="Mentor Glee-go Dashboard" className="rounded-lg shadow-2xl" />
+             </Card>
+           </div>
+         </div>
+       </section>
 
       {/* ============ FEATURES ============ */}
       <section id="recursos" className="relative py-24 md:py-32">
