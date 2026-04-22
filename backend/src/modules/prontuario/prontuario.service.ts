@@ -6,20 +6,22 @@ import { Lead, LeadStage } from '../../entities/lead.entity';
 import { User, UserRole } from '../../entities/user.entity';
 import { TestResponse } from '../../entities/test-response.entity';
 import { Meeting } from '../../entities/meeting.entity';
-import { Task, TaskStatus } from '../../entities/task.entity';
-import { ProntuarioAlertsService } from './prontuario-alerts.service';
+ import { Task, TaskStatus } from '../../entities/task.entity';
+ import { ProntuarioAlertsService } from './prontuario-alerts.service';
+ import { MentoredTimelineEvent, TimelineEventType } from '../../entities/mentored-timeline-event.entity';
 
 @Injectable()
 export class ProntuarioService {
-  constructor(
-    @InjectRepository(MentoredRecord) private records: Repository<MentoredRecord>,
-    @InjectRepository(Lead) private leads: Repository<Lead>,
-    @InjectRepository(User) private users: Repository<User>,
-    @InjectRepository(TestResponse) private responses: Repository<TestResponse>,
-    @InjectRepository(Meeting) private meetings: Repository<Meeting>,
-    @InjectRepository(Task) private tasks: Repository<Task>,
-    private alertsService: ProntuarioAlertsService,
-  ) {}
+   constructor(
+     @InjectRepository(MentoredRecord) private records: Repository<MentoredRecord>,
+     @InjectRepository(Lead) private leads: Repository<Lead>,
+     @InjectRepository(User) private users: Repository<User>,
+     @InjectRepository(TestResponse) private responses: Repository<TestResponse>,
+     @InjectRepository(Meeting) private meetings: Repository<Meeting>,
+     @InjectRepository(Task) private tasks: Repository<Task>,
+     @InjectRepository(MentoredTimelineEvent) private events: Repository<MentoredTimelineEvent>,
+     private alertsService: ProntuarioAlertsService,
+   ) {}
 
   /**
    * Resolve um identificador (que pode ser leadId OU userId) para um Lead do mentor.
@@ -100,14 +102,27 @@ export class ProntuarioService {
       lead.userId ? this.users.findOne({ where: { id: lead.userId } }) : Promise.resolve(null),
     ]);
 
-    const timeline: Array<{ type: string; at: Date; title: string; ref: string; meta?: any }> = [];
-    timeline.push({
-      type: 'lead_created',
-      at: lead.createdAt,
-      title: 'Lead capturado',
-      ref: lead.id,
-      meta: { source: lead.source },
-    });
+     const timeline: Array<{ type: string; at: Date; title: string; ref: string; meta?: any }> = [];
+ 
+     // Buscar eventos persistidos na timeline
+     const persistedEvents = await this.events.find({ where: { recordId: record.id, mentorId } });
+     persistedEvents.forEach(e => {
+       timeline.push({
+         type: e.type,
+         at: e.createdAt,
+         title: e.title,
+         ref: e.id,
+         meta: e.meta
+       });
+     });
+ 
+     timeline.push({
+       type: 'lead_created',
+       at: lead.createdAt,
+       title: 'Lead capturado',
+       ref: lead.id,
+       meta: { source: lead.source },
+     });
     tests.forEach((t) =>
       timeline.push({
         type: 'test_response',
