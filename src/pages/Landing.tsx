@@ -70,7 +70,7 @@ export default function Landing() {
             <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Sparkles className="h-5 w-5 text-white" />
             </div>
-            <div className="font-display text-xl font-bold">MentorFlow</div>
+             <div className="font-display text-xl font-bold">Mentor Glee-go <span className="text-xs font-normal text-muted-foreground ml-1">by Gleego</span></div>
           </div>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
@@ -99,40 +99,28 @@ export default function Landing() {
         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
           <div className="animate-fade-in">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-sm mb-6 backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              <span className="font-medium">SaaS de mentoria com IA</span>
-              <Badge variant="secondary" className="ml-1 text-[10px] px-1.5 py-0">NOVO</Badge>
+               <Sparkles className="h-3.5 w-3.5 text-primary" />
+               <span className="font-medium">Infraestrutura digital para mentores</span>
             </div>
-            <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] text-balance mb-6">
-              Sua mentoria em <span className="text-gradient">um só lugar</span>.
-              <br />Sem caos. Com IA.
-            </h1>
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-              Capte leads, aplique testes, conduza reuniões com IA, cobre mensalidades e entregue trilhas — tudo numa plataforma branded e escalável.
-            </p>
-            <div className="flex flex-wrap gap-3 mb-8">
-              <Link to="/signup">
-                <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow text-base h-12 px-6 group">
-                  Começar grátis <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
-              <Button size="lg" variant="outline" className="text-base h-12 px-6 group">
-                <Play className="mr-2 h-4 w-4 fill-current" /> Ver demo (2min)
-              </Button>
-            </div>
+             <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] text-balance mb-6">
+               Transforme sua mentoria em uma operação <span className="text-gradient">organizada, escalável e inteligente</span>
+             </h1>
+             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
+               Com o Mentor Glee-go, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
+             </p>
+             <div className="flex flex-wrap gap-3 mb-8">
+               <Link to="/signup">
+                 <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow text-base h-12 px-6 group">
+                   Quero Ver uma Demonstração <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                 </Button>
+               </Link>
+               <Button size="lg" variant="outline" className="text-base h-12 px-6 group">
+                 Falar com Especialista
+               </Button>
+             </div>
             <div className="flex items-center gap-4 text-sm text-muted-foreground">
               <div className="flex -space-x-2">
-                {["bg-violet-500", "bg-pink-500", "bg-emerald-500", "bg-amber-500"].map((c, i) => (
-                  <div key={i} className={`h-8 w-8 rounded-full ${c} border-2 border-background`} />
-                ))}
-              </div>
-              <div>
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-3.5 w-3.5 fill-amber-400 text-amber-400" />)}
-                  <span className="ml-1 font-semibold text-foreground">4.9/5</span>
-                </div>
-                <div className="text-xs">+340 mentores ativos</div>
-              </div>
+                 <p className="text-sm font-medium">App mentorado • Diagnósticos • Prontuário • IA Suporte • Plataforma Personalizável</p>
             </div>
           </div>
 
@@ -182,9 +170,7 @@ export default function Landing() {
           <div className="max-w-7xl mx-auto px-6 py-6">
             <div className="text-center text-xs uppercase tracking-widest text-muted-foreground mb-4">Mentores que confiam</div>
             <div className="flex items-center justify-center gap-8 md:gap-12 flex-wrap opacity-60">
-              {["Coach Elite", "Mentor Pro", "Growth Lab", "Academia BR", "Líder+", "Consult X"].map(n => (
-                <div key={n} className="font-display font-bold text-lg text-muted-foreground">{n}</div>
-              ))}
+                 <p>Mentor Glee-go by Gleego</p>
             </div>
           </div>
         </div>
