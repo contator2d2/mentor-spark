@@ -4,9 +4,9 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
-  ArrowRight, Sparkles, Users, ClipboardList, Brain, BarChart3, ShieldCheck,
-  Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2,
-  Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target, CheckCircle,
+   ArrowRight, Sparkles, Users, ClipboardList, Brain, BarChart3, ShieldCheck, Smartphone, Search, Database, TrendingDown,
+   Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2, Monitor, X, Check, Activity,
+   Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target, CheckCircle, Layers, Lock, Settings2, FileText, Scale, Briefcase, CircleDollarSign, HeartHandshake,
 } from "lucide-react";
 import {
   Accordion,
@@ -15,17 +15,76 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const features = [
-  { icon: Users, title: "Captação Estratégica", body: "Página + QR Code para eventos. Lead vira conta automaticamente. Funil visual de frio → quente.", color: "from-violet-500 to-purple-500" },
-  { icon: ClipboardList, title: "Testes & Diagnósticos", body: "Builder próprio. Score automático. Biblioteca de testes prontos por nicho.", color: "from-blue-500 to-cyan-500" },
-  { icon: Brain, title: "IA Personalizada", body: "Sua metodologia, seu prompt. IA que gera diagnósticos e resumos com seu tom de voz.", color: "from-fuchsia-500 to-pink-500" },
-  { icon: Calendar, title: "Agenda Inteligente", body: "Link compartilhável. Google Meet automático. Reuniões com histórico gravado.", color: "from-emerald-500 to-teal-500" },
-  { icon: MessageSquare, title: "Prontuário Estratégico", body: "Visão 360º: dores, objetivos, histórico e evolução em um só lugar.", color: "from-indigo-500 to-violet-500" },
-  { icon: TrendingUp, title: "Execução & Tarefas", body: "Plano de ação claro para o mentorado com acompanhamento de progresso.", color: "from-amber-500 to-orange-500" },
-  { icon: ShieldCheck, title: "App para Mentorados", body: "Agenda, tarefas, conteúdos e progresso direto no celular do cliente.", color: "from-slate-500 to-zinc-500" },
-  { icon: GraduationCap, title: "Trilhas de Conteúdo", body: "Crie jornadas com vídeo e PDF. Bloqueio por pré-requisito e drip de conteúdo.", color: "from-rose-500 to-red-500" },
-  { icon: BarChart3, title: "Gestão de Retenção", body: "Indicadores de evolução e alertas de risco de churn automáticos.", color: "from-sky-500 to-blue-500" },
-];
+ import { LeadForm } from "@/components/landing/LeadForm";
+ 
+ const problemCards = [
+   { icon: Users, title: "Muito atendimento, pouco controle", desc: "Perdido entre várias ferramentas e sem visão clara." },
+   { icon: Search, title: "Diagnóstico sem padrão", desc: "Cada cliente é avaliado de um jeito diferente." },
+   { icon: Calendar, title: "Reuniões que se perdem", desc: "Sem histórico organizado do que foi conversado." },
+   { icon: TrendingDown, title: "Baixa execução do mentorado", desc: "O cliente não sabe o que fazer entre as sessões." },
+   { icon: Smartphone, title: "App fraco ou inexistente", desc: "Falta de profissionalismo na entrega digital." },
+   { icon: Layers, title: "Difícil escalar sem caos", desc: "Crescer significa mais bagunça operacional." },
+ ];
+ 
+ const modules = [
+   { title: "Captação", icon: Target, items: ["QR Code para eventos", "Formulários", "Entrada via landing page", "Pipeline comercial"] },
+   { title: "Diagnóstico", icon: ClipboardList, items: ["Testes por segmento", "Score automático", "Relatórios detalhados", "Leitura inicial com IA"] },
+   { title: "Prontuário", icon: MessageSquare, items: ["Dores e objetivos", "Histórico completo", "Evolução do cliente", "Timeline viva"] },
+   { title: "Reuniões", icon: Calendar, items: ["Meet / Zoom", "Resumo automático", "Transcrição", "Próximos passos"] },
+   { title: "Execução", icon: TrendingUp, items: ["Tarefas e metas", "Planos de ação", "Alertas de atraso", "Acompanhamento"] },
+   { title: "App", icon: Smartphone, items: ["Agenda integrada", "Conteúdos exclusivos", "Tarefas pendentes", "Notificações push"] },
+ ];
+ 
+ const timelineSteps = [
+   { t: "Entrada do Lead", d: "O lead entra por evento, palestra, campanha ou indicação." },
+   { t: "Diagnóstico Inicial", d: "Faz testes e diagnósticos automáticos no app." },
+   { t: "Análise Estratégica", d: "O mentor recebe análise inicial consolidada pela IA." },
+   { t: "Sessão Inteligente", d: "A reunião acontece com histórico e contexto completo." },
+   { t: "Plano de Ação", d: "Tarefas e conteúdos específicos são liberados no app." },
+   { t: "Evolução Contínua", d: "Plataforma acompanha engajamento, riscos e progresso." },
+ ];
+ 
+ const differentials = [
+   { title: "Prontuário Inteligente", desc: "Cada mentorado com contexto completo e visão 360º.", icon: Brain },
+   { title: "IA como Suporte", desc: "Resumos, insights e sugestões de próximos passos.", icon: Sparkles },
+   { title: "App Próprio", desc: "Experiência premium para o cliente no mobile e desktop.", icon: Smartphone },
+   { title: "Biblioteca de Testes", desc: "Modelos prontos por nicho para você começar rápido.", icon: Database },
+   { title: "Funil de Conversão", desc: "Transforme eventos e palestras em mentorias pagas.", icon: Zap },
+   { title: "Escala com Método", desc: "Atenda mais clientes sem perder a qualidade do serviço.", icon: TrendingUp },
+ ];
+ 
+ const niches = [
+   { title: "Mentor Empresarial", desc: "Vendas, liderança, processos e finanças.", icon: Briefcase },
+   { title: "Mentor Jurídico", desc: "Captação, operação e produtividade no direito.", icon: Scale },
+   { title: "Mentor Financeiro", desc: "Margem, caixa e indicadores de performance.", icon: CircleDollarSign },
+   { title: "Mentor RH", desc: "Cultura, liderança e gestão de pessoas.", icon: HeartHandshake },
+ ];
+ 
+ const aiCapabilities = [
+   "Resumir reuniões automaticamente",
+   "Consolidar histórico de sessões",
+   "Sugerir próximos passos estratégicos",
+   "Detectar riscos de cancelamento",
+   "Apontar padrões de comportamento",
+   "Gerar visão executiva da jornada",
+   "Organizar informações dispersas",
+ ];
+ 
+ const librarySegments = [
+   { title: "Empresarial", icon: Briefcase },
+   { title: "RH & Pessoas", icon: Users },
+   { title: "Financeiro", icon: DollarSign },
+   { title: "Jurídico", icon: Scale },
+ ];
+ 
+ const realBenefits = [
+   { title: "Mais Clareza", desc: "Você entende cada mentorado rapidamente.", icon: Eye },
+   { title: "Mais Valor Percebido", desc: "O cliente sente o acompanhamento real.", icon: Star },
+   { title: "Mais Escala", desc: "Atenda mais sem perder o contexto.", icon: TrendingUp },
+   { title: "Mais Retenção", desc: "Motivos reais para continuar com você.", icon: Activity },
+   { title: "Mais Conversão", desc: "Leads entram melhor preparados.", icon: Zap },
+   { title: "Mais Profissionalismo", desc: "Sua operação sobe de nível imediatamente.", icon: ShieldCheck },
+ ];
 
 const stats = [
   { v: "+128", l: "leads/semana" },
