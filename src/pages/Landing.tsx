@@ -326,53 +326,181 @@ export default function Landing() {
          </div>
        </section>
 
-      {/* ============ FAQ ============ */}
-      <section id="faq" className="py-24 md:py-32">
-        <div className="max-w-3xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <Badge variant="outline" className="mb-4">Dúvidas frequentes</Badge>
-            <h2 className="font-display text-4xl md:text-5xl font-bold text-balance">
-              Tudo que você precisa saber
-            </h2>
-          </div>
-          <Accordion type="single" collapsible className="space-y-3">
-            {faqs.map((f, i) => (
-              <AccordionItem key={f.q} value={`item-${i}`} className="border-none">
-                <Card className="glass-card overflow-hidden">
-                  <AccordionTrigger className="px-5 py-4 hover:no-underline font-semibold">{f.q}</AccordionTrigger>
-                  <AccordionContent className="px-5 text-sm text-muted-foreground pt-0">{f.a}</AccordionContent>
-                </Card>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </section>
-
-      {/* ============ CTA FINAL ============ */}
-      <section id="demonstracao" className="relative py-24 md:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-primary" />
-        <div className="absolute inset-0 bg-grid opacity-20" />
-        <div className="blob bg-white/10 h-[500px] w-[500px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
-        <div className="relative max-w-3xl mx-auto px-6 text-center text-white">
-          <Zap className="h-12 w-12 mx-auto mb-6 animate-float" />
-          <h2 className="font-display text-4xl md:text-6xl font-bold mb-5 text-balance">
-            Pronto pra escalar sua mentoria?
-          </h2>
-          <p className="text-white/90 text-lg mb-8 max-w-xl mx-auto">
-            Saia do improviso. Opere com método, contexto e inteligência em uma única plataforma.
-          </p>
-          <div className="flex flex-wrap gap-3 justify-center">
-            <Link to="/signup">
-              <Button size="lg" className="bg-white text-primary hover:bg-white/90 text-base h-12 px-8 shadow-elegant group font-semibold">
-                Agendar Demonstração <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-              </Button>
-            </Link>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 text-base h-12 px-8">
-              Falar com Especialista
-            </Button>
-          </div>
-        </div>
-      </section>
+       {/* ============ APP ============ */}
+       <section id="app" className="py-24 bg-gradient-to-r from-primary to-primary/80 text-white overflow-hidden relative">
+         <div className="absolute inset-0 bg-grid opacity-10" />
+         <div className="max-w-7xl mx-auto px-6 relative flex flex-col lg:flex-row gap-12 items-center">
+           <div className="lg:w-1/2">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">Seu mentorado não recebe só conteúdo. Ele acompanha a própria evolução.</h2>
+             <p className="text-xl text-white/80 mb-8">No app o mentorado acessa agenda, tarefas, conteúdos e todo o seu progresso em tempo real.</p>
+             <div className="grid grid-cols-2 gap-y-4">
+               {["Próximas reuniões", "Tarefas da semana", "Testes liberados", "Trilhas de conteúdo", "Progresso visual", "Histórico completo"].map(item => (
+                 <div key={item} className="flex items-center gap-2">
+                   <Check className="h-5 w-5 bg-white/20 rounded-full p-1" /> {item}
+                 </div>
+               ))}
+             </div>
+             <p className="mt-8 text-sm font-medium bg-white/10 p-3 rounded-lg border border-white/20 inline-block">
+               Até prospects podem entrar no app antes de fechar a mentoria.
+             </p>
+           </div>
+           <div className="lg:w-1/2 relative">
+             <div className="absolute -inset-10 bg-white/20 blur-3xl rounded-full" />
+             <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=400" alt="App Mockup" className="relative mx-auto w-64 md:w-80 rounded-[3rem] border-[8px] border-white/10 shadow-2xl" />
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ IA ============ */}
+       <section id="ia" className="py-24 relative overflow-hidden">
+         <div className="absolute left-0 bottom-0 w-1/2 h-1/2 bg-accent/5 blur-[120px] rounded-full" />
+         <div className="max-w-7xl mx-auto px-6 relative">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 flex items-center justify-center gap-3">
+               IA como suporte, não substituição <Brain className="h-10 w-10 text-primary animate-pulse" />
+             </h2>
+             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">A inteligência artificial apoia sua operação sem substituir sua experiência humana e metodologia.</p>
+           </div>
+           <div className="grid md:grid-cols-2 gap-12 items-center">
+             <Card className="p-8 glass-card border-primary/20">
+               <h3 className="font-bold text-2xl mb-6">O que a IA faz por você:</h3>
+               <div className="space-y-4">
+                 {aiCapabilities.map((cap, i) => (
+                   <div key={i} className="flex items-start gap-3">
+                     <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                     <p className="font-medium">{cap}</p>
+                   </div>
+                 ))}
+               </div>
+               <p className="mt-8 text-sm text-center font-bold text-primary">A metodologia continua humana. A eficiência ganha escala.</p>
+             </Card>
+             <div className="space-y-6">
+               <div className="p-6 bg-muted rounded-2xl border border-border relative">
+                 <div className="flex items-center gap-2 mb-3 text-primary font-bold">
+                   <Brain className="h-4 w-4" /> Insight da IA
+                 </div>
+                 <p className="italic text-muted-foreground">"Baseado na última sessão, o mentorado João Silva apresenta um padrão de procrastinação na etapa de finanças. Sugestão: Liberar trilha de Mindset Financeiro."</p>
+               </div>
+               <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10">
+                 <p className="font-bold mb-2">Resumo da Reunião</p>
+                 <div className="h-2 w-full bg-primary/20 rounded-full mb-2 overflow-hidden">
+                   <div className="h-full bg-primary w-[70%]" />
+                 </div>
+                 <p className="text-xs text-muted-foreground">Transcrição e análise estratégica concluída com sucesso.</p>
+               </div>
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ LIBRARY ============ */}
+       <section className="py-24 bg-muted/30">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Comece com diagnósticos prontos</h2>
+             <p className="text-muted-foreground text-lg">Adapte os modelos existentes ao seu método ou crie do zero.</p>
+           </div>
+           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
+             {librarySegments.map((seg, i) => (
+               <div key={i} className="p-6 text-center bg-background rounded-xl border border-border shadow-sm">
+                 <seg.icon className="h-8 w-8 text-primary mx-auto mb-3" />
+                 <h4 className="font-bold">{seg.title}</h4>
+               </div>
+             ))}
+           </div>
+           <div className="grid md:grid-cols-2 gap-8 text-sm">
+             <div className="space-y-3">
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Duplicar modelos prontos</div>
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Editar todas as perguntas</div>
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Alterar pesos dos resultados</div>
+             </div>
+             <div className="space-y-3">
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Mudar linguagem e tom</div>
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Personalizar relatórios finais</div>
+               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Salvar como modelo próprio</div>
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ BENEFITS ============ */}
+       <section className="py-24">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O que muda quando a mentoria deixa de ser improvisada</h2>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {realBenefits.map((b, i) => (
+               <Card key={i} className="p-6 glass-card border-primary/5 hover:border-primary/20">
+                 <b.icon className="h-10 w-10 text-primary mb-4" />
+                 <h3 className="font-bold text-lg mb-2">{b.title}</h3>
+                 <p className="text-sm text-muted-foreground">{b.desc}</p>
+               </Card>
+             ))}
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ COMPARISON ============ */}
+       <section className="py-24 bg-muted/50">
+         <div className="max-w-5xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Antes e depois do Mentor Glee-go</h2>
+           </div>
+           <div className="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-border shadow-2xl">
+             <div className="p-8 md:p-12 bg-destructive/5">
+               <h3 className="font-bold text-2xl mb-8 flex items-center gap-2 text-destructive"><X className="h-6 w-6" /> Antes</h3>
+               <ul className="space-y-4">
+                 {["WhatsApp solto", "Planilhas paralelas", "Reuniões sem histórico", "Testes desorganizados", "Pouca visão da jornada", "Cancelamentos inesperados"].map(item => (
+                   <li key={item} className="flex items-center gap-3 text-muted-foreground">
+                     <div className="h-1.5 w-1.5 rounded-full bg-destructive/30" /> {item}
+                   </li>
+                 ))}
+               </ul>
+             </div>
+             <div className="p-8 md:p-12 bg-primary/5">
+               <h3 className="font-bold text-2xl mb-8 flex items-center gap-2 text-primary"><Check className="h-6 w-6" /> Depois</h3>
+               <ul className="space-y-4 font-medium">
+                 {["Operação centralizada", "Prontuário vivo", "Reuniões organizadas", "Testes com método", "App ativo", "IA apoiando evolução", "Mais retenção"].map(item => (
+                   <li key={item} className="flex items-center gap-3">
+                     <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> {item}
+                   </li>
+                 ))}
+               </ul>
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ CTA FINAL ============ */}
+       <section id="demonstracao" className="relative py-24 md:py-32 overflow-hidden bg-primary text-white">
+         <div className="absolute inset-0 bg-grid opacity-20" />
+         <div className="relative max-w-4xl mx-auto px-6 text-center">
+           <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Se sua mentoria cresceu, sua estrutura também precisa crescer.</h2>
+           <p className="text-xl text-white/80 mb-12">O Mentor Glee-go foi criado para mentores que querem sair do improviso e operar com método, contexto e escala.</p>
+           <LeadForm />
+           <div className="mt-12 flex flex-wrap gap-4 justify-center">
+             <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 h-14 px-8 font-bold">Falar com Especialista</Button>
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ FAQ ============ */}
+       <section className="py-24">
+         <div className="max-w-3xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold">Tudo que você precisa saber</h2>
+           </div>
+           <Accordion type="single" collapsible className="space-y-4">
+             {faqs.map((faq, i) => (
+               <AccordionItem key={i} value={`item-${i}`} className="border rounded-xl px-6 bg-muted/20">
+                 <AccordionTrigger className="font-bold text-left py-6">{faq.q}</AccordionTrigger>
+                 <AccordionContent className="pb-6 text-muted-foreground">{faq.a}</AccordionContent>
+               </AccordionItem>
+             ))}
+           </Accordion>
+         </div>
+       </section>
 
       {/* ============ FOOTER ============ */}
       <footer className="py-12 border-t border-border bg-muted/20">
