@@ -1,15 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import {
-  Loader2,
-  ClipboardList,
-  BookOpen,
-  Calendar,
-  ChevronRight,
-  Sparkles,
-  TrendingUp,
-} from "lucide-react";
+ import {
+   Loader2,
+   ClipboardList,
+   BookOpen,
+   Calendar,
+   ChevronRight,
+   Sparkles,
+   TrendingUp,
+ } from "lucide-react";
+ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
 
