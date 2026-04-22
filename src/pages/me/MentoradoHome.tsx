@@ -53,26 +53,127 @@ export default function MentoradoHome() {
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 3);
 
-  const lastTest = tests[0];
+   const lastTest = tests[0];
+ 
+   // Simulação de score de execução baseado em tarefas
+   const executionScore = 85; // placeholder
+   const strategyScore = 65; // placeholder
+   const orgScore = 74; // placeholder
 
   return (
     <div className="space-y-6">
-      {/* Hero compacto */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/10 p-5">
-        <div className="absolute -top-10 -right-10 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
-        <div className="relative">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-            <Sparkles className="h-3 w-3" />
-            Sua jornada
-          </div>
-          <h1 className="font-display text-2xl font-bold leading-tight">
-            Olá, {user?.name?.split(" ")[0]} 👋
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Bem-vindo de volta à mentoria{brand?.brandName ? ` ${brand.brandName}` : ""}.
-          </p>
-        </div>
-      </div>
+       {/* Dashboard Executivo do Mentorado */}
+       <div className="grid md:grid-cols-12 gap-6">
+         {/* Coluna Principal */}
+         <div className="md:col-span-8 space-y-6">
+           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/10 p-6">
+             <div className="absolute -top-10 -right-10 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
+             <div className="relative">
+               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
+                 <Sparkles className="h-3 w-3" />
+                 Sua jornada
+               </div>
+               <h1 className="font-display text-3xl font-bold leading-tight">
+                 Olá, {user?.name?.split(" ")[0]} 👋
+               </h1>
+               <p className="text-sm text-muted-foreground mt-1">
+                 Você já concluiu <b>{executionScore}%</b> da sua meta este mês. Continue assim!
+               </p>
+             </div>
+           </div>
+ 
+           {/* Radar de Evolução / Scores */}
+           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+             {[
+               { label: "Execução", value: executionScore, color: "bg-emerald-500" },
+               { label: "Clareza Estratégica", value: strategyScore, color: "bg-blue-500" },
+               { label: "Organização", value: orgScore, color: "bg-violet-500" },
+             ].map((score) => (
+               <div key={score.label} className="bg-card border border-border rounded-xl p-4 shadow-soft">
+                 <div className="flex items-center justify-between mb-2">
+                   <span className="text-xs text-muted-foreground font-medium">{score.label}</span>
+                   <span className="text-sm font-bold">{score.value}%</span>
+                 </div>
+                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                   <div 
+                     className={`h-full ${score.color} transition-all duration-500`} 
+                     style={{ width: `${score.value}%` }}
+                   />
+                 </div>
+               </div>
+             ))}
+           </div>
+ 
+           {/* Testes Pendentes */}
+           {pendingTests.length > 0 && (
+             <section>
+               <div className="flex items-center justify-between mb-3">
+                 <h2 className="font-display text-lg font-bold flex items-center gap-2">
+                   <ClipboardList className="h-4 w-4 text-violet-500" />
+                   Prioridade: Responder Testes
+                 </h2>
+               </div>
+               <div className="space-y-2">
+                 {pendingTests.slice(0, 2).map((a) => (
+                   <Link
+                     key={a.id}
+                     to={a.mentorSlug && a.template ? `/c/${a.mentorSlug}/test/${a.template.id}?lead=${a.leadId}` : "/me/tests"}
+                     className="block bg-card border-l-4 border-l-violet-500 border-border rounded-xl p-4 shadow-soft hover:shadow-elegant transition-all"
+                   >
+                     <div className="flex items-center justify-between">
+                       <div className="font-medium text-sm">{a.template?.title}</div>
+                       <div className="text-xs bg-violet-500/10 text-violet-500 px-2 py-1 rounded-md font-medium">Responder agora</div>
+                     </div>
+                   </Link>
+                 ))}
+               </div>
+             </section>
+           )}
+         </div>
+ 
+         {/* Sidebar / Próximos Passos */}
+         <div className="md:col-span-4 space-y-6">
+           {/* Agenda Próxima */}
+           <div className="bg-card border border-border rounded-2xl p-5 shadow-soft">
+             <h3 className="font-display font-bold mb-4 flex items-center gap-2">
+               <Calendar className="h-4 w-4 text-primary" />
+               Próximo encontro
+             </h3>
+             {upcoming[0] ? (
+               <div className="space-y-3">
+                 <div className="p-3 rounded-xl bg-primary/5 border border-primary/10">
+                   <div className="text-sm font-bold">{upcoming[0].title}</div>
+                   <div className="text-xs text-muted-foreground mt-1">
+                     {new Date(upcoming[0].scheduledAt).toLocaleString("pt-BR", { 
+                       day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' 
+                     })}
+                   </div>
+                 </div>
+                 <Button variant="outline" className="w-full text-xs" asChild>
+                   <Link to="/me/meetings">Ver agenda completa</Link>
+                 </Button>
+               </div>
+             ) : (
+               <div className="text-xs text-muted-foreground text-center py-4">Nenhuma reunião agendada</div>
+             )}
+           </div>
+ 
+           {/* Score de Evolução */}
+           <div className="bg-gradient-to-br from-violet-600 to-indigo-700 rounded-2xl p-5 text-white shadow-lg">
+             <div className="flex items-center justify-between mb-4">
+               <span className="text-xs font-medium opacity-80 uppercase tracking-wider">Evolução Geral</span>
+               <TrendingUp className="h-4 w-4" />
+             </div>
+             <div className="flex items-end gap-2">
+               <span className="text-4xl font-display font-bold">78%</span>
+               <span className="text-xs font-medium mb-1.5 opacity-90">+12% vs último mês</span>
+             </div>
+             <p className="text-[10px] mt-4 leading-relaxed opacity-70">
+               Seu mentor identificou uma melhora significativa na sua clareza estratégica após a última sessão.
+             </p>
+           </div>
+         </div>
+       </div>
 
       {/* KPIs */}
       <div className="grid grid-cols-3 gap-3">
