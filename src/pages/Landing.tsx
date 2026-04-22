@@ -253,41 +253,78 @@ export default function Landing() {
           </div>
        </section>
 
-      {/* ============ HOW IT WORKS ============ */}
-      <section id="como-funciona" className="py-24 md:py-32 bg-muted/30">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-16 max-w-2xl mx-auto">
-            <Badge variant="outline" className="mb-4">Fluxo de evolução</Badge>
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 text-balance">
-              Da entrada do prospect à <span className="text-gradient">evolução</span> do mentorado
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-8 relative">
-            <div className="hidden md:block absolute top-12 left-1/4 right-1/4 h-0.5 bg-gradient-to-r from-primary/0 via-primary/40 to-primary/0" />
-            {[
-              { n: "01", icon: Workflow, t: "Captação & Diagnóstico", d: "Lead entra por evento ou campanha, realiza testes automáticos e o mentor recebe o score na hora." },
-              { n: "02", icon: Target, t: "Reunião Inteligente", d: "Encontro acontece com histórico 360º. IA sugere próximos passos e resume a sessão." },
-              { n: "03", icon: TrendingUp, t: "Execução & Escala", d: "Mentorado executa tarefas no app, consome trilhas e você acompanha o progresso de todos." },
-            ].map((s, i) => {
-              const Icon = s.icon;
-              return (
-                <div key={s.n} className="relative text-center animate-slide-up" style={{ animationDelay: `${i * 150}ms` }}>
-                  <div className="relative inline-flex">
-                    <div className="h-24 w-24 rounded-2xl bg-gradient-primary flex items-center justify-center shadow-elegant mb-5 mx-auto">
-                      <Icon className="h-10 w-10 text-white" />
-                    </div>
-                    <div className="absolute -top-2 -right-2 h-8 w-8 rounded-full bg-background border-2 border-primary text-primary font-bold text-sm flex items-center justify-center">
-                      {s.n}
-                    </div>
-                  </div>
-                  <h3 className="font-display font-bold text-xl mb-2">{s.t}</h3>
-                  <p className="text-muted-foreground text-sm leading-relaxed max-w-xs mx-auto">{s.d}</p>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </section>
+       {/* ============ HOW IT WORKS ============ */}
+       <section className="py-24 bg-background">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Da entrada do prospect à evolução do mentorado</h2>
+           </div>
+           <div className="relative">
+             <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-y-1/2" />
+             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
+               {timelineSteps.map((step, i) => (
+                 <div key={i} className="relative z-10 text-center animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
+                   <div className="h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-4 font-bold shadow-glow">
+                     {i + 1}
+                   </div>
+                   <h3 className="font-bold text-sm mb-2">{step.t}</h3>
+                   <p className="text-xs text-muted-foreground">{step.d}</p>
+                 </div>
+               ))}
+             </div>
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ DIFFERENTIALS ============ */}
+       <section className="py-24 bg-muted/30">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="text-center mb-16">
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Mais do que agenda. Mais do que CRM.</h2>
+             <p className="text-muted-foreground text-lg">Diferenciais que tornam o Mentor Glee-go único.</p>
+           </div>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+             {differentials.map((diff, i) => (
+               <div key={i} className="p-8 rounded-2xl bg-background border border-border/50 shadow-sm hover:shadow-md transition-shadow">
+                 <diff.icon className="h-10 w-10 text-primary mb-6" />
+                 <h3 className="font-bold text-xl mb-3">{diff.title}</h3>
+                 <p className="text-muted-foreground">{diff.desc}</p>
+               </div>
+             ))}
+           </div>
+         </div>
+       </section>
+ 
+       {/* ============ PERSONALIZATION ============ */}
+       <section id="para-quem" className="py-24">
+         <div className="max-w-7xl mx-auto px-6">
+           <div className="grid lg:grid-cols-2 gap-12 items-center">
+             <div>
+               <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">A estrutura é escalável. A metodologia continua sendo sua.</h2>
+               <p className="text-lg text-muted-foreground mb-8">O Mentor Glee-go atende diferentes nichos porque a base do sistema é sólida e o conteúdo é personalizável. Você adapta tudo ao seu método.</p>
+               <div className="grid grid-cols-2 gap-4 mb-8">
+                 {["Linguagem", "Testes", "Categorias", "Prompts da IA", "Score", "Relatórios"].map(item => (
+                   <div key={item} className="flex items-center gap-2 font-medium">
+                     <CheckCircle2 className="h-5 w-5 text-primary" /> {item}
+                   </div>
+                 ))}
+               </div>
+               <p className="p-4 rounded-lg bg-primary/5 border border-primary/10 font-medium italic">
+                 "Seu método continua sendo o diferencial. A tecnologia potencializa."
+               </p>
+             </div>
+             <div className="grid grid-cols-2 gap-4">
+               {niches.map((niche, i) => (
+                 <Card key={i} className="p-6 text-center glass-card border-primary/5 group hover:border-primary/20 transition-colors">
+                   <niche.icon className="h-10 w-10 text-primary/70 mx-auto mb-4 group-hover:scale-110 transition-transform" />
+                   <h4 className="font-bold mb-2">{niche.title}</h4>
+                   <p className="text-xs text-muted-foreground">{niche.desc}</p>
+                 </Card>
+               ))}
+             </div>
+           </div>
+         </div>
+       </section>
 
       {/* ============ FAQ ============ */}
       <section id="faq" className="py-24 md:py-32">
