@@ -6,7 +6,14 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import {
   ArrowRight, Sparkles, Users, ClipboardList, Brain, BarChart3, ShieldCheck,
   Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2,
-  Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target,
+   Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target, CheckCircle,
+ import {
+   Accordion,
+   AccordionContent,
+   AccordionItem,
+   AccordionTrigger,
+ } from "@/components/ui/accordion";
+ 
 } from "lucide-react";
 
 const features = [
