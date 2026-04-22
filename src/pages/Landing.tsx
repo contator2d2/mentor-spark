@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
    ArrowRight, Sparkles, Users, ClipboardList, Brain, BarChart3, ShieldCheck, Smartphone, Search, Database, TrendingDown,
-   Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2, Monitor, X, Check, Activity,
+   Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2, Monitor, X, Check, Activity, Eye,
    Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target, CheckCircle, Layers, Lock, Settings2, FileText, Scale, Briefcase, CircleDollarSign, HeartHandshake,
 } from "lucide-react";
 import {
