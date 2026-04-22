@@ -15,9 +15,10 @@ const features = [
   { icon: Brain, title: "IA personalizada", body: "Sua metodologia, seu prompt. A IA pensa como você e gera insights únicos.", color: "from-fuchsia-500 to-pink-500" },
   { icon: Calendar, title: "Agenda pública", body: "Estilo Calendly. Link compartilhável. Google Meet automático. Lembretes WhatsApp.", color: "from-emerald-500 to-teal-500" },
   { icon: DollarSign, title: "Cobrança recorrente", body: "Pix, boleto, cartão via Asaas. Régua de cobrança automática no WhatsApp.", color: "from-amber-500 to-orange-500" },
-  { icon: GraduationCap, title: "Trilhas & cursos", body: "Crie jornadas com vídeo, PDF, áudio. Certificado automático ao concluir.", color: "from-rose-500 to-red-500" },
-  { icon: MessageSquare, title: "Reuniões com insights", body: "Transcrição + resumo + próximas ações automáticas geradas por IA.", color: "from-indigo-500 to-violet-500" },
-  { icon: BarChart3, title: "Dashboard executivo", body: "MRR, conversão, pipeline, NPS. Tudo num só lugar e em tempo real.", color: "from-sky-500 to-blue-500" },
+   { icon: GraduationCap, title: "Trilhas estilo Netflix", body: "Crie jornadas com vídeo, PDF e áudio. Bloqueio por pré-requisito e drip de conteúdo.", color: "from-rose-500 to-red-500" },
+   { icon: MessageSquare, title: "Prontuário Inteligente", body: "Visão 360º do mentorado: dores, objetivos, histórico e evolução em um só lugar.", color: "from-indigo-500 to-violet-500" },
+   { icon: BarChart3, title: "Dashboard de Evolução", body: "Score de execução, clareza estratégica e risco de churn detectado por IA.", color: "from-sky-500 to-blue-500" },
+   { icon: Users, title: "Grupos de Acesso", body: "Crie grupos para eventos específicos ou turmas. Controle acessos manuais ou por tags.", color: "from-orange-500 to-amber-500" },
   { icon: ShieldCheck, title: "Multi-tenant seguro", body: "Cada mentor com ambiente isolado. Branding próprio. Dados protegidos.", color: "from-slate-500 to-zinc-500" },
 ];
 
@@ -55,7 +56,7 @@ const plans = [
 const faqs = [
   { q: "Preciso instalar algo?", a: "Não. Tudo roda no navegador, em qualquer dispositivo. Seu mentorado também acessa pelo celular." },
   { q: "Posso usar minha marca?", a: "Sim. Logo, cores e domínio próprios em todos os planos pagos." },
-  { q: "Como funciona a IA?", a: "Você configura sua metodologia uma vez e a IA gera diagnósticos, planos de ação e resumos no seu tom." },
+   { q: "Como funciona a IA?", a: "Você treina a IA na sua própria metodologia. Ela gera diagnósticos, planos de ação e resumos usando o seu tom de voz e princípios." },
   { q: "E meus dados?", a: "Cada mentor tem ambiente isolado (multi-tenant) com criptografia em trânsito e em repouso." },
 ];
 
