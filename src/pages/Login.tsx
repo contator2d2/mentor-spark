@@ -34,18 +34,19 @@ export default function Login() {
     }
   }
 
-  return (
-    <div className="min-h-screen grid md:grid-cols-2">
-      <div className="hidden md:flex bg-gradient-hero text-primary-foreground p-12 flex-col justify-between">
-        <Link to="/" className="font-display text-2xl font-bold">MentorFlow</Link>
-        <div>
-          <h1 className="font-display text-4xl font-bold leading-tight mb-4">Volte para o seu espaço de mentoria.</h1>
-          <p className="text-white/70">Continue de onde parou. Seus mentorados aguardam.</p>
-        </div>
-        <div className="text-sm text-white/50">© {new Date().getFullYear()} MentorFlow</div>
-      </div>
-
-      <div className="flex items-center justify-center p-6">
+   return (
+     <div className="min-h-screen grid md:grid-cols-2 bg-background">
+       <div className="hidden md:flex bg-sidebar text-sidebar-foreground p-12 flex-col justify-between relative overflow-hidden">
+         <div className="absolute inset-0 bg-grid opacity-20" />
+         <Link to="/" className="font-display text-2xl font-bold relative z-10">MentorFlow</Link>
+         <div className="relative z-10">
+           <h1 className="font-display text-4xl font-bold leading-tight mb-4">Volte para o seu espaço de mentoria.</h1>
+           <p className="text-sidebar-foreground/70">Continue de onde parou. Seus mentorados aguardam.</p>
+         </div>
+         <div className="text-sm text-sidebar-foreground/50 relative z-10">© {new Date().getFullYear()} MentorFlow</div>
+       </div>
+ 
+       <div className="flex items-center justify-center p-6 bg-background">
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
           <div>
             <h2 className="font-display text-2xl font-bold">Entrar</h2>
