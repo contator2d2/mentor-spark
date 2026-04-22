@@ -93,13 +93,30 @@ export default function AiAssistant() {
           <Switch checked={!aiOff} onCheckedChange={toggleEnabled} />
         </div>
 
-        <div className={`bg-card border border-border rounded-xl p-6 space-y-4 shadow-soft ${aiOff ? "opacity-60 pointer-events-none" : ""}`}>
-          <div className="space-y-2"><Label>Prompt base (como você pensa)</Label><Textarea rows={4} value={config.systemPrompt || ""} onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Metodologia</Label><Textarea rows={3} value={config.methodology || ""} onChange={(e) => setConfig({ ...config, methodology: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Estilo de resposta</Label><Input value={config.responseStyle || ""} onChange={(e) => setConfig({ ...config, responseStyle: e.target.value })} /></div>
-          <div className="space-y-2"><Label>Áreas de foco</Label><Input value={config.focusAreas || ""} onChange={(e) => setConfig({ ...config, focusAreas: e.target.value })} /></div>
-          <Button onClick={saveConfig}><Sparkles className="h-4 w-4 mr-2" />Salvar</Button>
-        </div>
+         <div className={`bg-card border border-border rounded-xl p-6 space-y-4 shadow-soft ${aiOff ? "opacity-60 pointer-events-none" : ""}`}>
+           <div className="space-y-2">
+             <Label>Prompt base (como você pensa)</Label>
+             <Textarea rows={4} value={config.systemPrompt || ""} onChange={(e) => setConfig({ ...config, systemPrompt: e.target.value })} />
+           </div>
+           <div className="space-y-2">
+             <Label>Sua Metodologia</Label>
+             <Textarea 
+               rows={6} 
+               placeholder="Descreva seus princípios e método. A IA usará isso para responder como se fosse você."
+               value={config.methodology || ""} 
+               onChange={(e) => setConfig({ ...config, methodology: e.target.value })} 
+             />
+           </div>
+           <div className="space-y-2">
+             <Label>Estilo de resposta</Label>
+             <Input value={config.responseStyle || ""} onChange={(e) => setConfig({ ...config, responseStyle: e.target.value })} />
+           </div>
+           <div className="space-y-2">
+             <Label>Áreas de foco</Label>
+             <Input value={config.focusAreas || ""} onChange={(e) => setConfig({ ...config, focusAreas: e.target.value })} />
+           </div>
+           <Button onClick={saveConfig}><Sparkles className="h-4 w-4 mr-2" />Salvar Metodologia</Button>
+         </div>
       </div>
 
       <div className="bg-card border border-border rounded-xl shadow-soft flex flex-col h-[600px]">

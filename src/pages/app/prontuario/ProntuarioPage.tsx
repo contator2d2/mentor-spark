@@ -14,9 +14,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
-  Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder, Settings,
-  Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign, Shield,
+   ArrowLeft, Loader2, Activity, ClipboardList, Calendar, CheckSquare, Sparkles,
+   Target, BarChart3, FileText, Lock, Bell, Brain, ListChecks, Folder, Settings,
+   Link2, UserPlus, FileSignature, Copy, Download, Building2, DollarSign, Shield,
+   TrendingUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { ProntuarioPayload, MentoredRecord, STAGE_META } from "./types";
@@ -34,8 +35,9 @@ import { AlertasTab } from "./tabs/AlertasTab";
 import { MateriaisTab } from "./tabs/MateriaisTab";
 import { IATab } from "./tabs/IATab";
 import { PersonalizacaoTab } from "./tabs/PersonalizacaoTab";
-import { FinanceiroTab } from "./tabs/FinanceiroTab";
-import { AcessoTab } from "./tabs/AcessoTab";
+ import { FinanceiroTab } from "./tabs/FinanceiroTab";
+ import { AcessoTab } from "./tabs/AcessoTab";
+ import { EvolutionTab } from "./tabs/EvolutionTab";
 
 export default function ProntuarioPage() {
   const { id } = useParams();
@@ -262,7 +264,8 @@ export default function ProntuarioPage() {
       {/* Abas */}
       <Tabs defaultValue="overview" className="space-y-3">
         <TabsList className="flex flex-wrap h-auto">
-          <TabsTrigger value="overview"><Activity className="h-3 w-3 mr-1" />Visão geral</TabsTrigger>
+           <TabsTrigger value="overview"><Activity className="h-3 w-3 mr-1" />Visão geral</TabsTrigger>
+           <TabsTrigger value="evolution"><TrendingUp className="h-3 w-3 mr-1" />Evolução</TabsTrigger>
           <TabsTrigger value="summary"><FileText className="h-3 w-3 mr-1" />Resumo executivo</TabsTrigger>
           <TabsTrigger value="pains"><Target className="h-3 w-3 mr-1" />Dores & Objetivos</TabsTrigger>
           <TabsTrigger value="metrics"><BarChart3 className="h-3 w-3 mr-1" />Indicadores</TabsTrigger>
@@ -280,9 +283,13 @@ export default function ProntuarioPage() {
           <TabsTrigger value="settings"><Settings className="h-3 w-3 mr-1" />Personalização</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview">
-          <VisaoGeralTab data={data} recalculating={recalculating} onRecalculate={recalculate} />
-        </TabsContent>
+         <TabsContent value="overview">
+           <VisaoGeralTab data={data} recalculating={recalculating} onRecalculate={recalculate} />
+         </TabsContent>
+ 
+         <TabsContent value="evolution">
+           <EvolutionTab data={data} />
+         </TabsContent>
 
         <TabsContent value="summary">
           <ResumoExecutivoTab record={record} onUpdated={onRecordUpdated} />
