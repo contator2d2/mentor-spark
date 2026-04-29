@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
-  MessageCircle, Loader2, CheckCircle2, AlertCircle, Send, Lock, Calendar, Link2, Unlink,
-  QrCode, RefreshCw, Trash2, Smartphone,
+   MessageCircle, Loader2, CheckCircle2, AlertCircle, Send, Lock, Calendar, Link2, Unlink,
+   QrCode, RefreshCw, Trash2, Smartphone, Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import PaymentProvidersSection from "@/components/payments/PaymentProvidersSection";
