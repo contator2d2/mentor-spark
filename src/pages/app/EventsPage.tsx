@@ -30,9 +30,10 @@ export default function EventsPage() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
    name: "", description: "", location: "", virtualUrl: "", modality: "physical",
-   startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2,
-   isPaid: false, paymentProviderId: "",
-   automationEnabled: true, automationTemplateId: "",
+    startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2,
+    isPaid: false, paymentProviderId: "",
+    automationEnabled: true, automationTemplateId: "",
+    whatsappInstanceId: "",
   });
   const [qrSlug, setQrSlug] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -64,22 +65,30 @@ export default function EventsPage() {
        setForm({ 
          name: "", description: "", location: "", virtualUrl: "", modality: "physical", 
          startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2, 
-         isPaid: false, paymentProviderId: "",
-         automationEnabled: true, automationTemplateId: "" 
-       });
+        isPaid: false, paymentProviderId: "",
+        automationEnabled: true, automationTemplateId: "",
+        whatsappInstanceId: ""
+      });
        load();
      } catch (e: any) { toast.error(e.message); }
      finally { setSaving(false); }
    }
 
    const [templates, setTemplates] = useState<any[]>([]);
-   async function loadTemplates() {
-     try {
-       const items = await api<any[]>("/messages/templates/all");
-       setTemplates(items.filter(t => t.channel === 'whatsapp' || t.channel === 'email'));
-     } catch {}
-   }
-   useEffect(() => { loadTemplates(); }, []);
+    const [instances, setInstances] = useState<any[]>([]);
+
+    async function loadResources() {
+      try {
+        const [tpls, wa] = await Promise.all([
+          api<any[]>("/messages/templates/all"),
+          api<any>("/integrations/whatsapp").catch(() => ({ instances: [] }))
+        ]);
+        setTemplates(tpls.filter(t => t.channel === 'whatsapp' || t.channel === 'email'));
+        setInstances(wa.instances || []);
+      } catch {}
+    }
+
+    useEffect(() => { loadResources(); }, []);
 
   async function remove(id: string) {
     if (!confirm("Excluir evento e todos os inscritos?")) return;
@@ -173,23 +182,42 @@ export default function EventsPage() {
                      <input type="checkbox" checked={form.automationEnabled} onChange={(e) => setForm({ ...form, automationEnabled: e.target.checked })} />
                      Automação de Boas-vindas (WhatsApp/Email)
                    </label>
-                   {form.automationEnabled && (
-                     <div className="space-y-2 pl-6">
-                       <Label className="text-xs">Escolha o Template</Label>
-                       <Select value={form.automationTemplateId} onValueChange={(v) => setForm({ ...form, automationTemplateId: v })}>
-                         <SelectTrigger><SelectValue placeholder="Template de confirmação..." /></SelectTrigger>
-                         <SelectContent>
-                           {templates.map((t) => (
-                             <SelectItem key={t.id} value={t.id}>
-                               [{t.channel.toUpperCase()}] {t.name}
-                             </SelectItem>
-                           ))}
-                           {templates.length === 0 && <div className="p-2 text-xs text-center text-muted-foreground">Nenhum template disponível</div>}
-                         </SelectContent>
-                       </Select>
-                       <p className="text-[10px] text-muted-foreground">Enviado automaticamente após a inscrição.</p>
-                     </div>
-                   )}
+                    {form.automationEnabled && (
+                      <div className="space-y-3 pl-6">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Conexão WhatsApp (Opcional)</Label>
+                          <Select value={form.whatsappInstanceId} onValueChange={(v) => setForm({ ...form, whatsappInstanceId: v })}>
+                            <SelectTrigger><SelectValue placeholder="Conexão padrão..." /></SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="default">Usar padrão do sistema</SelectItem>
+                              {instances.filter(i => i.status === 'connected').map((inst) => (
+                                <SelectItem key={inst.id} value={inst.id}>
+                                  {inst.name} (+{inst.phoneNumber})
+                                </SelectItem>
+                              ))}
+                              {instances.filter(i => i.status === 'connected').length === 0 && (
+                                <div className="p-2 text-[10px] text-center text-muted-foreground">Nenhuma conexão ativa</div>
+                              )}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Escolha o Template</Label>
+                          <Select value={form.automationTemplateId} onValueChange={(v) => setForm({ ...form, automationTemplateId: v })}>
+                            <SelectTrigger><SelectValue placeholder="Template de confirmação..." /></SelectTrigger>
+                            <SelectContent>
+                              {templates.map((t) => (
+                                <SelectItem key={t.id} value={t.id}>
+                                  [{t.channel.toUpperCase()}] {t.name}
+                                </SelectItem>
+                              ))}
+                              {templates.length === 0 && <div className="p-2 text-xs text-center text-muted-foreground">Nenhum template disponível</div>}
+                            </SelectContent>
+                          </Select>
+                          <p className="text-[10px] text-muted-foreground">Enviado automaticamente após a inscrição.</p>
+                        </div>
+                      </div>
+                    )}
                  </div>
 
                  <div className="bg-muted/30 rounded-lg p-3 space-y-3">

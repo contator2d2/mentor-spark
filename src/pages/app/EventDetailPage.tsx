@@ -47,24 +47,38 @@ export default function EventDetailPage() {
   const [scannerOpen, setScannerOpen] = useState(false);
   const [quizOpen, setQuizOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [broadcastOpen, setBroadcastOpen] = useState(false);
-  const [bForm, setBForm] = useState({ subject: "", message: "", channels: ["email", "whatsapp"], onlyStatus: [] as string[] });
-  const [sending, setSending] = useState(false);
-  const [me, setMe] = useState<any>(null);
+   const [broadcastOpen, setBroadcastOpen] = useState(false);
+   const [bForm, setBForm] = useState({ 
+     subject: "", 
+     message: "", 
+     channels: ["email", "whatsapp"], 
+     onlyStatus: [] as string[],
+     whatsappInstanceId: ""
+   });
+   const [sending, setSending] = useState(false);
+   const [me, setMe] = useState<any>(null);
+   const [instances, setInstances] = useState<any[]>([]);
 
-  async function load() {
-    try {
-      const [ev, rg, acts, n, ts, user] = await Promise.all([
-        api(`/events/${id}`),
-        api<any[]>(`/events/${id}/registrations`),
-        api<any[]>(`/events/${id}/actions`),
-        api(`/events/${id}/nps/summary`),
-        api<any[]>("/tests/templates").catch(() => []),
-        api("/me"),
-      ]);
-      setEvent(ev); setRegs(rg); setActions(acts); setNps(n); setTests(ts); setMe(user);
-    } catch (e: any) { toast.error(e.message); }
-  }
+   async function load() {
+     try {
+       const [ev, rg, acts, n, ts, user, wa] = await Promise.all([
+         api(`/events/${id}`),
+         api<any[]>(`/events/${id}/registrations`),
+         api<any[]>(`/events/${id}/actions`),
+         api(`/events/${id}/nps/summary`),
+         api<any[]>("/tests/templates").catch(() => []),
+         api("/me"),
+         api<any>("/integrations/whatsapp").catch(() => ({ instances: [] }))
+       ]);
+       setEvent(ev); 
+       setRegs(rg); 
+       setActions(acts); 
+       setNps(n); 
+       setTests(ts); 
+       setMe(user);
+       setInstances(wa.instances || []);
+     } catch (e: any) { toast.error(e.message); }
+   }
   useEffect(() => { load(); }, [id]);
 
   function publicSignupUrl() {
@@ -332,10 +346,27 @@ export default function EventDetailPage() {
             <DialogTitle>Mensagem em massa</DialogTitle>
             <DialogDescription>Use {`{{nome}}`} e {`{{evento}}`} como variáveis.</DialogDescription>
           </DialogHeader>
-          <div className="space-y-3">
-            <div><Label>Assunto (email)</Label><Input value={bForm.subject} onChange={(e) => setBForm({ ...bForm, subject: e.target.value })} /></div>
-            <div><Label>Mensagem</Label><Textarea rows={5} value={bForm.message} onChange={(e) => setBForm({ ...bForm, message: e.target.value })} /></div>
-            <div className="flex gap-4">
+           <div className="space-y-4">
+             {bForm.channels.includes("whatsapp") && (
+               <div className="space-y-1">
+                 <Label className="text-xs">Conexão WhatsApp para este envio</Label>
+                 <Select value={bForm.whatsappInstanceId} onValueChange={(v) => setBForm({ ...bForm, whatsappInstanceId: v })}>
+                    <SelectTrigger><SelectValue placeholder="Usar conexão padrão..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="default">Usar conexão padrão do sistema</SelectItem>
+                      {instances.filter(i => i.status === 'connected').map(inst => (
+                        <SelectItem key={inst.id} value={inst.id}>{inst.name} (+{inst.phoneNumber})</SelectItem>
+                      ))}
+                      {instances.filter(i => i.status === 'connected').length === 0 && (
+                        <div className="p-2 text-[10px] text-center text-muted-foreground">Nenhuma conexão ativa</div>
+                      )}
+                    </SelectContent>
+                 </Select>
+               </div>
+             )}
+             <div><Label>Assunto (email)</Label><Input value={bForm.subject} onChange={(e) => setBForm({ ...bForm, subject: e.target.value })} /></div>
+             <div><Label>Mensagem</Label><Textarea rows={5} value={bForm.message} onChange={(e) => setBForm({ ...bForm, message: e.target.value })} /></div>
+             <div className="flex gap-4">
               <label className="flex items-center gap-2 text-sm"><Checkbox checked={bForm.channels.includes("email")} onCheckedChange={(v) => setBForm({ ...bForm, channels: v ? [...bForm.channels, "email"] : bForm.channels.filter(c => c !== "email") })} />Email</label>
               <label className="flex items-center gap-2 text-sm"><Checkbox checked={bForm.channels.includes("whatsapp")} onCheckedChange={(v) => setBForm({ ...bForm, channels: v ? [...bForm.channels, "whatsapp"] : bForm.channels.filter(c => c !== "whatsapp") })} />WhatsApp</label>
             </div>
