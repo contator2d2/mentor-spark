@@ -44,7 +44,7 @@ export default function WhatsappGroupsPage() {
     } catch (e) {}
     setLoading(true);
     try {
-      const r = await loadGroupsWithInstance();
+      const r = await loadGroupsWithInstance(selectedInstance);
       if (!r.ok) {
         toast.error(r.error || "Falha ao listar");
         setGroups([]);
