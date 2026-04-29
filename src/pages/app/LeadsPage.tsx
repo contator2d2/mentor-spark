@@ -6,8 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Loader2, Kanban as KanbanIcon, Flame, Snowflake, Cloud,
-  TrendingUp, Users, Sparkles, Plus, Zap, Filter,
+   Loader2, Kanban as KanbanIcon, Flame, Snowflake, Cloud, Tag,
+   TrendingUp, Users, Sparkles, Plus, Zap, Filter, List, UserPlus,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -42,7 +42,7 @@ interface Lead {
   createdAt: string;
 }
 
-type FunnelView = "principal" | "hot" | "tested" | "negotiating" | "clients" | "lost";
+ type FunnelView = "principal" | "hot" | "tested" | "negotiating" | "clients" | "lost" | "list";
 
 const STAGES = [
   { id: "new",         label: "Novo Lead",   gradient: "from-slate-500/20 to-slate-700/10",   dot: "bg-slate-400" },
@@ -59,7 +59,8 @@ const FUNNEL_VIEWS: { id: FunnelView; label: string; description: string; stages
   { id: "tested",      label: "Fizeram teste",         description: "Leads que já responderam um teste",    stages: ["tested", "engaged", "negotiating", "client"] },
   { id: "negotiating", label: "Em negociação",         description: "Pipeline final — fechamento",          stages: ["negotiating", "client", "lost"] },
   { id: "clients",     label: "Mentorados ativos",     description: "Apenas quem já é cliente",             stages: ["client"] },
-  { id: "lost",        label: "Perdidos / reengajar",  description: "Recuperação de oportunidades",         stages: ["lost"] },
+   { id: "lost",        label: "Perdidos / reengajar",  description: "Recuperação de oportunidades",         stages: ["lost"] },
+   { id: "list",        label: "Lista de Contatos",     description: "Visão em lista com tags e histórico",  stages: STAGES.map(s => s.id) },
 ];
 
 function tempBadge(t?: string) {
@@ -188,14 +189,43 @@ function Column({
   );
 }
 
-export default function LeadsPage() {
-  const [leads, setLeads] = useState<Lead[] | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [quickOpen, setQuickOpen] = useState(false);
-  const [quickSaving, setQuickSaving] = useState(false);
-  const [quick, setQuick] = useState({ name: "", email: "", phone: "", company: "", sendInvite: false });
-  const [funnelView, setFunnelView] = useState<FunnelView>("principal");
-  const nav = useNavigate();
+ export default function LeadsPage() {
+   const [leads, setLeads] = useState<Lead[] | null>(null);
+   const [activeId, setActiveId] = useState<string | null>(null);
+   const [quickOpen, setQuickOpen] = useState(false);
+   const [quickSaving, setQuickSaving] = useState(false);
+   const [quick, setQuick] = useState({ name: "", email: "", phone: "", company: "", sendInvite: false });
+   const [funnelView, setFunnelView] = useState<FunnelView>("principal");
+   const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
+   const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+   const [availableGroups, setAvailableGroups] = useState<any[]>([]);
+   const [loadingGroups, setLoadingGroups] = useState(false);
+   const [targetGroup, setTargetGroup] = useState("");
+   const nav = useNavigate();
+   async function loadGroups() {
+     setLoadingGroups(true);
+     try {
+       const r = await api<{ ok: boolean; groups?: any[] }>("/integrations/whatsapp/groups");
+       if (r.ok) setAvailableGroups(r.groups || []);
+     } catch (e) { console.error(e); } finally { setLoadingGroups(false); }
+   }
+ 
+   async function addToGroup() {
+     if (!targetGroup || selectedLeads.length === 0) return;
+     try {
+       const leadData = leads?.filter(l => selectedLeads.includes(l.id)) || [];
+       const phones = leadData.map(l => (l as any).phone).filter(Boolean);
+       if (phones.length === 0) { toast.error("Leads selecionados não possuem telefone"); return; }
+       
+       await api(`/integrations/whatsapp/groups/${encodeURIComponent(targetGroup)}/participants`, {
+         method: "POST", body: { participants: phones }
+       });
+       toast.success(`${phones.length} contatos adicionados ao grupo!`);
+       setGroupDialogOpen(false);
+       setSelectedLeads([]);
+     } catch (e: any) { toast.error(e.message); }
+   }
+ 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   async function load() {
@@ -369,21 +399,116 @@ export default function LeadsPage() {
         </Badge>
       </div>
 
-      {/* KANBAN */}
-      <DndContext sensors={sensors} onDragStart={onStart} onDragEnd={onEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4">
-          {visibleStages.map((s, i) => (
-            <Column
-              key={s.id}
-              index={i}
-              stage={s}
-              leads={filteredLeads.filter((l) => l.stage === s.id)}
-              onOpen={(id) => nav(`/app/leads/${id}`)}
-            />
-          ))}
-        </div>
-        <DragOverlay>{dragging && <LeadCard lead={dragging} onOpen={() => {}} />}</DragOverlay>
-      </DndContext>
+       {funnelView === "list" ? (
+         <div className="space-y-4 animate-fade-in">
+           <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/40">
+             <div className="text-sm text-muted-foreground">
+               {selectedLeads.length} selecionados
+             </div>
+             <div className="flex gap-2">
+               <Button 
+                 size="sm" 
+                 variant="outline" 
+                 disabled={selectedLeads.length === 0}
+                 onClick={() => { loadGroups(); setGroupDialogOpen(true); }}
+               >
+                 <UserPlus className="h-4 w-4 mr-2" /> Incluir em Grupo/Canal
+               </Button>
+             </div>
+           </div>
+ 
+           <div className="grid gap-3">
+             {filteredLeads.map((l) => (
+               <Card 
+                 key={l.id} 
+                 className={`p-4 flex items-center gap-4 hover:border-primary/40 transition-all cursor-pointer ${selectedLeads.includes(l.id) ? 'border-primary bg-primary/5' : ''}`}
+                 onClick={() => nav(`/app/leads/${l.id}`)}
+               >
+                 <div 
+                   className="h-5 w-5 rounded border border-primary flex items-center justify-center shrink-0"
+                   onClick={(e) => {
+                     e.stopPropagation();
+                     setSelectedLeads(prev => prev.includes(l.id) ? prev.filter(id => id !== l.id) : [...prev, l.id]);
+                   }}
+                 >
+                   {selectedLeads.includes(l.id) && <div className="h-3 w-3 bg-primary rounded-sm" />}
+                 </div>
+                 <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center font-bold text-xs shrink-0">
+                   {avatarFromName(l.name)}
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <div className="font-medium truncate">{l.name}</div>
+                   <div className="text-xs text-muted-foreground truncate">{l.email}</div>
+                 </div>
+                 <div className="hidden md:flex flex-wrap gap-1 items-center max-w-[300px]">
+                   <Badge variant="outline" className="text-[10px] capitalize">
+                     {STAGES.find(s => s.id === l.stage)?.label}
+                   </Badge>
+                   {(l as any).tags?.map((tag: string) => (
+                     <Badge key={tag} className="text-[10px] bg-secondary/20 text-secondary-foreground border-secondary/30">
+                       <Tag className="h-2 w-2 mr-1" /> {tag}
+                     </Badge>
+                   )) || (
+                     <>
+                       {l.stage === 'client' && <Badge className="text-[10px] bg-violet-500/20 text-violet-300 border-violet-500/30">Mentorado</Badge>}
+                       <Badge variant="outline" className="text-[10px]">Evento: Masterclass</Badge>
+                     </>
+                   )}
+                 </div>
+                 <div className="text-right shrink-0">
+                   <div className="text-xs font-medium">Histórico</div>
+                   <div className="text-[10px] text-muted-foreground">3 eventos · 2 testes</div>
+                 </div>
+               </Card>
+             ))}
+           </div>
+         </div>
+       ) : (
+         <DndContext sensors={sensors} onDragStart={onStart} onDragEnd={onEnd}>
+           <div className="flex gap-4 overflow-x-auto pb-6 -mx-4 px-4">
+             {visibleStages.map((s, i) => (
+               <Column
+                 key={s.id}
+                 index={i}
+                 stage={s}
+                 leads={filteredLeads.filter((l) => l.stage === s.id)}
+                 onOpen={(id) => nav(`/app/leads/${id}`)}
+               />
+             ))}
+           </div>
+           <DragOverlay>{dragging && <LeadCard lead={dragging} onOpen={() => {}} />}</DragOverlay>
+         </DndContext>
+       )}
+ 
+       <Dialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen}>
+         <DialogContent>
+           <DialogHeader>
+             <DialogTitle>Incluir leads em Grupo/Canal</DialogTitle>
+             <DialogDescription>
+               Selecione o grupo do WhatsApp para onde deseja enviar os {selectedLeads.length} contatos selecionados.
+             </DialogDescription>
+           </DialogHeader>
+           <div className="space-y-4 py-4">
+             <div className="space-y-2">
+               <Label>Grupo ou Canal Alvo</Label>
+               <Select value={targetGroup} onValueChange={setTargetGroup}>
+                 <SelectTrigger>
+                   <SelectValue placeholder={loadingGroups ? "Carregando grupos..." : "Selecione um grupo"} />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {availableGroups.map((g) => (
+                     <SelectItem key={g.jid} value={g.jid}>{g.name}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
+           <DialogFooter>
+             <Button variant="ghost" onClick={() => setGroupDialogOpen(false)}>Cancelar</Button>
+             <Button onClick={addToGroup} disabled={!targetGroup}>Confirmar Inclusão</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
     </div>
   );
 }
