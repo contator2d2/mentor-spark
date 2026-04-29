@@ -37,12 +37,12 @@ export default function WhatsappGroupsPage() {
   }
 
   async function load() {
+    let currentInstance = selectedInstance;
+    
     try {
       const instRes = await api<{ instances: any[] }>("/integrations/whatsapp");
       setInstances(instRes.instances || []);
       const def = instRes.instances?.find((i: any) => i.isDefault) || instRes.instances?.find((i: any) => i.status === "connected");
-      let currentInstance = selectedInstance;
-      let currentInstance = selectedInstance;
       if (def && !currentInstance) {
         currentInstance = def.id;
         setSelectedInstance(currentInstance);
