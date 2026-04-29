@@ -10,15 +10,13 @@
   "theme_color": "#6366f1",
   "categories": ["business", "productivity", "education"],
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/placeholder.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/placeholder.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
   ],
   "shortcuts": [
-    { "name": "Tarefas", "short_name": "Tarefas", "url": "/app/tasks", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Mentorados", "short_name": "Pessoas", "url": "/app/mentorados", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Reuniões", "short_name": "Agenda", "url": "/app/meetings", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] },
-    { "name": "Leads", "short_name": "Leads", "url": "/app/leads", "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }] }
+    { "name": "Tarefas", "short_name": "Tarefas", "url": "/app/tasks", "icons": [{ "src": "/placeholder.svg", "sizes": "192x192" }] },
+    { "name": "Mentorados", "short_name": "Pessoas", "url": "/app/mentorados", "icons": [{ "src": "/placeholder.svg", "sizes": "192x192" }] },
+    { "name": "Reuniões", "short_name": "Agenda", "url": "/app/meetings", "icons": [{ "src": "/placeholder.svg", "sizes": "192x192" }] },
+    { "name": "Leads", "short_name": "Leads", "url": "/app/leads", "icons": [{ "src": "/placeholder.svg", "sizes": "192x192" }] }
   ]
 }
