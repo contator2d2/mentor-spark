@@ -29,9 +29,10 @@ export default function EventsPage() {
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    name: "", description: "", location: "", virtualUrl: "", modality: "physical",
-    startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2,
-    isPaid: false, paymentProviderId: "",
+   name: "", description: "", location: "", virtualUrl: "", modality: "physical",
+   startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2,
+   isPaid: false, paymentProviderId: "",
+   automationEnabled: true, automationTemplateId: "",
   });
   const [qrSlug, setQrSlug] = useState<string | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -61,10 +62,19 @@ export default function EventsPage() {
       toast.success("Evento criado");
       setOpen(false);
       setForm({ name: "", description: "", location: "", virtualUrl: "", modality: "physical", startsAt: "", endsAt: "", capacity: "", npsEnabled: true, npsDelayHours: 2, isPaid: false, paymentProviderId: "" });
-      load();
-    } catch (e: any) { toast.error(e.message); }
-    finally { setSaving(false); }
-  }
+       load();
+     } catch (e: any) { toast.error(e.message); }
+     finally { setSaving(false); }
+   }
+
+   const [templates, setTemplates] = useState<any[]>([]);
+   async function loadTemplates() {
+     try {
+       const items = await api<any[]>("/messages/templates/all");
+       setTemplates(items.filter(t => t.channel === 'whatsapp' || t.channel === 'email'));
+     } catch {}
+   }
+   useEffect(() => { loadTemplates(); }, []);
 
   async function remove(id: string) {
     if (!confirm("Excluir evento e todos os inscritos?")) return;
@@ -153,34 +163,58 @@ export default function EventsPage() {
                     </div>
                   )}
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3 space-y-3">
-                  <label className="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={form.isPaid} onChange={(e) => setForm({ ...form, isPaid: e.target.checked })} />
-                    Evento pago (cobrar inscrição)
-                  </label>
-                  {form.isPaid && (
-                    <div className="space-y-2 pl-6">
-                      <Label className="text-xs">Provedor de pagamento</Label>
-                      {providers.length === 0 ? (
-                        <p className="text-xs text-muted-foreground">
-                          Nenhum provedor configurado. Vá em <Link to="/app/integrations" className="text-primary underline">Integrações</Link> para adicionar Asaas, Mercado Pago, Stripe ou link manual.
-                        </p>
-                      ) : (
-                        <Select value={form.paymentProviderId} onValueChange={(v) => setForm({ ...form, paymentProviderId: v })}>
-                          <SelectTrigger><SelectValue placeholder="Escolher provedor..." /></SelectTrigger>
-                          <SelectContent>
-                            {providers.map((p) => (
-                              <SelectItem key={p.id} value={p.id}>
-                                {p.label || p.type} {p.environment === "sandbox" && "(sandbox)"}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                      <p className="text-[10px] text-muted-foreground">Após criar, configure os lotes na página do evento.</p>
-                    </div>
-                  )}
-                </div>
+                 <div className="bg-muted/30 rounded-lg p-3 space-y-3">
+                   <label className="flex items-center gap-2 text-sm cursor-pointer">
+                     <input type="checkbox" checked={form.automationEnabled} onChange={(e) => setForm({ ...form, automationEnabled: e.target.checked })} />
+                     Automação de Boas-vindas (WhatsApp/Email)
+                   </label>
+                   {form.automationEnabled && (
+                     <div className="space-y-2 pl-6">
+                       <Label className="text-xs">Escolha o Template</Label>
+                       <Select value={form.automationTemplateId} onValueChange={(v) => setForm({ ...form, automationTemplateId: v })}>
+                         <SelectTrigger><SelectValue placeholder="Template de confirmação..." /></SelectTrigger>
+                         <SelectContent>
+                           {templates.map((t) => (
+                             <SelectItem key={t.id} value={t.id}>
+                               [{t.channel.toUpperCase()}] {t.name}
+                             </SelectItem>
+                           ))}
+                           {templates.length === 0 && <div className="p-2 text-xs text-center text-muted-foreground">Nenhum template disponível</div>}
+                         </SelectContent>
+                       </Select>
+                       <p className="text-[10px] text-muted-foreground">Enviado automaticamente após a inscrição.</p>
+                     </div>
+                   )}
+                 </div>
+
+                 <div className="bg-muted/30 rounded-lg p-3 space-y-3">
+                   <label className="flex items-center gap-2 text-sm cursor-pointer">
+                     <input type="checkbox" checked={form.isPaid} onChange={(e) => setForm({ ...form, isPaid: e.target.checked })} />
+                     Evento pago (cobrar inscrição)
+                   </label>
+                   {form.isPaid && (
+                     <div className="space-y-2 pl-6">
+                       <Label className="text-xs">Provedor de pagamento</Label>
+                       {providers.length === 0 ? (
+                         <p className="text-xs text-muted-foreground">
+                           Nenhum provedor configurado. Vá em <Link to="/app/integrations" className="text-primary underline">Integrações</Link> para adicionar Asaas, Mercado Pago, Stripe ou link manual.
+                         </p>
+                       ) : (
+                         <Select value={form.paymentProviderId} onValueChange={(v) => setForm({ ...form, paymentProviderId: v })}>
+                           <SelectTrigger><SelectValue placeholder="Escolher provedor..." /></SelectTrigger>
+                           <SelectContent>
+                             {providers.map((p) => (
+                               <SelectItem key={p.id} value={p.id}>
+                                 {p.label || p.type} {p.environment === "sandbox" && "(sandbox)"}
+                               </SelectItem>
+                             ))}
+                           </SelectContent>
+                         </Select>
+                       )}
+                       <p className="text-[10px] text-muted-foreground">Após criar, configure os lotes na página do evento.</p>
+                     </div>
+                   )}
+                 </div>
               </div>
               <DialogFooter>
                 <Button onClick={create} disabled={saving || !form.name} className="bg-gradient-primary hover:opacity-90">
