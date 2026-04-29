@@ -12,12 +12,13 @@ export function setToken(token: string | null) {
 type Options = {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: any;
+  headers?: Record<string, string>;
   auth?: boolean;
 };
 
 export async function api<T = any>(path: string, opts: Options = {}): Promise<T> {
-  const { method = "GET", body, auth = true } = opts;
-  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const { method = "GET", body, auth = true, headers: customHeaders } = opts;
+  const headers: Record<string, string> = { "Content-Type": "application/json", ...customHeaders };
   if (auth) {
     const t = getToken();
     if (t) headers.Authorization = `Bearer ${t}`;

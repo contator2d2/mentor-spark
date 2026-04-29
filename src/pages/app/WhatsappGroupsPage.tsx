@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Loader2, Plus, Users, Megaphone, Send, UserPlus, Radio, RefreshCw, MessageSquare } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link } from "react-router-dom";
 
 interface Group {
@@ -21,16 +22,30 @@ interface Group {
 
 export default function WhatsappGroupsPage() {
   const [groups, setGroups] = useState<Group[] | null>(null);
+  const [instances, setInstances] = useState<any[]>([]);
+  const [selectedInstance, setSelectedInstance] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [addMembersFor, setAddMembersFor] = useState<Group | null>(null);
   const [postFor, setPostFor] = useState<Group | null>(null);
 
+  async function loadGroupsWithInstance(instanceId?: string) {
+    const headers: any = {};
+    if (instanceId) headers["x-instance-id"] = instanceId;
+    return api<{ ok: boolean; groups?: Group[]; error?: string }>("/integrations/whatsapp/groups", { headers });
+  }
+
   async function load() {
+    try {
+      const instRes = await api<{ instances: any[] }>("/integrations/whatsapp");
+      setInstances(instRes.instances || []);
+      const def = instRes.instances?.find((i: any) => i.isDefault) || instRes.instances?.find((i: any) => i.status === "connected");
+      if (def && !selectedInstance) setSelectedInstance(def.id);
+    } catch (e) {}
     setLoading(true);
     try {
-      const r = await api<{ ok: boolean; groups?: Group[]; error?: string }>("/integrations/whatsapp/groups");
+      const r = await loadGroupsWithInstance(selectedInstance);
       if (!r.ok) {
         toast.error(r.error || "Falha ao listar");
         setGroups([]);
@@ -52,6 +67,24 @@ export default function WhatsappGroupsPage() {
 
   return (
     <div className="space-y-6">
+      {instances.length > 1 && (
+        <div className="flex items-center gap-3 p-4 bg-muted/20 border rounded-xl">
+          <Label className="text-sm font-medium">Conexão ativa:</Label>
+          <Select value={selectedInstance} onValueChange={(v) => { setSelectedInstance(v); load(); }}>
+            <SelectTrigger className="w-[280px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {instances.filter(i => i.status === "connected").map((inst) => (
+                <SelectItem key={inst.id} value={inst.id}>
+                  {inst.name} (+{inst.phoneNumber})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground italic">Grupos são vinculados a cada conexão.</p>
+        </div>
+      )}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="text-3xl font-display flex items-center gap-2">
