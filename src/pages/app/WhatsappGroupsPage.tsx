@@ -75,24 +75,6 @@ export default function WhatsappGroupsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {instances.filter(i => i.status === "connected").map((inst: any) => (
-                <SelectItem key={inst.id} value={inst.id}>
-                  {inst.name} (+{inst.phoneNumber})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground italic">Grupos são vinculados a cada conexão.</p>
-        </div>
-      )}
-      {instances.length > 1 && (
-        <div className="flex items-center gap-3 p-4 bg-muted/20 border rounded-xl">
-          <Label className="text-sm font-medium">Conexão ativa:</Label>
-          <Select value={selectedInstance} onValueChange={(v) => { setSelectedInstance(v); load(); }}>
-            <SelectTrigger className="w-[280px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
               {instances.filter(i => i.status === "connected").map((inst) => (
                 <SelectItem key={inst.id} value={inst.id}>
                   {inst.name} (+{inst.phoneNumber})
