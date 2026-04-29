@@ -21,7 +21,8 @@ interface Attachment { url: string; mimetype?: string; originalName?: string; ki
 interface Template {
   id: string; name: string; channel: Channel; category: Category;
   subject?: string; body: string; description?: string;
-  attachments?: Attachment[]; isLibrary: boolean; mentorId?: string | null;
+   attachments?: Attachment[]; isLibrary: boolean; mentorId?: string | null;
+   delayMinutes?: number;
 }
 
 const CHANNEL_META: Record<Channel, { label: string; icon: any; color: string }> = {
@@ -41,7 +42,7 @@ export default function MessageTemplatesPage() {
   const [filterChannel, setFilterChannel] = useState<Channel | "all">("all");
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<Template | null>(null);
-  const [form, setForm] = useState<Partial<Template>>({ channel: "whatsapp", category: "custom", name: "", subject: "", body: "", attachments: [] });
+   const [form, setForm] = useState<Partial<Template>>({ channel: "whatsapp", category: "custom", name: "", subject: "", body: "", attachments: [], delayMinutes: 0 });
   const [saving, setSaving] = useState(false);
 
   // Test dialog
@@ -67,11 +68,11 @@ export default function MessageTemplatesPage() {
     });
   }, [items, tab, filterChannel]);
 
-  function openNew() {
-    setEditing(null);
-    setForm({ channel: "whatsapp", category: "custom", name: "", subject: "", body: "", attachments: [] });
-    setEditorOpen(true);
-  }
+   function openNew() {
+     setEditing(null);
+     setForm({ channel: "whatsapp", category: "custom", name: "", subject: "", body: "", attachments: [], delayMinutes: 0 });
+     setEditorOpen(true);
+   }
   function openEdit(t: Template) {
     if (t.isLibrary) { toast.info("Templates da biblioteca não podem ser editados. Clone primeiro."); return; }
     setEditing(t);
@@ -224,31 +225,55 @@ export default function MessageTemplatesPage() {
                 </Select>
               </div>
             </div>
-            <div>
-              <Label className="text-xs">Categoria</Label>
-              <Select value={form.category || "custom"} onValueChange={(v: any) => setForm({ ...form, category: v })}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {Object.entries(CATEGORY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+             <div className="grid grid-cols-2 gap-3">
+               <div>
+                 <Label className="text-xs">Categoria</Label>
+                 <Select value={form.category || "custom"} onValueChange={(v: any) => setForm({ ...form, category: v })}>
+                   <SelectTrigger><SelectValue /></SelectTrigger>
+                   <SelectContent>
+                     {Object.entries(CATEGORY_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
+                   </SelectContent>
+                 </Select>
+               </div>
+               <div>
+                 <Label className="text-xs">Atraso (minutos)</Label>
+                 <Input type="number" value={form.delayMinutes || 0} onChange={(e) => setForm({ ...form, delayMinutes: parseInt(e.target.value) || 0 })} />
+               </div>
+             </div>
             {(form.channel === "email" || form.channel === "in_app") && (
               <div><Label className="text-xs">Assunto</Label><Input value={form.subject || ""} onChange={(e) => setForm({ ...form, subject: e.target.value })} /></div>
             )}
-            <div>
-              <Label className="text-xs">Mensagem *</Label>
-              <Textarea
-                rows={6}
-                value={form.body || ""}
-                onChange={(e) => setForm({ ...form, body: e.target.value })}
-                placeholder="Olá {{primeiro_nome}}, tudo bem? ..."
-                className="max-h-[40vh] resize-y"
-              />
-              <div className="text-[10px] text-muted-foreground mt-1">
-                {(form.body || "").length} caracteres
-              </div>
-            </div>
+             <div className="grid md:grid-cols-2 gap-4">
+               <div>
+                 <Label className="text-xs">Mensagem *</Label>
+                 <Textarea
+                   rows={10}
+                   value={form.body || ""}
+                   onChange={(e) => setForm({ ...form, body: e.target.value })}
+                   placeholder="Olá {{primeiro_nome}}, tudo bem? ..."
+                   className="max-h-[40vh] resize-y"
+                 />
+                 <div className="text-[10px] text-muted-foreground mt-1 flex justify-between">
+                   <span>{(form.body || "").length} caracteres</span>
+                   <span>Dica: Use {`{{primeiro_nome}}`}</span>
+                 </div>
+               </div>
+               <div className="space-y-2">
+                 <Label className="text-xs">Visualização (Preview)</Label>
+                 <div className="border rounded-lg p-3 bg-muted/20 min-h-[150px] text-sm whitespace-pre-wrap font-sans break-words">
+                   {form.body ? form.body.replace(/\{\{primeiro_nome\}\}/g, "João") : <span className="text-muted-foreground italic">Nada para visualizar</span>}
+                 </div>
+                 {form.attachments && form.attachments.length > 0 && (
+                   <div className="flex gap-2 flex-wrap">
+                     {form.attachments.map((a, i) => (
+                       <div key={i} className="w-16 h-16 bg-muted rounded border flex items-center justify-center overflow-hidden">
+                         {a.mimetype?.startsWith("image/") ? <img src={a.url} className="object-cover w-full h-full" alt="attachment" /> : <Paperclip className="h-4 w-4" />}
+                       </div>
+                     ))}
+                   </div>
+                 )}
+               </div>
+             </div>
 
             <div>
               <Label className="text-xs flex items-center gap-1"><Paperclip className="h-3 w-3" />Anexos</Label>
