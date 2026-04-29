@@ -37,15 +37,21 @@ export default function WhatsappGroupsPage() {
   }
 
   async function load() {
+    let currentInstance = selectedInstance;
+    
     try {
       const instRes = await api<{ instances: any[] }>("/integrations/whatsapp");
       setInstances(instRes.instances || []);
       const def = instRes.instances?.find((i: any) => i.isDefault) || instRes.instances?.find((i: any) => i.status === "connected");
-      if (def && !selectedInstance) setSelectedInstance(def.id);
+      if (def && !currentInstance) {
+        currentInstance = def.id;
+        setSelectedInstance(currentInstance);
+      }
+      
     } catch (e) {}
     setLoading(true);
     try {
-      const r = await loadGroupsWithInstance(selectedInstance);
+      const r = await loadGroupsWithInstance(currentInstance);
       if (!r.ok) {
         toast.error(r.error || "Falha ao listar");
         setGroups([]);
