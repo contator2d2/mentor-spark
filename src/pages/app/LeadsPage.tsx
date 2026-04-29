@@ -269,7 +269,7 @@ function Column({
     setLeads(leads.map((l) => (l.id === active.id ? { ...l, stage: String(over.id) } : l)));
 
     try {
-      await api(/leads/${active.id}`, { method: "PATCH", body: { stage: over.id } });
+      await api(`/leads/${active.id}`, { method: "PATCH", body: { stage: over.id } });
       toast.success("Lead movido");
     } catch (e: any) {
       setLeads(prev);
