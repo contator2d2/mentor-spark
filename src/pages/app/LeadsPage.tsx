@@ -223,7 +223,7 @@ function Column({
        const phones = leadData.map(l => (l as any).phone).filter(Boolean);
        if (phones.length === 0) { toast.error("Leads selecionados não possuem telefone"); return; }
        
-       await api(/integrations/whatsapp/groups/${encodeURIComponent(targetGroup)}/participants`, {
+       await api(`/integrations/whatsapp/groups/${encodeURIComponent(targetGroup)}/participants`, {
          method: "POST", headers: customHeaders, body: { participants: phones }
        });
        toast.success(`${phones.length} contatos adicionados ao grupo!`);
