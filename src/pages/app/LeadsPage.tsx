@@ -214,11 +214,17 @@ function Column({
      if (!targetGroup || selectedLeads.length === 0) return;
      try {
        const leadData = leads?.filter(l => selectedLeads.includes(l.id)) || [];
+       // Buscar instâncias para usar a correta (padrão ou primeira conectada)
+       const instancesRes = await api<{ instances: any[] }>("/integrations/whatsapp");
+       const instance = instancesRes.instances?.find((i: any) => i.isDefault) || instancesRes.instances?.find((i: any) => i.status === "connected");
+       const customHeaders: any = {};
+       if (instance) customHeaders["x-instance-id"] = instance.id;
+
        const phones = leadData.map(l => (l as any).phone).filter(Boolean);
        if (phones.length === 0) { toast.error("Leads selecionados não possuem telefone"); return; }
        
-       await api(`/integrations/whatsapp/groups/${encodeURIComponent(targetGroup)}/participants`, {
-         method: "POST", body: { participants: phones }
+       await api(/integrations/whatsapp/groups/${encodeURIComponent(targetGroup)}/participants`, {
+         method: "POST", headers: customHeaders, body: { participants: phones }
        });
        toast.success(`${phones.length} contatos adicionados ao grupo!`);
        setGroupDialogOpen(false);
@@ -263,7 +269,7 @@ function Column({
     setLeads(leads.map((l) => (l.id === active.id ? { ...l, stage: String(over.id) } : l)));
 
     try {
-      await api(`/leads/${active.id}`, { method: "PATCH", body: { stage: over.id } });
+      await api(/leads/${active.id}`, { method: "PATCH", body: { stage: over.id } });
       toast.success("Lead movido");
     } catch (e: any) {
       setLeads(prev);
