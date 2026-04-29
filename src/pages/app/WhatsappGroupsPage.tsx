@@ -21,16 +21,30 @@ interface Group {
 
 export default function WhatsappGroupsPage() {
   const [groups, setGroups] = useState<Group[] | null>(null);
+  const [instances, setInstances] = useState<any[]>([]);
+  const [selectedInstance, setSelectedInstance] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [createGroupOpen, setCreateGroupOpen] = useState(false);
   const [createChannelOpen, setCreateChannelOpen] = useState(false);
   const [addMembersFor, setAddMembersFor] = useState<Group | null>(null);
   const [postFor, setPostFor] = useState<Group | null>(null);
 
+  async function loadGroupsWithInstance(instanceId?: string) {
+    const headers: any = {};
+    if (instanceId) headers["x-instance-id"] = instanceId;
+    return api<{ ok: boolean; groups?: Group[]; error?: string }>("/integrations/whatsapp/groups", { headers });
+  }
+
   async function load() {
+    try {
+      const instRes = await api<{ instances: any[] }>("/integrations/whatsapp");
+      setInstances(instRes.instances || []);
+      const def = instRes.instances?.find((i: any) => i.isDefault) || instRes.instances?.find((i: any) => i.status === "connected");
+      if (def && !selectedInstance) setSelectedInstance(def.id);
+    } catch (e) {}
     setLoading(true);
     try {
-      const r = await api<{ ok: boolean; groups?: Group[]; error?: string }>("/integrations/whatsapp/groups");
+      const r = await loadGroupsWithInstance();
       if (!r.ok) {
         toast.error(r.error || "Falha ao listar");
         setGroups([]);
