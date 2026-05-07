@@ -123,18 +123,12 @@ export class AdminDomainsController {
       }
     }
 
-    // Easypanel API: criar domínio no serviço de app.
-    // Easypanel usa tRPC. O endpoint costuma ser /api/trpc/projects.app.createDomain?batch=1
-    // ou /api/projects.app.createDomain dependendo da configuração do proxy/versão.
-    
-    const baseUrl = apiUrl.replace(/\/$/, '');
-    const isTrpc = baseUrl.includes('/trpc') || !baseUrl.endsWith('/api');
-    
-    // Se a URL não termina em /trpc, mas termina em /api, tentamos adicionar /trpc se falhar.
-    // Por padrão, vamos usar o formato tRPC que é o nativo do Easypanel.
-    const url = baseUrl.includes('/trpc') 
-      ? `${baseUrl}/projects.app.createDomain?batch=1`
-      : `${baseUrl}/trpc/projects.app.createDomain?batch=1`;
+    // Easypanel API: tRPC endpoint. 
+    // O caminho correto no Easypanel (v2) é /api/trpc/... e o método de criação de domínio
+    // costuma ser domains.create ou similar. 
+    // Vamos tentar o caminho mais comum usado pela dashboard.
+    const baseUrl = apiUrl.replace(/\/$/, '').replace(/\/trpc$/, '');
+    const url = `${baseUrl}/trpc/domains.create?batch=1`;
 
     console.log(`Tentando publicar no Easypanel: ${url}`, { project, service, host });
 
@@ -146,14 +140,13 @@ export class AdminDomainsController {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          "0": {
-            json: {
-              projectName: project,
-              serviceName: service,
-              domain: { host, https: true, port: 80, path: '/' },
-            },
-          }
+        body: JSON.stringify({ 
+          "0": { 
+            projectName: project, 
+            serviceName: service, 
+            serviceType: "app", 
+            domain: { host, port: 80, https: true, path: "/" } 
+          } 
         }),
       });
     } catch (e: any) {
