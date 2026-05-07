@@ -136,6 +136,8 @@ export class AdminDomainsController {
       ? `${baseUrl}/projects.app.createDomain?batch=1`
       : `${baseUrl}/trpc/projects.app.createDomain?batch=1`;
 
+    console.log(`Tentando publicar no Easypanel: ${url}`, { project, service, host });
+
     let resp: Response;
     try {
       resp = await fetch(url, {
@@ -159,7 +161,8 @@ export class AdminDomainsController {
     }
     if (!resp.ok) {
       const text = await resp.text().catch(() => '');
-      throw new BadRequestException(`Easypanel retornou ${resp.status}: ${text.slice(0, 300)}`);
+      console.error('Easypanel Error Response:', text);
+      throw new BadRequestException(`Easypanel retornou ${resp.status}: ${text.slice(0, 300)} (Rota: ${url})`);
     }
 
     // Marca mentor como ativo se ainda estiver pending
