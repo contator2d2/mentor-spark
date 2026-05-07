@@ -14,6 +14,7 @@ import { AdminController } from './admin.controller';
 import { AiProvidersController } from './ai-providers.controller';
 import { AppSettingsController } from './app-settings.controller';
 import { AiUsageAdminController } from './ai-usage-admin.controller';
+import { AdminDomainsController } from './admin-domains.controller';
 import { AppSettingsService } from './app-settings.service';
 import { AiModule } from '../ai/ai.module';
 import { AuthModule } from '../auth/auth.module';
@@ -25,7 +26,7 @@ import { AsaasService } from '../billing/asaas.service';
     AiModule,
     forwardRef(() => AuthModule),
   ],
-  controllers: [AdminController, AiProvidersController, AppSettingsController, AiUsageAdminController],
+  controllers: [AdminController, AiProvidersController, AppSettingsController, AiUsageAdminController, AdminDomainsController],
   providers: [AppSettingsService, AsaasService],
   exports: [AppSettingsService],
 })

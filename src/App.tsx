@@ -25,6 +25,7 @@ import AiAssistant from "./pages/app/AiAssistant";
 import AdminPage from "./pages/app/AdminPage";
 import AdminTenants from "./pages/app/AdminTenants";
 import AdminFinance from "./pages/app/AdminFinance";
+import AdminDomainsPage from "./pages/app/AdminDomainsPage";
 import AiProvidersPage from "./pages/app/AiProvidersPage";
 import PlaceholderPage from "./pages/app/PlaceholderPage";
 import Onboarding from "./pages/app/Onboarding";
@@ -177,6 +178,7 @@ const App = () => (
                 <Route path="admin/ai-providers" element={<AiProvidersPage />} />
                 <Route path="admin/credentials" element={<AdminCredentials />} />
                 <Route path="admin/ai-usage" element={<AdminAiUsage />} />
+                <Route path="admin/domains" element={<AdminDomainsPage />} />
                 <Route path="scheduling" element={<SchedulingPage />} />
                 <Route path="scheduling/bookings" element={<SchedulingBookingsPage />} />
                 <Route path="billing" element={<MentorBillingPage />} />
