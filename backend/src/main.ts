@@ -12,10 +12,8 @@ async function bootstrap() {
   app.useWebSocketAdapter(new IoAdapter(app));
   app.use(helmet({ crossOriginResourcePolicy: false, crossOriginOpenerPolicy: false }));
 
-  // CORS robusto: aceita lista CSV (CORS_ORIGIN), libera *.easypanel.host,
-  // *.lovable.app, *.lovableproject.com, localhost e (opcionalmente) qualquer
-  // origem extra via CORS_ALLOW_ALL=true. NUNCA lança erro — apenas omite os
-  // headers quando a origem não é permitida, evitando 500 no preflight.
+  // CORS robusto: aceita lista CSV (CORS_ORIGIN), libera *.easypanel.host, localhost
+  // e (opcionalmente) qualquer origem extra via CORS_ALLOW_ALL=true.
   const allowList = (process.env.CORS_ORIGIN || 'http://localhost:8080,http://localhost:5173')
     .split(',')
     .map((s) => s.trim().replace(/\/+$/, ''))
@@ -29,8 +27,6 @@ async function bootstrap() {
     try {
       const host = new URL(clean).hostname;
       if (/\.easypanel\.host$/i.test(host)) return true;
-      if (/\.lovable\.app$/i.test(host)) return true;
-      if (/\.lovableproject\.com$/i.test(host)) return true;
       if (/^localhost$/i.test(host)) return true;
       // libera todos os hosts que constam no allowList por sufixo de domínio
       // (ex.: CORS_ORIGIN=https://gleego.com.br libera mentor.gleego.com.br)
