@@ -30,6 +30,7 @@ import {
   GraduationCap,
   DollarSign,
   CalendarClock,
+  Globe,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -81,6 +82,7 @@ const NAV: NavItem[] = [
   { to: "/app/admin/ai-providers", label: "Provedores de IA", icon: Cpu, roles: ["super_admin"] },
   { to: "/app/admin/ai-usage", label: "Consumo IA / Tokens", icon: Sparkles, roles: ["super_admin"] },
   { to: "/app/admin/credentials", label: "Credenciais OAuth", icon: KeyRound, roles: ["super_admin"] },
+  { to: "/app/admin/domains", label: "Domínios", icon: Globe, roles: ["super_admin"] },
 ];
 
 // Atalhos rápidos para a bottom nav mobile
