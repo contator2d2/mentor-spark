@@ -21,7 +21,7 @@ import {
 import { MediaUpload } from "@/components/MediaUpload";
 
 const APP_BASE_DOMAIN =
-  (import.meta.env.VITE_APP_BASE_DOMAIN as string | undefined) || "";
+  (import.meta.env.VITE_APP_BASE_DOMAIN as string | undefined) || "gleego.com.br";
 
 export default function BrandingSettings() {
   const { user, refreshUser } = useAuth();
@@ -42,6 +42,7 @@ export default function BrandingSettings() {
 
   // Hosts úteis derivados
   const currentHost = typeof window !== "undefined" ? window.location.host : "";
+  const displayHost = currentHost.includes("localhost") ? "app.gleego.com.br" : currentHost;
   const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
 
   const subpathLink = useMemo(
@@ -264,7 +265,7 @@ export default function BrandingSettings() {
         </div>
       </section>
 
-      {/* ============== SUBDOMÍNIO AUTOMÁTICO (só aparece quando configurado) ============== */}
+      {/* ============== SUBDOMÍNIO AUTOMÁTICO ============== */}
       {APP_BASE_DOMAIN && (
         <section className="bg-card border border-border rounded-xl p-6 space-y-3">
           <div className="flex items-center gap-2">
@@ -296,7 +297,7 @@ export default function BrandingSettings() {
         <div className="flex items-center gap-2">
           <Globe className="h-4 w-4 text-accent" />
           <h2 className="font-semibold">Domínio próprio</h2>
-          <Badge variant="outline" className="ml-2">Avançado</Badge>
+          <Badge variant="outline" className="ml-2">White-label</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
           Use o seu próprio domínio (ex: <code className="text-xs bg-muted px-1 rounded">mentoria.seudominio.com.br</code>) para
@@ -309,7 +310,7 @@ export default function BrandingSettings() {
             <Input
               value={form.customDomain}
               onChange={(e) => onChange({ customDomain: e.target.value })}
-              placeholder="mento.gleego.com.br"
+              placeholder="mentoria.joaosilva.com.br"
               className="font-mono"
             />
             <Button variant="outline" onClick={checkDomain} disabled={!form.customDomain || domainStatus === "checking"}>
@@ -327,21 +328,20 @@ export default function BrandingSettings() {
           {domainStatus === "error" && (
             <div className="flex items-center gap-2 text-sm text-destructive">
               <AlertCircle className="h-4 w-4" />
-              Domínio ainda não está apontando. Verifique o DNS abaixo (pode levar até 24h).
+              Domínio ainda não está apontando. Verifique os passos abaixo.
             </div>
           )}
         </div>
 
         {/* Instruções DNS */}
         <div className="bg-muted/40 rounded-lg p-4 space-y-3">
-          <div className="text-sm font-medium">Como configurar no seu provedor de DNS</div>
+          <div className="text-sm font-medium flex items-center gap-2">
+            <Globe className="h-4 w-4" />
+            Passo 1: Configurar DNS (No seu provedor)
+          </div>
           <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-            <li>
-              Acesse o painel do seu registrador (Registro.br, GoDaddy, Cloudflare, etc).
-            </li>
-            <li>
-              Crie um registro <b>CNAME</b> com os seguintes valores:
-            </li>
+            <li>Acesse o painel do seu registrador (Registro.br, Cloudflare, etc).</li>
+            <li>Crie um registro <b>CNAME</b> com os seguintes valores:</li>
           </ol>
           <div className="overflow-x-auto">
             <table className="w-full text-sm border-collapse">
@@ -354,19 +354,14 @@ export default function BrandingSettings() {
               </thead>
               <tbody>
                 <tr className="border-b border-border/50">
-                  <td className="py-2 pr-4 font-mono">CNAME</td>
-                  <td className="py-2 pr-4 font-mono">
-                    {form.customDomain ? form.customDomain.split(".")[0] : "app"}
+                  <td className="py-2 pr-4 font-mono text-xs">CNAME</td>
+                  <td className="py-2 pr-4 font-mono text-xs">
+                    {form.customDomain ? (form.customDomain.includes(".") ? form.customDomain.split(".")[0] : "app") : "app"}
                   </td>
                   <td className="py-2 pr-4">
                     <div className="flex items-center gap-2">
-                      <code className="font-mono">{currentHost}</code>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-6 w-6"
-                        onClick={() => copy(currentHost, "Host")}
-                      >
+                      <code className="font-mono text-xs">{displayHost}</code>
+                      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => copy(displayHost, "Host")}>
                         <Copy className="h-3 w-3" />
                       </Button>
                     </div>
@@ -375,10 +370,21 @@ export default function BrandingSettings() {
               </tbody>
             </table>
           </div>
+
+          <div className="text-sm font-medium flex items-center gap-2 mt-4 pt-4 border-t border-border/50">
+            <AlertCircle className="h-4 w-4 text-amber-500" />
+            Passo 2: Ativação no Servidor (Easypanel)
+          </div>
           <p className="text-xs text-muted-foreground">
-            Após criar o CNAME, salve este formulário e clique em <b>Verificar</b>. A propagação de DNS pode levar de minutos até 24h.
-            O certificado SSL será emitido automaticamente pelo servidor (caso o reverse proxy esteja configurado para isso, ex: Caddy/Traefik).
+            Para que o servidor aceite o domínio e gere o SSL (HTTPS) automaticamente, você deve:
           </p>
+          <div className="bg-background/50 p-3 rounded border border-border text-xs space-y-2">
+            <p>1. No Easypanel, acesse seu <b>App → Domains</b>.</p>
+            <p>2. Adicione o seu domínio customizado (ex: <code>{form.customDomain || "mentoria.com"}</code>).</p>
+            <p className="text-[10px] text-muted-foreground italic border-t border-border/30 pt-1 mt-2">
+              Dica: Para aceitar qualquer domínio automaticamente, adicione a regra <code>{"HostRegexp(`{host:.+}`)"}</code> nos domínios do App no Easypanel.
+            </p>
+          </div>
         </div>
 
         {customDomainLink && domainStatus === "ok" && (
