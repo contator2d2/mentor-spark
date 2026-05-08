@@ -96,7 +96,7 @@ const stats = [
 const testimonials = [
   { name: "Carlos Mendes", role: "Mentor de negócios", quote: "Triplicou minha conversão. A IA entrega insights que eu levaria horas pra escrever." , initial: "C" },
   { name: "Ana Paula Silva", role: "Coach executiva", quote: "Finalmente tenho controle total — captação, agenda, cobrança e cursos num único lugar." , initial: "A" },
-  { name: "Roberto Lima", role: "Consultor estratégico", quote: "Saí de planilhas pro Mentor Glee-go. Cresci 2x em 4 meses. Indispensável." , initial: "R" },
+  { name: "Roberto Lima", role: "Consultor estratégico", quote: "Saí de planilhas pro MentorFlow. Cresci 2x em 4 meses. Indispensável." , initial: "R" },
 ];
 
 const plans = [
@@ -118,7 +118,7 @@ const plans = [
 ];
 
 const faqs = [
-  { q: "O Mentor Glee-go serve para qualquer nicho?", a: "Sim. A estrutura é genérica e o conteúdo é 100% personalizável para atender diferentes metodologias." },
+  { q: "O MentorFlow serve para qualquer nicho?", a: "Sim. A estrutura é genérica e o conteúdo é 100% personalizável para atender diferentes metodologias." },
   { q: "Posso personalizar testes e relatórios?", a: "Sim. Você pode adaptar perguntas, pesos, linguagem, categorias e o layout dos resultados." },
   { q: "O mentorado tem app próprio?", a: "Sim. Ele acessa agenda, tarefas, conteúdos e sua evolução direto pelo celular ou navegador." },
   { q: "A IA substitui o mentor?", a: "Não. Ela apenas apoia sua operação, automatizando resumos e insights baseados no seu método." },
@@ -135,7 +135,7 @@ export default function Landing() {
              <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
                <Sparkles className="h-5 w-5 text-white" />
              </div>
-             <div className="font-display text-xl font-bold">Mentor Glee-go <span className="text-xs font-normal text-muted-foreground ml-1">by Gleego</span></div>
+             <div className="font-display text-xl font-bold">MentorFlow <span className="text-xs font-normal text-muted-foreground ml-1">by MentorFlow</span></div>
            </div>
            <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
              <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
@@ -168,7 +168,7 @@ export default function Landing() {
                Transforme sua mentoria em uma operação <span className="text-gradient">organizada, escalável e inteligente</span>
              </h1>
              <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-               Com o Mentor Glee-go, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
+               Com o MentorFlow, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
              </p>
              <div className="flex flex-wrap gap-3 mb-8">
                <a href="#demonstracao">
@@ -187,7 +187,7 @@ export default function Landing() {
            <div className="relative animate-scale-in anim-delay-200">
              <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full" />
              <Card className="relative overflow-hidden shadow-elegant border-primary/20 p-2 glass-card">
-                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" alt="Mentor Glee-go Dashboard" className="rounded-lg shadow-2xl" />
+                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" alt="MentorFlow Dashboard" className="rounded-lg shadow-2xl" />
              </Card>
            </div>
          </div>
@@ -219,8 +219,8 @@ export default function Landing() {
          <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full" />
          <div className="max-w-7xl mx-auto px-6 relative">
            <div className="text-center mb-16">
-             <Badge variant="outline" className="mb-4">Módulos Mentor Glee-go</Badge>
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O Mentor Glee-go centraliza toda a operação</h2>
+             <Badge variant="outline" className="mb-4">Módulos MentorFlow</Badge>
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O MentorFlow centraliza toda a operação</h2>
              <p className="text-muted-foreground text-lg">Da entrada do lead até a evolução do mentorado, tudo conectado em um único sistema.</p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -281,7 +281,7 @@ export default function Landing() {
          <div className="max-w-7xl mx-auto px-6">
            <div className="text-center mb-16">
              <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Mais do que agenda. Mais do que CRM.</h2>
-             <p className="text-muted-foreground text-lg">Diferenciais que tornam o Mentor Glee-go único.</p>
+             <p className="text-muted-foreground text-lg">Diferenciais que tornam o MentorFlow único.</p>
            </div>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
              {differentials.map((diff, i) => (
@@ -301,7 +301,7 @@ export default function Landing() {
            <div className="grid lg:grid-cols-2 gap-12 items-center">
              <div>
                <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">A estrutura é escalável. A metodologia continua sendo sua.</h2>
-               <p className="text-lg text-muted-foreground mb-8">O Mentor Glee-go atende diferentes nichos porque a base do sistema é sólida e o conteúdo é personalizável. Você adapta tudo ao seu método.</p>
+               <p className="text-lg text-muted-foreground mb-8">O MentorFlow atende diferentes nichos porque a base do sistema é sólida e o conteúdo é personalizável. Você adapta tudo ao seu método.</p>
                <div className="grid grid-cols-2 gap-4 mb-8">
                  {["Linguagem", "Testes", "Categorias", "Prompts da IA", "Score", "Relatórios"].map(item => (
                    <div key={item} className="flex items-center gap-2 font-medium">
@@ -445,7 +445,7 @@ export default function Landing() {
        <section className="py-24 bg-muted/50">
          <div className="max-w-5xl mx-auto px-6">
            <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Antes e depois do Mentor Glee-go</h2>
+             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Antes e depois do MentorFlow</h2>
            </div>
            <div className="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-border shadow-2xl">
              <div className="p-8 md:p-12 bg-destructive/5">
@@ -477,7 +477,7 @@ export default function Landing() {
          <div className="absolute inset-0 bg-grid opacity-20" />
          <div className="relative max-w-4xl mx-auto px-6 text-center">
            <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Se sua mentoria cresceu, sua estrutura também precisa crescer.</h2>
-           <p className="text-xl text-white/80 mb-12">O Mentor Glee-go foi criado para mentores que querem sair do improviso e operar com método, contexto e escala.</p>
+           <p className="text-xl text-white/80 mb-12">O MentorFlow foi criado para mentores que querem sair do improviso e operar com método, contexto e escala.</p>
            <LeadForm />
            <div className="mt-12 flex flex-wrap gap-4 justify-center">
              <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 h-14 px-8 font-bold">Falar com Especialista</Button>
@@ -508,7 +508,7 @@ export default function Landing() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="font-display font-bold text-xl">Mentor Glee-go</div>
+                <div className="font-display font-bold text-xl">MentorFlow</div>
               </div>
               <p className="text-sm text-muted-foreground">A infraestrutura digital definitiva para quem leva mentoria a sério.</p>
             </div>
@@ -536,7 +536,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Mentor Glee-go by Gleego — Mentoria Inteligente
+            © {new Date().getFullYear()} MentorFlow by MentorFlow — Mentoria Inteligente
           </div>
         </div>
       </footer>
