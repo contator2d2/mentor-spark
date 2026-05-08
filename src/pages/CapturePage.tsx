@@ -22,7 +22,7 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
 
   const [mentor, setMentor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"signup" | "login">("signup");
+  const [tab, setTab] = useState<"signup" | "login">(slugParam ? "signup" : "login");
   const [done, setDone] = useState(false);
 
   // Cadastro
@@ -165,11 +165,13 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
               {(mentor.brandName || "M").charAt(0).toUpperCase()}
             </div>
           )}
-          <h1 className="font-display text-2xl font-bold">{mentor.brandName}</h1>
+          <h1 className="font-display text-2xl font-bold">
+            {slugParam ? mentor.brandName : `Portal do Mentorado - ${mentor.brandName}`}
+          </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {tab === "signup"
               ? "Crie sua conta para começar a jornada."
-              : "Acesse sua área de mentorado."}
+              : "Entre para acessar seus conteúdos e mentorias."}
           </p>
         </div>
 
