@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { BrandingProvider } from "@/contexts/BrandingContext";
+ import { BrandingProvider, useBranding } from "@/contexts/BrandingContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 
@@ -87,14 +87,24 @@ import MentoradoTests from "./pages/me/MentoradoTests";
 
 const queryClient = new QueryClient();
 
-function HomeRedirect() {
-  const { user, loading } = useAuth();
-  if (loading) return null;
-  if (!user) return <Landing />;
-  if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
-  if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
-  return <Navigate to="/app" replace />;
-}
+ function HomeRedirect() {
+   const { user, loading } = useAuth();
+   const { brand } = useBranding();
+   
+   if (loading) return null;
+   
+   if (!user) {
+     // Se estamos em um domínio customizado (brand detectada), mostra a página de captura do mentor
+     if (brand?.slug && brand.brandName !== "MentorFlow") {
+       return <CapturePage />;
+     }
+     return <Landing />;
+   }
+   
+   if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
+   if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
+   return <Navigate to="/app" replace />;
+ }
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
