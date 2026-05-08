@@ -11,9 +11,12 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
-export default function CapturePage() {
-  const { slug } = useParams();
-  const { setBrand } = useBranding();
+ export default function CapturePage() {
+   const { slug: slugParam } = useParams();
+   const { brand, setBrand } = useBranding();
+   
+   // O slug pode vir da URL (:slug) ou do BrandingContext (detectado pelo host)
+   const slug = slugParam || brand?.slug;
   const { login } = useAuth();
   const navigate = useNavigate();
 
@@ -39,21 +42,29 @@ export default function CapturePage() {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
-  useEffect(() => {
-    api(`/public/mentor/${slug}`, { auth: false })
-      .then((m: any) => {
-        setMentor(m);
-        setBrand({
-          brandName: m.brandName,
-          brandLogoUrl: m.brandLogoUrl,
-          brandPrimaryColor: m.brandPrimaryColor,
-          brandAccentColor: m.brandAccentColor,
-          slug: m.slug,
-        });
-      })
-      .catch(() => toast.error("Mentor não encontrado"))
-      .finally(() => setLoading(false));
-  }, [slug, setBrand]);
+   useEffect(() => {
+     if (!slug) {
+       // Se não tem slug nem no param nem no brand, pode estar carregando ou não ser um tenant
+       if (brand?.brandName === "MentorFlow") setLoading(false);
+       return;
+     }
+ 
+     api(`/public/mentor/${slug}`, { auth: false })
+       .then((m: any) => {
+         setMentor(m);
+         setBrand({
+           brandName: m.brandName,
+           brandLogoUrl: m.brandLogoUrl,
+           brandPrimaryColor: m.brandPrimaryColor,
+           brandAccentColor: m.brandAccentColor,
+           slug: m.slug,
+         });
+       })
+       .catch(() => {
+         if (slugParam) toast.error("Mentor não encontrado");
+       })
+       .finally(() => setLoading(false));
+   }, [slug, slugParam, setBrand, brand?.brandName]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
