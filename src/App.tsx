@@ -87,24 +87,41 @@ import MentoradoTests from "./pages/me/MentoradoTests";
 
 const queryClient = new QueryClient();
 
- function HomeRedirect() {
-   const { user, loading } = useAuth();
-   const { brand } = useBranding();
-   
-   if (loading) return null;
-   
-   if (!user) {
-     // Se estamos em um domínio customizado (brand detectada), mostra a página de captura do mentor
-     if (brand?.slug && brand.brandName !== "MentorFlow") {
-       return <CapturePage />;
-     }
-     return <Landing />;
-   }
-   
-   if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
-   if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
-   return <Navigate to="/app" replace />;
- }
+function HomeRedirect() {
+  const { user, loading } = useAuth();
+  const { brand } = useBranding();
+  
+  if (loading) return null;
+  
+  // Domínio customizado ou subdomínio de mentor
+  const isCustomDomain = brand?.slug && brand.brandName !== "MentorFlow";
+
+  if (!user) {
+    if (isCustomDomain) {
+      return <CapturePage />;
+    }
+    return <Landing />;
+  }
+  
+  if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
+  
+  // Se é mentor/admin, em um domínio customizado a raiz continua sendo a página do mentorado?
+  // O usuário pediu: "a raiz do dominio do mentor tem que ser focado no mentorado".
+  // Então mesmo logado como mentor, se acessar a raiz de um domínio customizado, talvez devesse ver a área do mentorado ou ser redirecionado para /admin.
+  // Mas normalmente o mentor quer ir direto pro painel. Vamos manter o redirecionamento padrão para logados.
+  
+  if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
+  return <Navigate to="/app" replace />;
+}
+
+/** Redireciona para o login ou dashboard de admin dependendo do estado */
+function AdminRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role === "mentor" || user.role === "super_admin") return <Navigate to="/app" replace />;
+  return <Navigate to="/" replace />;
+}
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -117,6 +134,7 @@ const App = () => (
             <AuthProvider>
             <Routes>
               <Route path="/" element={<HomeRedirect />} />
+              <Route path="/admin" element={<AdminRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/c/:slug" element={<CapturePage />} />
