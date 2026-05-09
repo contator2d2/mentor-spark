@@ -48,7 +48,13 @@ export class UsersController {
     },
   ) {
     const patch: any = { ...dto };
-    if (patch.customDomain) patch.customDomain = patch.customDomain.toLowerCase().trim();
+    if (patch.customDomain) {
+      patch.customDomain = patch.customDomain
+        .toLowerCase()
+        .trim()
+        .replace(/^https?:\/\//, '')
+        .replace(/\/$/, '');
+    }
     if (patch.slug) {
       patch.slug = patch.slug
         .toLowerCase()
