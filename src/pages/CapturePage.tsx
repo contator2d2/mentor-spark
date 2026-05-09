@@ -22,7 +22,7 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
 
   const [mentor, setMentor] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"signup" | "login">(slugParam ? "signup" : "login");
+   const [tab, setTab] = useState<"signup" | "login">("login");
   const [done, setDone] = useState(false);
 
   // Cadastro
@@ -165,9 +165,9 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
               {(mentor.brandName || "M").charAt(0).toUpperCase()}
             </div>
           )}
-          <h1 className="font-display text-2xl font-bold">
-            {slugParam ? mentor.brandName : `Portal do Mentorado - ${mentor.brandName}`}
-          </h1>
+           <h1 className="font-display text-2xl font-bold">
+             {mentor.brandName}
+           </h1>
           <p className="text-sm text-muted-foreground mt-1">
             {tab === "signup"
               ? "Crie sua conta para começar a jornada."
@@ -285,21 +285,34 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
                   onChange={(e) => setLoginForm({ ...loginForm, password: e.target.value })}
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loginLoading}>
-                {loginLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                Entrar
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Ainda não tem conta?{" "}
-                <button
-                  type="button"
-                  onClick={() => setTab("signup")}
-                  className="text-primary font-medium hover:underline"
-                >
-                  Cadastre-se
-                </button>
-              </p>
+               <Button type="submit" className="w-full" disabled={loginLoading}>
+                 {loginLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                 Entrar no Portal
+               </Button>
+ 
+               <div className="pt-4 border-t border-border mt-4">
+                 <p className="text-xs text-center text-muted-foreground mb-4">
+                   Ainda não tem conta?{" "}
+                   <button
+                     type="button"
+                     onClick={() => setTab("signup")}
+                     className="text-primary font-medium hover:underline"
+                   >
+                     Cadastre-se aqui
+                   </button>
+                 </p>
+                 
+                 <div className="bg-muted/50 p-3 rounded-lg text-center">
+                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">Acesso Administrativo</p>
+                   <button
+                     type="button"
+                     onClick={() => navigate("/admin")}
+                     className="text-xs text-primary hover:underline font-medium"
+                   >
+                     Acessar Painel do Mentor
+                   </button>
+                 </div>
+               </div>
             </form>
           </TabsContent>
         </Tabs>
