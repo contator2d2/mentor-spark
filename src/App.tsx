@@ -93,15 +93,17 @@ function HomeRedirect() {
   
   if (authLoading || brandLoading) return null;
   
-  // Domínio customizado ou subdomínio de mentor
-  const isCustomDomain = brand?.slug && brand.brandName !== "MentorFlow";
-
-  if (!user) {
-    if (isCustomDomain) {
-      return <CapturePage />;
-    }
-    return <Landing />;
-  }
+   // O domínio é customizado se o brandName não for o padrão ou se tivermos um slug detectado
+   const isCustomDomain = brand?.slug && (brand.brandName !== "MentorFlow" || window.location.hostname !== "mentor.glego.com.br");
+ 
+   if (!user) {
+     // Se estamos num domínio customizado, mostramos o portal do mentorado (CapturePage)
+     if (isCustomDomain) {
+       return <CapturePage />;
+     }
+     // Se estamos no domínio principal, mostramos a landing page institucional
+     return <Landing />;
+   }
   
   if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
   
