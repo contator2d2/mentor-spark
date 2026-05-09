@@ -14,6 +14,7 @@ interface BrandingContextValue {
   brand: TenantBrand | null;
   setBrand: (b: TenantBrand | null) => void;
   refreshFromHost: () => Promise<void>;
+  loading: boolean;
 }
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
@@ -78,6 +79,7 @@ function applyBrandToCss(brand: TenantBrand | null) {
 
 export function BrandingProvider({ children }: { children: ReactNode }) {
   const [brand, setBrandState] = useState<TenantBrand | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const setBrand = useCallback((b: TenantBrand | null) => {
     const merged = b ? { ...DEFAULT_BRAND, ...b } : DEFAULT_BRAND;
@@ -86,22 +88,25 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshFromHost = useCallback(async () => {
+    setLoading(true);
     try {
       const host = window.location.host;
       const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { auth: false });
       if (data && data.brandName) setBrand(data);
     } catch {
       // sem tenant por host — segue default
+    } finally {
+      setLoading(false);
     }
   }, [setBrand]);
 
   // Bootstrap: tenta resolver tenant por host antes de qualquer login
   useEffect(() => {
-    if (!getToken()) refreshFromHost();
+    refreshFromHost();
   }, [refreshFromHost]);
 
   return (
-    <BrandingContext.Provider value={{ brand: brand || DEFAULT_BRAND, setBrand, refreshFromHost }}>
+    <BrandingContext.Provider value={{ brand: brand || DEFAULT_BRAND, setBrand, refreshFromHost, loading }}>
       {children}
     </BrandingContext.Provider>
   );

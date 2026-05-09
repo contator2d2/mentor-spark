@@ -88,10 +88,10 @@ import MentoradoTests from "./pages/me/MentoradoTests";
 const queryClient = new QueryClient();
 
 function HomeRedirect() {
-  const { user, loading } = useAuth();
-  const { brand } = useBranding();
+  const { user, loading: authLoading } = useAuth();
+  const { brand, loading: brandLoading } = useBranding();
   
-  if (loading) return null;
+  if (authLoading || brandLoading) return null;
   
   // Domínio customizado ou subdomínio de mentor
   const isCustomDomain = brand?.slug && brand.brandName !== "MentorFlow";

@@ -27,10 +27,15 @@ export class PublicController {
   @Get('tenant-by-host')
   async tenantByHost(@Query('host') host?: string) {
     if (!host) return null;
-    const h = host.toLowerCase().split(':')[0];
+    const h = host.toLowerCase().split(':')[0].replace(/^www\./, '');
 
     // 1) Domínio customizado
-    let mentor = await this.users.findOne({ where: { customDomain: h, status: UserStatus.ACTIVE } });
+    let mentor = await this.users.findOne({ 
+      where: [
+        { customDomain: h, status: UserStatus.ACTIVE },
+        { customDomain: 'www.' + h, status: UserStatus.ACTIVE }
+      ] 
+    });
 
     // 2) Subdomínio (primeiro segmento) — ignora www e o app principal
     if (!mentor) {
