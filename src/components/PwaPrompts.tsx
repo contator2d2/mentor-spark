@@ -76,7 +76,7 @@ export function PwaPrompts() {
       >
         <X className="h-4 w-4" />
       </button>
-      <div className="text-sm font-semibold mb-2">Aproveite mais o MentorFlow</div>
+      <div className="text-sm font-semibold mb-2">Aproveite mais o Mentor Glee-go</div>
       <div className="flex flex-col gap-2">
         {showInstall && (
           <Button size="sm" onClick={install}>

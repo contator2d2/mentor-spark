@@ -19,7 +19,7 @@ interface BrandingContextValue {
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
-const DEFAULT_BRAND: TenantBrand = { brandName: "MentorFlow" };
+const DEFAULT_BRAND: TenantBrand = { brandName: "Mentor Glee-go", slug: "" };
 
 /** Converte hex -> "h s% l%" para CSS variable */
 function hexToHslVar(hex: string): string | null {
@@ -81,18 +81,25 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [brand, setBrandState] = useState<TenantBrand | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const setBrand = useCallback((b: TenantBrand | null) => {
-    const merged = b ? { ...DEFAULT_BRAND, ...b } : DEFAULT_BRAND;
-    setBrandState(merged);
-    applyBrandToCss(merged);
-  }, []);
+  const setBrand = useCallback(
+    (b: TenantBrand | null) => {
+      // Se b for null, tentamos manter o slug atual se ele veio do host
+      // para não perder o branding white-label no logout
+      const merged = b ? { ...DEFAULT_BRAND, ...b } : DEFAULT_BRAND;
+      setBrandState(merged);
+      applyBrandToCss(merged);
+    },
+    []
+  );
 
   const refreshFromHost = useCallback(async () => {
     setLoading(true);
     try {
       const host = window.location.host;
       const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { auth: false });
-      if (data && data.brandName) setBrand(data);
+      if (data && (data.brandName || data.slug)) {
+        setBrand(data);
+      }
     } catch {
       // sem tenant por host — segue default
     } finally {

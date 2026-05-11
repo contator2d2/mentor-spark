@@ -300,7 +300,7 @@ export default function BrandingSettings() {
           <Badge variant="outline" className="ml-2">White-label</Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          Use o seu próprio domínio (ex: <code className="text-xs bg-muted px-1 rounded">mentoria.seudominio.com.br</code>) para
+        Use o seu próprio domínio (ex: <code className="text-xs bg-muted px-1 rounded">mentoria.suaempresa.com.br</code>) para
           uma experiência 100% white-label.
         </p>
 
@@ -310,7 +310,7 @@ export default function BrandingSettings() {
             <Input
               value={form.customDomain}
               onChange={(e) => onChange({ customDomain: e.target.value })}
-              placeholder="mentoria.joaosilva.com.br"
+              placeholder="app.suaempresa.com.br"
               className="font-mono"
             />
             <Button variant="outline" onClick={checkDomain} disabled={!form.customDomain || domainStatus === "checking"}>
