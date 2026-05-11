@@ -19,7 +19,7 @@ interface BrandingContextValue {
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
-const DEFAULT_BRAND: TenantBrand = { brandName: "MentorFlow" };
+const DEFAULT_BRAND: TenantBrand = { brandName: "MentorFlow", slug: "" };
 
 /** Converte hex -> "h s% l%" para CSS variable */
 function hexToHslVar(hex: string): string | null {
@@ -91,8 +91,13 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const host = window.location.host;
-      const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { auth: false });
-      if (data && data.brandName) setBrand(data);
+      const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { 
+        auth: false,
+        timeout: 5000 // Adicionando timeout para não travar
+      });
+      if (data && (data.brandName || data.slug)) {
+        setBrand(data);
+      }
     } catch {
       // sem tenant por host — segue default
     } finally {

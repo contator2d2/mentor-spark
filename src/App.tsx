@@ -93,14 +93,17 @@ function HomeRedirect() {
   
   if (authLoading || brandLoading) return null;
   
-   // O domínio é customizado se o brandName não for o padrão ou se tivermos um slug detectado
-   const isCustomDomain = brand?.slug && (brand.brandName !== "MentorFlow" || window.location.hostname !== "mentor.glego.com.br");
+    // O domínio é customizado se não for o domínio principal ou localhost
+    const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "localhost", "127.0.0.1"];
+    const currentHost = window.location.hostname.toLowerCase();
+    const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
+  
+    // Se for domínio customizado, mas ainda não carregou o brand, mostramos loading ou um estado neutro
+    if (isCustomDomain && brandLoading) return null;
  
    if (!user) {
-     // Se estamos num domínio customizado, mostramos o portal do mentorado (CapturePage)
-     if (isCustomDomain) {
-       return <CapturePage />;
-     }
+      // Se estamos num domínio customizado, SEMPRE mostramos o portal do mentorado (CapturePage)
+      if (isCustomDomain) return <CapturePage />;
      // Se estamos no domínio principal, mostramos a landing page institucional
      return <Landing />;
    }
