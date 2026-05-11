@@ -94,7 +94,7 @@ function HomeRedirect() {
   if (authLoading || brandLoading) return null;
   
     // O domínio é customizado se não for o domínio principal ou localhost
-    const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "localhost", "127.0.0.1"];
+    const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1"];
     const currentHost = window.location.hostname.toLowerCase();
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
   
