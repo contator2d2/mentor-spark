@@ -91,10 +91,7 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     try {
       const host = window.location.host;
-      const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { 
-        auth: false,
-        timeout: 5000 // Adicionando timeout para não travar
-      });
+      const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { auth: false });
       if (data && (data.brandName || data.slug)) {
         setBrand(data);
       }
