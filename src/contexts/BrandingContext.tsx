@@ -81,11 +81,16 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
   const [brand, setBrandState] = useState<TenantBrand | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const setBrand = useCallback((b: TenantBrand | null) => {
-    const merged = b ? { ...DEFAULT_BRAND, ...b } : DEFAULT_BRAND;
-    setBrandState(merged);
-    applyBrandToCss(merged);
-  }, []);
+  const setBrand = useCallback(
+    (b: TenantBrand | null) => {
+      // Se b for null, tentamos manter o slug atual se ele veio do host
+      // para não perder o branding white-label no logout
+      const merged = b ? { ...DEFAULT_BRAND, ...b } : DEFAULT_BRAND;
+      setBrandState(merged);
+      applyBrandToCss(merged);
+    },
+    []
+  );
 
   const refreshFromHost = useCallback(async () => {
     setLoading(true);

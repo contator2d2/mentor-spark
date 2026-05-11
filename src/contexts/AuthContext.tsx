@@ -107,12 +107,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.user;
   }
 
-  function logout() {
+  const logout = () => {
     setToken(null);
     setUser(null);
-    setBrand(null);
+    // Em vez de limpar, tentamos recarregar o branding baseado no host
+    // para manter a marca do mentor no login white-label
     window.location.href = "/login";
-  }
+  };
 
   async function signupMentor(data: { name: string; email: string; password: string; brandName?: string }) {
     const res = await api<{ access_token?: string; user?: SessionUser; message?: string }>("/auth/signup-mentor", {
