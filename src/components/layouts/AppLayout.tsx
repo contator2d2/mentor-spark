@@ -107,7 +107,7 @@ export default function AppLayout() {
     if (i.feature && !features[i.feature]) return false;
     return true;
   });
-  const displayName = brand?.brandName || user?.brandName || "MentorFlow";
+  const displayName = brand?.brandName || user?.brandName || "Mentor Glee-go";
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
     <>

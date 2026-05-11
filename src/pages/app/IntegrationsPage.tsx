@@ -204,7 +204,7 @@ export default function IntegrationsPage() {
               )}
             </h2>
             <p className="text-sm text-muted-foreground">
-              Sincroniza reuniões agendadas no MentorFlow com seu Google Calendar.
+              Sincroniza reuniões agendadas no Mentor Glee-go com seu Google Calendar.
             </p>
           </div>
         </div>

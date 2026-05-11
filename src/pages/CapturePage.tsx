@@ -45,7 +45,7 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
    useEffect(() => {
      if (!slug) {
        // Se não tem slug nem no param nem no brand, pode estar carregando ou não ser um tenant
-       if (brand?.brandName === "MentorFlow") setLoading(false);
+       if (brand?.brandName === "Mentor Glee-go") setLoading(false);
        return;
      }
  

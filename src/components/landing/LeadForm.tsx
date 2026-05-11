@@ -24,7 +24,7 @@
      <Card className="p-6 md:p-8 shadow-elegant glass-card max-w-xl mx-auto border-primary/20">
        <div className="flex items-center gap-2 mb-6 text-primary">
          <Sparkles className="h-5 w-5" />
-         <h3 className="font-display font-bold text-xl">Quero Conhecer o MentorFlow</h3>
+         <h3 className="font-display font-bold text-xl">Quero Conhecer o Mentor Glee-go</h3>
        </div>
        
        <form onSubmit={handleSubmit} className="space-y-4">
@@ -64,7 +64,7 @@
          </div>
          
          <Button type="submit" className="w-full bg-gradient-primary hover:opacity-90 shadow-glow h-12 text-base font-bold" disabled={loading}>
-           {loading ? "Enviando..." : "Quero Conhecer o MentorFlow"}
+           {loading ? "Enviando..." : "Quero Conhecer o Mentor Glee-go"}
          </Button>
          
          <p className="text-[10px] text-center text-muted-foreground mt-4">
