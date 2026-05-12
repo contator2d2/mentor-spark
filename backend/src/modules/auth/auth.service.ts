@@ -220,10 +220,10 @@ export class AuthService {
      await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
    }
 
-  /** Compat: mantém o nome antigo (chama o novo método sem WhatsApp). */
-  async sendWelcomeEmail(email: string, name: string, password: string, brandName: string) {
-    return this.sendWelcomeCredentials({ email, name, password, brandName });
-  }
+   /** Compat: mantém o nome antigo. */
+   async sendWelcomeEmail(email: string, name: string, password: string, brandName: string, mentorId?: string) {
+     return this.sendWelcomeCredentials({ email, name, password, brandName, mentorId });
+   }
 
   /**
    * Envia mensagem de boas-vindas SEM credenciais (quando o usuário definiu a própria senha).
