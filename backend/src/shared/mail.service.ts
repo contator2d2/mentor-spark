@@ -50,16 +50,23 @@ export class MailService {
      footerText?: string;
    }) {
      const primaryColor = opts.brandPrimaryColor || '#0f172a';
-     const passwordSection = opts.password
-       ? `
-       <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; margin: 32px 0; border: 1px solid #e2e8f0;">
-         <p style="margin: 0 0 12px 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Suas credenciais:</p>
-         <p style="margin: 0 0 8px 0; font-size: 16px; color: #1e293b;"><strong>E-mail:</strong> ${opts.email}</p>
-         <p style="margin: 0; font-size: 16px; color: #1e293b;"><strong>Senha temporária:</strong> <code style="background: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #cbd5e1; letter-spacing: 1px; color: ${primaryColor};">${opts.password}</code></p>
-       </div>`
-       : `<div style="margin: 32px 0;">
-           <p style="font-size: 16px; color: #1e293b;">Use o e-mail <strong>${opts.email}</strong> e a senha que você cadastrou para acessar sua conta.</p>
+     let contentSection = '';
+     if (opts.password) {
+       contentSection = `
+         <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; margin: 32px 0; border: 1px solid #e2e8f0;">
+           <p style="margin: 0 0 12px 0; font-size: 14px; color: #64748b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Suas credenciais:</p>
+           <p style="margin: 0 0 8px 0; font-size: 16px; color: #1e293b;"><strong>E-mail:</strong> ${opts.email}</p>
+           <p style="margin: 0; font-size: 16px; color: #1e293b;"><strong>Senha temporária:</strong> <code style="background: #ffffff; padding: 4px 10px; border-radius: 6px; font-weight: bold; border: 1px solid #cbd5e1; letter-spacing: 1px; color: ${primaryColor};">${opts.password}</code></p>
          </div>`;
+     } else if (opts.message.includes('Use o email') || opts.message.includes('Use o e-mail')) {
+       // Se a mensagem já contém a instrução de login, não adicionamos de novo
+       contentSection = '';
+     } else if (opts.email && opts.loginUrl) {
+       // Para outros emails que podem precisar de um lembrete de acesso, mas de forma discreta
+       contentSection = `<div style="margin: 24px 0; padding-top: 24px; border-top: 1px solid #f1f5f9; font-size: 14px; color: #64748b;">
+         Acesse sua conta em <a href="${opts.loginUrl}" style="color: ${primaryColor}; text-decoration: underline;">${opts.loginUrl}</a> usando seu e-mail <b>${opts.email}</b>.
+       </div>`;
+     }
 
      const logoSection = opts.brandLogoUrl
        ? `<img src="${opts.brandLogoUrl}" alt="${opts.brandName}" style="max-height: 48px; max-width: 200px; margin-bottom: 16px;">`
