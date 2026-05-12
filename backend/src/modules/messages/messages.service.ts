@@ -312,27 +312,46 @@ export class MessagesService {
     return { broadcast: b, messages: msgs, summary: byStatus };
   }
 
-  /** Executa o envio real conforme o canal. */
-  async dispatch(messageId: string) {
-    const msg = await this.repo.findOne({ where: { id: messageId } });
-    if (!msg) return;
-    if (![MessageStatus.QUEUED, MessageStatus.SCHEDULED].includes(msg.status)) return;
-
-    await this.repo.update(messageId, { status: MessageStatus.SENDING });
-
-    try {
-      if (msg.channel === MessageChannel.EMAIL) {
-        if (!msg.recipientAddress) throw new Error('Destinatário sem email');
-        const attachmentsHtml = (msg.attachments || []).map((a) => {
-          const url = this.absoluteUrl(a.url);
-          return `<p><a href="${url}" target="_blank">${a.originalName || 'Anexo'}</a></p>`;
-        }).join('');
-        await this.mail.send({
-          to: msg.recipientAddress,
-          subject: msg.subject || 'Nova mensagem',
-          html: this.bodyToHtml(msg.body) + attachmentsHtml,
-        });
-      } else if (msg.channel === MessageChannel.WHATSAPP) {
+   /** Executa o envio real conforme o canal. */
+   async dispatch(messageId: string) {
+     const msg = await this.repo.findOne({ where: { id: messageId } });
+     if (!msg) return;
+     if (![MessageStatus.QUEUED, MessageStatus.SCHEDULED].includes(msg.status)) return;
+ 
+     await this.repo.update(messageId, { status: MessageStatus.SENDING });
+ 
+     try {
+       if (msg.channel === MessageChannel.EMAIL) {
+         if (!msg.recipientAddress) throw new Error('Destinatário sem email');
+ 
+         const mentor = await this.users.findOne({ where: { id: msg.mentorId } });
+         const lead = msg.leadId ? await this.leads.findOne({ where: { id: msg.leadId } }) : null;
+         
+         let appUrl = process.env.APP_URL || 'http://localhost:8080';
+         if (mentor?.customDomain) appUrl = `https://${mentor.customDomain}`;
+         const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+ 
+         const attachmentsHtml = (msg.attachments || []).map((a) => {
+           const url = this.absoluteUrl(a.url);
+           return `<p style="margin: 10px 0;"><a href="${url}" target="_blank" style="color: ${mentor?.brandPrimaryColor || '#2563eb'}; text-decoration: underline;">📎 ${a.originalName || 'Anexo'}</a></p>`;
+         }).join('');
+ 
+         const html = this.mail.generateStandardTemplate({
+           brandName: mentor?.brandName || mentor?.name || 'MentorFlow',
+           brandLogoUrl: mentor?.brandLogoUrl,
+           brandPrimaryColor: mentor?.brandPrimaryColor,
+           firstName: lead?.name?.split(' ')[0] || 'Aventureiro(a)',
+           message: this.bodyToHtml(msg.body) + (attachmentsHtml ? `<div style="margin-top: 24px; padding-top: 16px; border-top: 1px dashed #e2e8f0;">${attachmentsHtml}</div>` : ''),
+           email: msg.recipientAddress,
+           loginUrl,
+         });
+ 
+         await this.mail.send({
+           to: msg.recipientAddress,
+           subject: msg.subject || 'Nova mensagem',
+           html,
+         });
+       } else if (msg.channel === MessageChannel.WHATSAPP) {
         if (!msg.recipientAddress) throw new Error('Destinatário sem telefone');
         const publicBase = process.env.PUBLIC_BASE_URL || process.env.APP_URL;
         const attachments = msg.attachments || [];
