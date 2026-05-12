@@ -92,16 +92,19 @@ export class WhatsappService {
     const admin = await this.getAdmin();
     if (!admin) return { ok: false, error: 'WhatsApp ainda não foi configurado pelo administrador da plataforma.' };
 
-    const existing = await this.repo
-      .createQueryBuilder('i')
-      .addSelect('i.token')
-      .where('i.mentorId = :mentorId AND i.type = :type', { mentorId, type: IntegrationType.WHATSAPP })
-      .getOne();
+    const existing = await this.getCreds(mentorId);
+    
+    // Se já existe uma instância com token, apenas retornamos OK
+    // para evitar criar instâncias duplicadas no provedor
     if (existing?.token && existing?.instanceName) {
       return { ok: true };
     }
 
-    const instanceName = `mentor-${mentorId.slice(0, 8)}-${Date.now().toString(36)}`;
+    // Se já temos um registro mas sem token, tentamos usar o mesmo instanceName
+    // ou geramos um novo se for a primeira vez
+    const integ = await this.repo.findOne({ where: { mentorId, type: IntegrationType.WHATSAPP } });
+    const instanceName = integ?.instanceName || `mentor-${mentorId.slice(0, 8)}-${Date.now().toString(36)}`;
+    
     try {
       const res = await fetch(`${admin.baseUrl}/instance/init`, {
         method: 'POST',

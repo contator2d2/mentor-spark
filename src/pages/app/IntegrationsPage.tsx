@@ -15,7 +15,7 @@ import PaymentProvidersSection from "@/components/payments/PaymentProvidersSecti
  interface WhatsappInstance {
    id: string;
    name: string;
-   status: 'connected' | 'disconnected' | 'provisioned';
+    status: 'connected' | 'disconnected' | 'provisioned' | 'pending';
    phoneNumber: string | null;
    isDefault: boolean;
  }
@@ -23,11 +23,12 @@ import PaymentProvidersSection from "@/components/payments/PaymentProvidersSecti
  interface WhatsappState {
    allowed: boolean;
    adminConfigured: boolean;
-   instances: WhatsappInstance[];
-   maxInstances: number;
-   provisioned: boolean; // para compatibilidade legada se necessário
-   status: string;      // para compatibilidade legada se necessário
-   phoneNumber: string | null; // para compatibilidade legada se necessário
+    instances?: WhatsappInstance[];
+    maxInstances?: number;
+    provisioned?: boolean;
+    status?: string;
+    phoneNumber?: string | null;
+    instanceName?: string | null;
  }
 
 interface GoogleState {
@@ -53,7 +54,21 @@ export default function IntegrationsPage() {
          api<GoogleState>("/integrations/google/status"),
        ]);
        setData(d);
-       setInstances(d.instances || []);
+        // Garantimos que mostramos a instância mesmo se a lista vier vazia mas houver provisionamento
+        if (d.instances && d.instances.length > 0) {
+          setInstances(d.instances);
+        } else if (d.provisioned && d.instanceName) {
+          // Caso de compatibilidade ou falha na listagem detalhada
+          setInstances([{
+            id: d.instanceName,
+            name: d.instanceName,
+            status: d.status as any,
+            phoneNumber: d.phoneNumber,
+            isDefault: true
+          }]);
+        } else {
+          setInstances([]);
+        }
        setGoogle(g);
      } catch (e: any) {
        toast.error(e.message);
