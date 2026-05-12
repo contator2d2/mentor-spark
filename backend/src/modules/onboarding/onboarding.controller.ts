@@ -41,7 +41,13 @@ export class OnboardingController {
       await this.tokens.save(token);
     }
 
-    const baseUrl = process.env.APP_URL || 'http://localhost:8080';
+    let baseUrl = (process.env.APP_URL || 'http://localhost:8080').replace(/\/$/, '');
+    if (mentorId) {
+      const mentor = await this.users.findOne({ where: { id: mentorId } });
+      if (mentor?.customDomain) {
+        baseUrl = `https://${mentor.customDomain}`;
+      }
+    }
     return {
       token: token.token,
       url: `${baseUrl}/onboard/${token.token}`,
