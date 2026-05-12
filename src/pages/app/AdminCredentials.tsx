@@ -141,15 +141,30 @@ export default function AdminCredentials() {
           </ol>
         </div>
 
-        <div>
-          <Label>Redirect URI (cole no Google Cloud)</Label>
-          <Input
-            value={form.redirectUri || suggestedRedirect}
-            onChange={(e) => setForm({ ...form, redirectUri: e.target.value })}
-            placeholder={suggestedRedirect}
-            className="font-mono text-xs"
-          />
-        </div>
+         <div className="space-y-4">
+           <div>
+             <Label>Redirect URI Base (cole no Google Cloud)</Label>
+             <Input
+               value={form.redirectUri || suggestedRedirect}
+               onChange={(e) => setForm({ ...form, redirectUri: e.target.value })}
+               placeholder={suggestedRedirect}
+               className="font-mono text-xs"
+             />
+           </div>
+
+           <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-sm">
+             <p className="font-semibold text-blue-400">🌐 Importante para Domínios Customizados:</p>
+             <p className="text-muted-foreground mt-1">
+               Para que o login do Google funcione em domínios como <b>app.alemdolucro.org</b>, você deve adicionar o URI de redirecionamento de cada domínio no console do Google Cloud:
+             </p>
+             <code className="block bg-black/30 p-2 mt-2 rounded font-mono text-[10px] break-all">
+               https://app.alemdolucro.org/api/integrations/google/callback
+             </code>
+             <p className="text-xs text-muted-foreground mt-2 italic">
+               * Substitua o domínio pelo domínio real do mentor. O Google exige que cada domínio que inicia o OAuth esteja na lista de URIs permitidos.
+             </p>
+           </div>
+         </div>
 
         <div>
           <Label>Client ID</Label>
