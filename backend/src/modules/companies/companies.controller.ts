@@ -149,7 +149,7 @@ export class CompaniesController {
       userId = created.user.id;
       if (created.generatedPassword) {
         const mentor = await this.users.findOne({ where: { id: mentorId } });
-        await this.auth.sendWelcomeEmail(email, dto.name, created.generatedPassword, mentor?.brandName || 'MentorFlow');
+         await this.auth.sendWelcomeEmail(email, dto.name, created.generatedPassword, mentor?.brandName || 'MentorFlow', mentorId);
       }
     }
 
@@ -197,7 +197,7 @@ export class CompaniesController {
     });
     if (created.generatedPassword) {
       const mentor = await this.users.findOne({ where: { id: mentorId } });
-      await this.auth.sendWelcomeEmail(lead.email, lead.name, created.generatedPassword, mentor?.brandName || 'MentorFlow');
+       await this.auth.sendWelcomeEmail(lead.email, lead.name, created.generatedPassword, mentor?.brandName || 'MentorFlow', mentorId);
     }
     await this.leads.update(leadId, { userId: created.user.id });
     return { ok: true, userId: created.user.id, sentEmail: !!created.generatedPassword };

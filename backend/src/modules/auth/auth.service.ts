@@ -157,117 +157,127 @@ export class AuthService {
    * Envia credenciais de acesso por WhatsApp (preferencial) e email (registro formal).
    * Falhas em um canal não bloqueiam o outro.
    */
-  async sendWelcomeCredentials(opts: {
-    mentorId?: string;
-    email: string;
-    name: string;
-    password: string;
-    brandName: string;
-    phone?: string;
-  }) {
-    let appUrl = process.env.APP_URL || 'http://localhost:8080';
-    if (opts.mentorId) {
-      const mentor = await this.users.findOne({ where: { id: opts.mentorId } });
-      if (mentor?.customDomain) {
-        appUrl = `https://${mentor.customDomain}`;
-      }
-    }
-    const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
-    const firstName = (opts.name || '').split(' ')[0];
+   async sendWelcomeCredentials(opts: {
+     mentorId?: string;
+     email: string;
+     name: string;
+     password: string;
+     brandName: string;
+     phone?: string;
+   }) {
+     let appUrl = process.env.APP_URL || 'http://localhost:8080';
+     let mentor: User | null = null;
+     if (opts.mentorId) {
+       mentor = await this.users.findOne({ where: { id: opts.mentorId } });
+       if (mentor?.customDomain) {
+         appUrl = `https://${mentor.customDomain}`;
+       }
+     }
+     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+     const firstName = (opts.name || '').split(' ')[0];
+     const brandName = mentor?.brandName || opts.brandName;
+ 
+     // 1) Email (sempre tenta — registro formal)
+     try {
+       const html = this.mail.generateStandardTemplate({
+         brandName,
+         brandLogoUrl: mentor?.brandLogoUrl,
+         brandPrimaryColor: mentor?.brandPrimaryColor,
+         firstName,
+         message: `Sua conta em <b>${brandName}</b> foi criada. Use as credenciais abaixo para acessar a plataforma.`,
+         email: opts.email,
+         password: opts.password,
+         loginUrl,
+       });
+ 
+       await this.mail.send({
+         to: opts.email,
+         subject: `Seu acesso a ${brandName}`,
+         html,
+       });
+     } catch (e) {
+       // segue o jogo, WhatsApp ainda pode entregar
+     }
+ 
+     // 2) WhatsApp (se telefone + integração disponível)
+     if (opts.phone && opts.mentorId) {
+       try {
+         const text =
+           `Olá ${firstName}! 👋\n\n` +
+           `Sua conta em *${brandName}* foi criada.\n\n` +
+           `🔑 *Acesso:*\n` +
+           `Email: ${opts.email}\n` +
+           `Senha temporária: *${opts.password}*\n\n` +
+           `🔗 ${loginUrl}\n\n` +
+           `_Por segurança, você precisará criar uma nova senha no primeiro acesso._`;
+         await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
+       } catch {
+         // ignora — email já foi enviado
+       }
+     }
+ 
+     // marca timestamp
+     await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
+   }
 
-    // 1) Email (sempre tenta — registro formal)
-    try {
-      await this.mail.send({
-        to: opts.email,
-        subject: `Seu acesso a ${opts.brandName}`,
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
-            <h1 style="font-size:22px;margin:0 0 16px">Olá, ${firstName} 👋</h1>
-            <p>Sua conta em <b>${opts.brandName}</b> foi criada. Use as credenciais abaixo:</p>
-            <p><b>Email:</b> ${opts.email}<br/><b>Senha temporária:</b> <code style="background:#f1f5f9;padding:2px 8px;border-radius:6px;font-size:16px;letter-spacing:1px">${opts.password}</code></p>
-            <p><a href="${loginUrl}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
-            <p style="color:#64748b;font-size:13px;margin-top:24px">Por segurança, você precisará criar uma nova senha no primeiro acesso.</p>
-          </div>
-        `,
-      });
-    } catch (e) {
-      // segue o jogo, WhatsApp ainda pode entregar
-    }
-
-    // 2) WhatsApp (se telefone + integração disponível)
-    if (opts.phone && opts.mentorId) {
-      try {
-        const text =
-          `Olá ${firstName}! 👋\n\n` +
-          `Sua conta em *${opts.brandName}* foi criada.\n\n` +
-          `🔑 *Acesso:*\n` +
-          `Email: ${opts.email}\n` +
-          `Senha temporária: *${opts.password}*\n\n` +
-          `🔗 ${loginUrl}\n\n` +
-          `_Por segurança, você precisará criar uma nova senha no primeiro acesso._`;
-        await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
-      } catch {
-        // ignora — email já foi enviado
-      }
-    }
-
-    // marca timestamp
-    await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
-  }
-
-  /** Compat: mantém o nome antigo (chama o novo método sem WhatsApp). */
-  async sendWelcomeEmail(email: string, name: string, password: string, brandName: string) {
-    return this.sendWelcomeCredentials({ email, name, password, brandName });
-  }
+   /** Compat: mantém o nome antigo. */
+   async sendWelcomeEmail(email: string, name: string, password: string, brandName: string, mentorId?: string) {
+     return this.sendWelcomeCredentials({ email, name, password, brandName, mentorId });
+   }
 
   /**
    * Envia mensagem de boas-vindas SEM credenciais (quando o usuário definiu a própria senha).
    */
-  async sendWelcomeNotice(opts: {
-    mentorId?: string;
-    email: string;
-    name: string;
-    brandName: string;
-    phone?: string;
-  }) {
-    let appUrl = process.env.APP_URL || 'http://localhost:8080';
-    if (opts.mentorId) {
-      const mentor = await this.users.findOne({ where: { id: opts.mentorId } });
-      if (mentor?.customDomain) {
-        appUrl = `https://${mentor.customDomain}`;
-      }
-    }
-    const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
-    const firstName = (opts.name || '').split(' ')[0];
-
-    try {
-      await this.mail.send({
-        to: opts.email,
-        subject: `Bem-vindo a ${opts.brandName}`,
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
-            <h1 style="font-size:22px;margin:0 0 16px">Olá, ${firstName} 👋</h1>
-            <p>Sua conta em <b>${opts.brandName}</b> foi criada com sucesso.</p>
-            <p>Use o email <b>${opts.email}</b> e a senha que você cadastrou para entrar.</p>
-            <p><a href="${loginUrl}" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
-          </div>
-        `,
-      });
-    } catch {}
-
-    if (opts.phone && opts.mentorId) {
-      try {
-        const text =
-          `Olá ${firstName}! 👋\n\n` +
-          `Sua conta em *${opts.brandName}* foi criada com sucesso.\n\n` +
-          `Use o email *${opts.email}* e a senha que você cadastrou para entrar.\n\n` +
-          `🔗 ${loginUrl}`;
-        await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
-      } catch {}
-    }
-
-    await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
-  }
+   async sendWelcomeNotice(opts: {
+     mentorId?: string;
+     email: string;
+     name: string;
+     brandName: string;
+     phone?: string;
+   }) {
+     let appUrl = process.env.APP_URL || 'http://localhost:8080';
+     let mentor: User | null = null;
+     if (opts.mentorId) {
+       mentor = await this.users.findOne({ where: { id: opts.mentorId } });
+       if (mentor?.customDomain) {
+         appUrl = `https://${mentor.customDomain}`;
+       }
+     }
+     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+     const firstName = (opts.name || '').split(' ')[0];
+     const brandName = mentor?.brandName || opts.brandName;
+ 
+     try {
+       const html = this.mail.generateStandardTemplate({
+         brandName,
+         brandLogoUrl: mentor?.brandLogoUrl,
+         brandPrimaryColor: mentor?.brandPrimaryColor,
+         firstName,
+         message: `Sua conta em <b>${brandName}</b> foi criada com sucesso. Seja bem-vindo(a)!`,
+         email: opts.email,
+         loginUrl,
+       });
+ 
+       await this.mail.send({
+         to: opts.email,
+         subject: `Bem-vindo a ${brandName}`,
+         html,
+       });
+     } catch {}
+ 
+     if (opts.phone && opts.mentorId) {
+       try {
+         const text =
+           `Olá ${firstName}! 👋\n\n` +
+           `Sua conta em *${brandName}* foi criada com sucesso.\n\n` +
+           `Use o email *${opts.email}* e a senha que você cadastrou para entrar.\n\n` +
+           `🔗 ${loginUrl}`;
+         await this.whatsapp.sendText(opts.mentorId, opts.phone, text);
+       } catch {}
+     }
+ 
+     await this.users.update({ email: opts.email.toLowerCase() }, { credentialsSentAt: new Date() });
+   }
 
   /** Troca de senha autenticada (usada no primeiro login forçado e em alterações voluntárias). */
   async changePassword(userId: string, currentPassword: string, newPassword: string) {

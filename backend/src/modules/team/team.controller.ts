@@ -75,23 +75,31 @@ export class TeamController {
       mentorId, userId: user.id, name: dto.name, email, phone: dto.phone, role: dto.role, status: TeamStatus.ACTIVE,
     }));
 
-    // Email de boas vindas - resolve custom domain se houver
-    let appUrl = process.env.APP_URL || 'http://localhost:8080';
-    if (mentor?.customDomain) {
-      appUrl = `https://${mentor.customDomain}`;
-    }
-
-    this.mail.send({
-      to: email,
-      subject: `Você foi convidado para a equipe de ${mentor?.brandName || mentor?.name || 'um mentor'}`,
-      html: `
-        <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
-          <h1 style="font-size:22px;margin:0 0 16px">Olá, ${dto.name} 👋</h1>
-          <p>Você foi adicionado como <b>${this.roleLabel(dto.role)}</b> na equipe de <b>${mentor?.brandName || mentor?.name}</b>.</p>
-          <p><b>Email:</b> ${email}<br/><b>Senha temporária:</b> ${password}</p>
-          <p><a href="${appUrl}/login" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
-        </div>`,
-    }).catch(() => null);
+     // Email de boas vindas - resolve custom domain se houver
+     let appUrl = process.env.APP_URL || 'http://localhost:8080';
+     if (mentor?.customDomain) {
+       appUrl = `https://${mentor.customDomain}`;
+     }
+     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+     const brandName = mentor?.brandName || mentor?.name || 'MentorFlow';
+     const firstName = (dto.name || '').split(' ')[0];
+ 
+     const html = this.mail.generateStandardTemplate({
+       brandName,
+       brandLogoUrl: mentor?.brandLogoUrl,
+       brandPrimaryColor: mentor?.brandPrimaryColor,
+       firstName,
+       message: `Você foi adicionado como <b>${this.roleLabel(dto.role)}</b> na equipe de <b>${brandName}</b>. Seja bem-vindo(a) ao time!`,
+       email,
+       password,
+       loginUrl,
+     });
+ 
+     this.mail.send({
+       to: email,
+       subject: `Você foi convidado para a equipe de ${brandName}`,
+       html,
+     }).catch(() => null);
 
     return member;
   }
