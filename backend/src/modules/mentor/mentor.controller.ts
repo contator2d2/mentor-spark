@@ -175,26 +175,35 @@ export class MentorController {
       }),
     );
 
-    const mentor = await this.users.findOne({ where: { id: mentorId } });
-    const brand = mentor?.brandName || mentor?.name || 'MentorFlow';
-    const appUrl = process.env.APP_URL || 'http://localhost:8080';
-    try {
-      await this.mail.send({
-        to: email,
-        subject: `Bem-vindo a ${brand}`,
-        html: `
-          <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a">
-            <h1 style="font-size:22px;margin:0 0 16px">Olá, ${dto.name} 👋</h1>
-            <p>Você foi convidado(a) por <b>${mentor?.name || brand}</b> para fazer parte de <b>${brand}</b>.</p>
-            <p><b>Email:</b> ${email}<br/><b>Senha temporária:</b> ${tempPassword}</p>
-            <p><a href="${appUrl}/login" style="display:inline-block;background:#0f172a;color:#fff;padding:10px 18px;border-radius:8px;text-decoration:none">Acessar plataforma</a></p>
-            <p style="color:#64748b;font-size:13px;margin-top:24px">Recomendamos alterar a senha no primeiro acesso.</p>
-          </div>
-        `,
-      });
-    } catch (e: any) {
-      this.logger.warn(`[mentorados.create] falha ao enviar email: ${e.message}`);
-    }
+     const mentor = await this.users.findOne({ where: { id: mentorId } });
+     const brand = mentor?.brandName || mentor?.name || 'MentorFlow';
+     let appUrl = process.env.APP_URL || 'http://localhost:8080';
+     if (mentor?.customDomain) {
+       appUrl = `https://${mentor.customDomain}`;
+     }
+     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
+     const firstName = (dto.name || '').split(' ')[0];
+ 
+     try {
+       const html = this.mail.generateStandardTemplate({
+         brandName: brand,
+         brandLogoUrl: mentor?.brandLogoUrl,
+         brandPrimaryColor: mentor?.brandPrimaryColor,
+         firstName,
+         message: `Você foi convidado(a) por <b>${mentor?.name || brand}</b> para fazer parte de <b>${brand}</b>. Use as credenciais abaixo para começar.`,
+         email,
+         password: tempPassword,
+         loginUrl,
+       });
+ 
+       await this.mail.send({
+         to: email,
+         subject: `Bem-vindo a ${brand}`,
+         html,
+       });
+     } catch (e: any) {
+       this.logger.warn(`[mentorados.create] falha ao enviar email: ${e.message}`);
+     }
 
     if (dto.phone) {
       try {
