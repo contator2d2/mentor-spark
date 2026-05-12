@@ -59,7 +59,10 @@ export default function IntegrationsPage() {
        toast.error(e.message);
      }
    }
-  useEffect(() => { load(); }, []);
+   useEffect(() => {
+     load();
+     // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, []);
 
   // Polling de status enquanto QR aberto
   useEffect(() => {
@@ -162,7 +165,12 @@ export default function IntegrationsPage() {
 
   async function googleConnect() {
     try {
-      const r = await api<{ url: string }>("/integrations/google/connect", { method: "POST" });
+      // Passamos o origin atual para que o backend saiba para onde redirecionar de volta.
+      // O redirect_uri configurado no Google Cloud DEVE permitir este domínio.
+      const r = await api<{ url: string }>("/integrations/google/connect", { 
+        method: "POST",
+        body: { origin: window.location.origin }
+      });
       window.location.href = r.url;
     } catch (e: any) { toast.error(e.message); }
   }
@@ -176,7 +184,7 @@ export default function IntegrationsPage() {
     } catch (e: any) { toast.error(e.message); }
   }
 
-  if (!data || !google) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
+  if (!data || !google) return <div className="flex items-center justify-center p-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
 
   const isConnected = data.status === "connected";
 
