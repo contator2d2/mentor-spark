@@ -23,11 +23,12 @@ import PaymentProvidersSection from "@/components/payments/PaymentProvidersSecti
  interface WhatsappState {
    allowed: boolean;
    adminConfigured: boolean;
-   instances: WhatsappInstance[];
-   maxInstances: number;
-   provisioned: boolean; // para compatibilidade legada se necessário
-   status: string;      // para compatibilidade legada se necessário
-   phoneNumber: string | null; // para compatibilidade legada se necessário
+    instances?: WhatsappInstance[];
+    maxInstances?: number;
+    provisioned?: boolean;
+    status?: string;
+    phoneNumber?: string | null;
+    instanceName?: string | null;
  }
 
 interface GoogleState {
