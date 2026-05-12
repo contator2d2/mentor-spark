@@ -89,9 +89,9 @@ export class MailService {
            <!-- Content -->
            <div style="padding: 40px; color: #334155; line-height: 1.6;">
              <h1 style="font-size: 26px; margin-top: 0; color: #0f172a; font-weight: 700; letter-spacing: -0.025em;">Olá, ${opts.firstName} 👋</h1>
-             <p style="font-size: 17px; color: #475569;">${opts.message}</p>
+             <div style="font-size: 17px; color: #475569;">${opts.message}</div>
              
-             ${passwordSection}
+             ${contentSection}
              
              <div style="text-align: center; margin: 40px 0;">
                <a href="${opts.loginUrl}" style="display: inline-block; background-color: ${primaryColor}; color: #ffffff; padding: 16px 40px; border-radius: 12px; text-decoration: none; font-weight: 600; font-size: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
