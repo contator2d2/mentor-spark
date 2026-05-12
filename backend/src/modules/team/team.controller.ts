@@ -75,8 +75,12 @@ export class TeamController {
       mentorId, userId: user.id, name: dto.name, email, phone: dto.phone, role: dto.role, status: TeamStatus.ACTIVE,
     }));
 
-    // Email de boas vindas
-    const appUrl = process.env.APP_URL || 'http://localhost:8080';
+    // Email de boas vindas - resolve custom domain se houver
+    let appUrl = process.env.APP_URL || 'http://localhost:8080';
+    if (mentor?.customDomain) {
+      appUrl = `https://${mentor.customDomain}`;
+    }
+
     this.mail.send({
       to: email,
       subject: `Você foi convidado para a equipe de ${mentor?.brandName || mentor?.name || 'um mentor'}`,

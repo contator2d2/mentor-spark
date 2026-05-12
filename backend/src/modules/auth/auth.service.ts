@@ -165,7 +165,13 @@ export class AuthService {
     brandName: string;
     phone?: string;
   }) {
-    const appUrl = process.env.APP_URL || 'http://localhost:8080';
+    let appUrl = process.env.APP_URL || 'http://localhost:8080';
+    if (opts.mentorId) {
+      const mentor = await this.users.findOne({ where: { id: opts.mentorId } });
+      if (mentor?.customDomain) {
+        appUrl = `https://${mentor.customDomain}`;
+      }
+    }
     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
     const firstName = (opts.name || '').split(' ')[0];
 
@@ -224,7 +230,13 @@ export class AuthService {
     brandName: string;
     phone?: string;
   }) {
-    const appUrl = process.env.APP_URL || 'http://localhost:8080';
+    let appUrl = process.env.APP_URL || 'http://localhost:8080';
+    if (opts.mentorId) {
+      const mentor = await this.users.findOne({ where: { id: opts.mentorId } });
+      if (mentor?.customDomain) {
+        appUrl = `https://${mentor.customDomain}`;
+      }
+    }
     const loginUrl = `${appUrl.replace(/\/$/, '')}/login`;
     const firstName = (opts.name || '').split(' ')[0];
 

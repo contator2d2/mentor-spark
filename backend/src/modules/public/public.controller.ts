@@ -77,7 +77,15 @@ export class PublicController {
 
   @Get('mentor/:slug/qrcode')
   async getQrCode(@Param('slug') slug: string) {
-    const url = `${process.env.APP_URL || 'http://localhost:8080'}/c/${slug}`;
+    const m = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
+    if (!m) throw new NotFoundException('Mentor não encontrado');
+
+    let baseUrl = (process.env.APP_URL || 'http://localhost:8080').replace(/\/$/, '');
+    if (m.customDomain) {
+      baseUrl = `https://${m.customDomain}`;
+    }
+
+    const url = `${baseUrl}/c/${slug}`;
     const dataUrl = await QRCode.toDataURL(url, { width: 512, margin: 2 });
     return { url, qr: dataUrl };
   }
