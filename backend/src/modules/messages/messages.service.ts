@@ -402,10 +402,14 @@ export class MessagesService {
     return base.replace(/\/$/, '') + url;
   }
 
-  private bodyToHtml(body: string): string {
-    const safe = body.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br/>');
-    return `<div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;color:#0f172a;line-height:1.6">${safe}</div>`;
-  }
+   private bodyToHtml(body: string): string {
+     if (!body) return '';
+     return body
+       .replace(/&/g, '&amp;')
+       .replace(/</g, '&lt;')
+       .replace(/>/g, '&gt;')
+       .replace(/\n/g, '<br/>');
+   }
 
   /** Cron: dispara mensagens agendadas vencidas e inicia broadcasts agendados */
   @Cron(CronExpression.EVERY_MINUTE)
