@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 import { api, setToken, getToken } from "@/lib/api";
 import { useBranding } from "./BrandingContext";
 
-export type Role = "super_admin" | "mentor" | "mentorado" | "prospect";
+ export type Role = "super_admin" | "mentor" | "mentorado" | "prospect" | "admin" | "editor" | "attendant";
 
 export interface SessionUser {
   id: string;

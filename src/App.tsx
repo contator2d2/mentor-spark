@@ -108,15 +108,22 @@ function HomeRedirect() {
      return <Landing />;
    }
   
-  if (user.role === "prospect" || user.role === "mentorado") return <Navigate to="/me" replace />;
+   if (user.role === "prospect" || user.role === "mentorado") {
+     return <Navigate to="/me" replace />;
+   }
+ 
+   // Verificação de permissões da equipe (admin, editor, attendant)
+   // Membros da equipe são mapeados no backend para a role "mentor" (ou similar) mas possuem um campo de permissão específico
+   // No frontend, garantimos que eles sejam direcionados para o painel principal
+   const staffRoles: any[] = ["mentor", "super_admin", "admin", "editor", "attendant"];
+   if (staffRoles.includes(user.role)) {
+     if (user.role === "mentor" && !user.onboardingCompleted) {
+       return <Navigate to="/app/onboarding" replace />;
+     }
+     return <Navigate to="/app" replace />;
+   }
   
-  // Se é mentor/admin, em um domínio customizado a raiz continua sendo a página do mentorado?
-  // O usuário pediu: "a raiz do dominio do mentor tem que ser focado no mentorado".
-  // Então mesmo logado como mentor, se acessar a raiz de um domínio customizado, talvez devesse ver a área do mentorado ou ser redirecionado para /admin.
-  // Mas normalmente o mentor quer ir direto pro painel. Vamos manter o redirecionamento padrão para logados.
-  
-  if (user.role === "mentor" && !user.onboardingCompleted) return <Navigate to="/app/onboarding" replace />;
-  return <Navigate to="/app" replace />;
+   return <Navigate to="/" replace />;
 }
 
 /** Redireciona para o login ou dashboard de admin dependendo do estado */
@@ -124,7 +131,8 @@ function AdminRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-  if (user.role === "mentor" || user.role === "super_admin") return <Navigate to="/app" replace />;
+   const staffRoles: any[] = ["mentor", "super_admin", "admin", "editor", "attendant"];
+   if (staffRoles.includes(user.role)) return <Navigate to="/app" replace />;
   return <Navigate to="/" replace />;
 }
 
@@ -156,7 +164,7 @@ const App = () => (
               <Route
                 path="/trocar-senha"
                 element={
-                  <ProtectedRoute roles={["mentor", "super_admin", "mentorado", "prospect"]}>
+                     <ProtectedRoute roles={["mentor", "super_admin", "mentorado", "prospect", "admin", "editor", "attendant"]}>
                     <ChangePasswordPage />
                   </ProtectedRoute>
                 }
@@ -166,7 +174,7 @@ const App = () => (
               <Route
                 path="/app"
                 element={
-                  <ProtectedRoute roles={["mentor", "super_admin"]}>
+                   <ProtectedRoute roles={["mentor", "super_admin", "admin", "editor", "attendant"]}>
                     <AppLayout />
                   </ProtectedRoute>
                 }
@@ -227,7 +235,7 @@ const App = () => (
               <Route
                 path="/app/onboarding"
                 element={
-                  <ProtectedRoute roles={["mentor", "super_admin"]}>
+                   <ProtectedRoute roles={["mentor", "super_admin", "admin", "editor", "attendant"]}>
                     <Onboarding />
                   </ProtectedRoute>
                 }
