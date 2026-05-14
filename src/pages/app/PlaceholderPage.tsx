@@ -7,7 +7,12 @@ export default function PlaceholderPage({ title, description, endpoint }: { titl
   const [items, setItems] = useState<any[] | null>(null);
   useEffect(() => {
     if (!endpoint) return setItems([]);
-    api(endpoint).then(setItems).catch(() => setItems([]));
+    api(endpoint)
+      .then(setItems)
+      .catch((err) => {
+        console.error(`Error loading ${endpoint}:`, err);
+        setItems([]);
+      });
   }, [endpoint]);
   return (
     <div className="space-y-6">
