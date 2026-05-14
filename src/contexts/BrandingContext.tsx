@@ -13,7 +13,7 @@ export interface TenantBrand {
 interface BrandingContextValue {
   brand: TenantBrand | null;
   setBrand: (b: TenantBrand | null) => void;
-  refreshFromHost: () => Promise<void>;
+   refreshFromHost: (forceHost?: string) => Promise<void>;
   loading: boolean;
 }
 
