@@ -109,11 +109,44 @@ export class TeamController {
   async update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: { role?: TeamRole; status?: TeamStatus; name?: string; phone?: string }) {
     const m = await this.members.findOne({ where: { id, mentorId } });
     if (!m) throw new BadRequestException('Membro não encontrado');
-    await this.members.update(id, dto);
-    if (dto.role) await this.users.update(m.userId, { teamRole: dto.role });
-    if (dto.status === TeamStatus.SUSPENDED) await this.users.update(m.userId, { status: UserStatus.SUSPENDED });
-    if (dto.status === TeamStatus.ACTIVE) await this.users.update(m.userId, { status: UserStatus.ACTIVE });
+
+    // Filtra apenas campos válidos para o TeamMember
+    const memberUpdate: any = {};
+    if (dto.role) memberUpdate.role = dto.role;
+    if (dto.status) memberUpdate.status = dto.status;
+    if (dto.name) memberUpdate.name = dto.name;
+    if (dto.phone !== undefined) memberUpdate.phone = dto.phone;
+
+    if (Object.keys(memberUpdate).length > 0) {
+      await this.members.update(id, memberUpdate);
+    }
+
+    // Atualiza o User correspondente
+    const userUpdate: any = {};
+    if (dto.role) userUpdate.teamRole = dto.role;
+    if (dto.name) userUpdate.name = dto.name;
+    if (dto.phone !== undefined) userUpdate.phone = dto.phone;
+    if (dto.status === TeamStatus.SUSPENDED || dto.status === 'inactive') userUpdate.status = UserStatus.SUSPENDED;
+    if (dto.status === TeamStatus.ACTIVE) userUpdate.status = UserStatus.ACTIVE;
+
+    if (Object.keys(userUpdate).length > 0) {
+      await this.users.update(m.userId, userUpdate);
+    }
+
     return this.members.findOne({ where: { id } });
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Patch(':id/password')
+  async updatePassword(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: { password?: string }) {
+    const m = await this.members.findOne({ where: { id, mentorId } });
+    if (!m) throw new BadRequestException('Membro não encontrado');
+    if (!dto.password || dto.password.length < 6) throw new BadRequestException('Senha deve ter no mínimo 6 caracteres');
+
+    const passwordHash = await bcrypt.hash(dto.password, 10);
+    await this.users.update(m.userId, { passwordHash });
+
+    return { ok: true };
   }
 
   @Auth('mentor', 'super_admin')
