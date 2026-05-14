@@ -19,7 +19,20 @@ export default function Dashboard() {
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
-    api("/dashboard").then(setData).catch(() => {});
+    api("/dashboard")
+      .then(setData)
+      .catch((err) => {
+        console.error("Dashboard error:", err);
+        // Fallback para evitar tela em branco por erro de API
+        setData({
+          totalLeads: 0,
+          clients: 0,
+          meetings: 0,
+          tests: 0,
+          conversion: 0,
+          temperature: { hot: 0, warm: 0, cold: 0 }
+        });
+      });
   }, []);
 
   if (!data)
