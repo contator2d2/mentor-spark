@@ -92,11 +92,10 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     []
   );
 
-   const refreshFromHost = useCallback(
-     async (forceHost?: string) => {
-       setLoading(true);
-       try {
-         const host = forceHost || window.location.host;
+   const refreshFromHost = useCallback(async (forceHost?: string) => {
+     setLoading(true);
+     try {
+       const host = forceHost || window.location.host;
          const data = await api<TenantBrand | null>(
            `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
            { auth: false }
