@@ -78,14 +78,12 @@ const AuthContext = createContext<AuthContextValue | null>(null);
          mustChangePassword: u.mustChangePassword,
          tenantBrand: u.tenantBrand,
        };
-        setUser(sess);
- 
         // Se o usuário for staff (admin/editor/attendant), buscamos o mentor dono
         if (["admin", "editor", "attendant"].includes(sess.role) && sess.mentorId) {
           try {
             const mentorData = await api<any>(`/public/mentor-by-id/${sess.mentorId}`, { auth: false });
             if (mentorData) {
-              setStaffMentor({
+              const mentorInfo = {
                 id: mentorData.id,
                 email: "", // não exposto publicamente por segurança
                 name: mentorData.name,
@@ -96,7 +94,17 @@ const AuthContext = createContext<AuthContextValue | null>(null);
                 brandPrimaryColor: mentorData.brandPrimaryColor,
                 brandAccentColor: mentorData.brandAccentColor,
                 customDomain: mentorData.customDomain
-              } as SessionUser);
+              } as SessionUser;
+              setStaffMentor(mentorInfo);
+              
+              // Membros de equipe devem usar o branding do mentor (tenant)
+              setBrand({
+                brandName: mentorInfo.brandName,
+                brandLogoUrl: mentorInfo.brandLogoUrl,
+                brandPrimaryColor: mentorInfo.brandPrimaryColor,
+                brandAccentColor: mentorInfo.brandAccentColor,
+                slug: mentorInfo.slug,
+              });
             }
           } catch (e) {
             console.error("Erro ao buscar mentor do staff:", e);
@@ -104,6 +112,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
         } else {
           setStaffMentor(null);
         }
+
+        setUser(sess);
  
        // Se o mentor tem um domínio customizado configurado, forçamos o refresh do branding
        // para garantir que as variáveis CSS e logos correspondam ao que está no banco,
