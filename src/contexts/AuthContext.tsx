@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+ import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { api, setToken, getToken } from "@/lib/api";
 import { useBranding } from "./BrandingContext";
 
@@ -40,7 +40,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
-  const { setBrand } = useBranding();
+   const { setBrand, refreshFromHost } = useBranding();
 
   function applyUserBrand(u: SessionUser) {
     // Mentor/Super Admin → branding próprio.
@@ -58,26 +58,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  async function refreshUser() {
-    const u = await api<any>("/me");
-    const sess: SessionUser = {
-      id: u.id,
-      email: u.email,
-      name: u.name,
-      role: u.role,
-      slug: u.slug,
-      brandName: u.brandName,
-      brandLogoUrl: u.brandLogoUrl,
-      brandPrimaryColor: u.brandPrimaryColor,
-      brandAccentColor: u.brandAccentColor,
-      onboardingCompleted: u.onboardingCompleted,
-      mentorId: u.mentorId,
-      mustChangePassword: u.mustChangePassword,
-      tenantBrand: u.tenantBrand,
-    };
-    setUser(sess);
-    applyUserBrand(sess);
-  }
+   const refreshUser = useCallback(async () => {
+     try {
+       const u = await api<any>("/me");
+       const sess: SessionUser = {
+         id: u.id,
+         email: u.email,
+         name: u.name,
+         role: u.role,
+         slug: u.slug,
+         brandName: u.brandName,
+         brandLogoUrl: u.brandLogoUrl,
+         brandPrimaryColor: u.brandPrimaryColor,
+         brandAccentColor: u.brandAccentColor,
+         onboardingCompleted: u.onboardingCompleted,
+         mentorId: u.mentorId,
+         mustChangePassword: u.mustChangePassword,
+         tenantBrand: u.tenantBrand,
+       };
+       setUser(sess);
+ 
+       // Se o mentor tem um domínio customizado configurado, forçamos o refresh do branding
+       // para garantir que as variáveis CSS e logos correspondam ao que está no banco,
+       // mesmo se ele estiver acessando via domínio genérico.
+       if ((sess.role === "mentor" || sess.role === "super_admin") && u.customDomain) {
+         await refreshFromHost(u.customDomain);
+       } else {
+         applyUserBrand(sess);
+       }
+     } catch (err) {
+       setToken(null);
+       setUser(null);
+     }
+   }, [refreshFromHost]);
 
   useEffect(() => {
     const t = getToken();

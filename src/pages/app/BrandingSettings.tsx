@@ -24,8 +24,8 @@ const APP_BASE_DOMAIN =
   (import.meta.env.VITE_APP_BASE_DOMAIN as string | undefined) || "gleego.com.br";
 
 export default function BrandingSettings() {
-  const { user, refreshUser } = useAuth();
-  const { setBrand } = useBranding();
+   const { user, refreshUser: authRefresh } = useAuth();
+   const { setBrand, refreshFromHost } = useBranding();
   const [saving, setSaving] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
@@ -85,7 +85,10 @@ export default function BrandingSettings() {
         customDomain: form.customDomain?.trim().toLowerCase() || "",
       };
       await api("/me/brand", { method: "PUT", body: payload });
-      await refreshUser();
+       if (payload.customDomain) {
+         await refreshFromHost(payload.customDomain);
+       }
+       await authRefresh();
       toast.success("Branding salvo!");
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar");

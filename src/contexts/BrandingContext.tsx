@@ -1,5 +1,5 @@
-import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
-import { api, getToken } from "@/lib/api";
+ import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
+ import { api } from "@/lib/api";
 
 export interface TenantBrand {
   id?: string;
@@ -13,7 +13,7 @@ export interface TenantBrand {
 interface BrandingContextValue {
   brand: TenantBrand | null;
   setBrand: (b: TenantBrand | null) => void;
-  refreshFromHost: () => Promise<void>;
+   refreshFromHost: (forceHost?: string) => Promise<void>;
   loading: boolean;
 }
 
@@ -92,20 +92,25 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
     []
   );
 
-  const refreshFromHost = useCallback(async () => {
-    setLoading(true);
-    try {
-      const host = window.location.host;
-      const data = await api<TenantBrand | null>(`/public/tenant-by-host?host=${encodeURIComponent(host)}`, { auth: false });
-      if (data && (data.brandName || data.slug)) {
-        setBrand(data);
-      }
-    } catch {
-      // sem tenant por host — segue default
-    } finally {
-      setLoading(false);
-    }
-  }, [setBrand]);
+   const refreshFromHost = useCallback(async (forceHost?: string) => {
+     setLoading(true);
+     try {
+       const host = forceHost || window.location.host;
+         const data = await api<TenantBrand | null>(
+           `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
+           { auth: false }
+         );
+         if (data && (data.brandName || data.slug)) {
+           setBrand(data);
+         }
+       } catch {
+         // sem tenant por host — segue default
+       } finally {
+         setLoading(false);
+       }
+     },
+     [setBrand]
+   );
 
   // Bootstrap: tenta resolver tenant por host antes de qualquer login
   useEffect(() => {
