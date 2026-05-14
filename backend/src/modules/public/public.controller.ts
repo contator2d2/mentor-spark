@@ -60,7 +60,24 @@ export class PublicController {
   }
 
   /** Página pública de captação por slug do mentor */
-  @Get('mentor/:slug')
+   @Get('mentor-by-id/:id')
+   async getMentorById(@Param('id') id: string) {
+     const m = await this.users.findOne({ where: { id, status: UserStatus.ACTIVE } });
+     if (!m) throw new NotFoundException('Mentor não encontrado');
+     return {
+       id: m.id,
+       name: m.name,
+       brandName: m.brandName || m.name,
+       brandLogoUrl: m.brandLogoUrl,
+       brandPrimaryColor: m.brandPrimaryColor,
+       brandAccentColor: m.brandAccentColor,
+       slug: m.slug,
+       customDomain: m.customDomain,
+     };
+   }
+ 
+   /** Página pública de captação por slug do mentor */
+   @Get('mentor/:slug')
   async getMentorBySlug(@Param('slug') slug: string) {
     const m = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
     if (!m) throw new NotFoundException('Mentor não encontrado');
