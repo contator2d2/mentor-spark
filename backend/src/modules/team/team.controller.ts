@@ -126,7 +126,7 @@ export class TeamController {
     if (dto.role) userUpdate.teamRole = dto.role;
     if (dto.name) userUpdate.name = dto.name;
     if (dto.phone !== undefined) userUpdate.phone = dto.phone;
-    if (dto.status === TeamStatus.SUSPENDED || dto.status === 'inactive') userUpdate.status = UserStatus.SUSPENDED;
+     if (dto.status === TeamStatus.SUSPENDED) userUpdate.status = UserStatus.SUSPENDED;
     if (dto.status === TeamStatus.ACTIVE) userUpdate.status = UserStatus.ACTIVE;
 
     if (Object.keys(userUpdate).length > 0) {
