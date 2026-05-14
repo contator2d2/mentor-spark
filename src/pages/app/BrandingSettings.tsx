@@ -24,21 +24,36 @@ const APP_BASE_DOMAIN =
   (import.meta.env.VITE_APP_BASE_DOMAIN as string | undefined) || "gleego.com.br";
 
 export default function BrandingSettings() {
-   const { user, refreshUser: authRefresh } = useAuth();
+   const { user, refreshUser: authRefresh, staffMentor } = useAuth();
    const { setBrand, refreshFromHost } = useBranding();
   const [saving, setSaving] = useState(false);
   const [qr, setQr] = useState<string | null>(null);
   const [loadingQr, setLoadingQr] = useState(false);
   const [domainStatus, setDomainStatus] = useState<"idle" | "checking" | "ok" | "error">("idle");
 
-  const [form, setForm] = useState({
-    brandName: user?.brandName || "",
-    slug: user?.slug || "",
-    brandLogoUrl: user?.brandLogoUrl || "",
-    brandPrimaryColor: user?.brandPrimaryColor || "#1e3a8a",
-    brandAccentColor: user?.brandAccentColor || "#d4a017",
-    customDomain: (user as any)?.customDomain || "",
-  });
+   const initialData = staffMentor || user;
+   const [form, setForm] = useState({
+     brandName: initialData?.brandName || "",
+     slug: initialData?.slug || "",
+     brandLogoUrl: initialData?.brandLogoUrl || "",
+     brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
+     brandAccentColor: initialData?.brandAccentColor || "#d4a017",
+     customDomain: (initialData as any)?.customDomain || "",
+   });
+ 
+   useEffect(() => {
+     const data = staffMentor || user;
+     if (data) {
+       setForm({
+         brandName: data.brandName || "",
+         slug: data.slug || "",
+         brandLogoUrl: data.brandLogoUrl || "",
+         brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
+         brandAccentColor: data.brandAccentColor || "#d4a017",
+         customDomain: (data as any).customDomain || "",
+       });
+     }
+   }, [user, staffMentor]);
 
   // Hosts úteis derivados
   const currentHost = typeof window !== "undefined" ? window.location.host : "";
@@ -134,7 +149,8 @@ export default function BrandingSettings() {
         `/public/tenant-by-host?host=${encodeURIComponent(form.customDomain)}`,
         { auth: false }
       );
-      if (r && r.id === user?.id) setDomainStatus("ok");
+       const targetId = staffMentor?.id || user?.id;
+       if (r && r.id === targetId) setDomainStatus("ok");
       else setDomainStatus("error");
     } catch {
       setDomainStatus("error");

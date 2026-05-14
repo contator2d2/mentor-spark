@@ -27,7 +27,8 @@ export interface SessionUser {
 }
 
 interface AuthContextValue {
-  user: SessionUser | null;
+   user: SessionUser | null;
+   staffMentor: SessionUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<SessionUser>;
   logout: () => void;
@@ -37,8 +38,9 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<SessionUser | null>(null);
+ export function AuthProvider({ children }: { children: ReactNode }) {
+   const [user, setUser] = useState<SessionUser | null>(null);
+   const [staffMentor, setStaffMentor] = useState<SessionUser | null>(null);
   const [loading, setLoading] = useState(true);
    const { setBrand, refreshFromHost } = useBranding();
 
@@ -76,7 +78,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
          mustChangePassword: u.mustChangePassword,
          tenantBrand: u.tenantBrand,
        };
-       setUser(sess);
+        setUser(sess);
+ 
+        // Se o usuário for staff (admin/editor/attendant), buscamos o mentor dono
+        if (["admin", "editor", "attendant"].includes(sess.role) && sess.mentorId) {
+          try {
+            const mentorData = await api<any>(`/public/mentor-by-id/${sess.mentorId}`, { auth: false });
+            if (mentorData) {
+              setStaffMentor({
+                id: mentorData.id,
+                email: "", // não exposto publicamente por segurança
+                name: mentorData.name,
+                role: "mentor",
+                slug: mentorData.slug,
+                brandName: mentorData.brandName,
+                brandLogoUrl: mentorData.brandLogoUrl,
+                brandPrimaryColor: mentorData.brandPrimaryColor,
+                brandAccentColor: mentorData.brandAccentColor,
+                customDomain: mentorData.customDomain
+              } as SessionUser);
+            }
+          } catch (e) {
+            console.error("Erro ao buscar mentor do staff:", e);
+          }
+        } else {
+          setStaffMentor(null);
+        }
  
        // Se o mentor tem um domínio customizado configurado, forçamos o refresh do branding
        // para garantir que as variáveis CSS e logos correspondam ao que está no banco,
@@ -87,8 +114,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
          applyUserBrand(sess);
        }
      } catch (err) {
-       setToken(null);
-       setUser(null);
+     setToken(null);
+     setUser(null);
+     setStaffMentor(null);
      }
    }, [refreshFromHost]);
 
@@ -143,7 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, signupMentor, refreshUser }}>
+    <AuthContext.Provider value={{ user, staffMentor, loading, login, logout, signupMentor, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
