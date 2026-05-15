@@ -54,7 +54,7 @@ export class PlansController {
   @Get('me/features')
   async myFeatures(@CurrentUser() u: any) {
     // super_admin e mentorado/team usam o mentorId apropriado
-    const mentorId = u.role === 'mentor' ? u.sub : u.mentorId || u.sub;
+    const mentorId = u.role === 'mentor' ? u.sub : u.parentMentorId || u.mentorId || u.sub;
     if (u.role === 'super_admin') {
       // super admin vê tudo liberado
       return {
