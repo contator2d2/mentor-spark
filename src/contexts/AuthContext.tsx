@@ -134,14 +134,20 @@ const AuthContext = createContext<AuthContextValue | null>(null);
         const isUnauthorized = err.message?.includes("401") || 
                              err.message?.toLowerCase().includes("unauthorized") || 
                              err.message?.toLowerCase().includes("não autorizado");
-        const isForbidden = err.message?.includes("403") || 
-                           err.message?.toLowerCase().includes("forbidden") || 
-                           err.message?.toLowerCase().includes("sem permissão");
-        
+        const isForbidden = err.message?.includes("403") ||
+                          err.message?.toLowerCase().includes("forbidden") ||
+                          err.message?.toLowerCase().includes("sem permissão");
+
+        // IMPORTANTE: Se o erro for 403 e já temos um usuário carregado, NÃO deslogamos.
+        // Isso acontece frequentemente quando um usuário tenta acessar recursos de outro mentor
+        // (transição de abas ou links antigos) mas sua sessão em si é válida.
+        // Apenas deslogamos se for 401 (token expirado) ou se não conseguimos carregar o usuário inicial.
         if (isUnauthorized || (isForbidden && !user)) {
           setToken(null);
           setUser(null);
           setStaffMentor(null);
+        } else if (isForbidden && user) {
+          console.warn("Acesso negado a um recurso, mas mantendo sessão ativa.");
         }
       }
    }, [refreshFromHost]);
