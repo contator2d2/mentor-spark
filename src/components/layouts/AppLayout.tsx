@@ -102,7 +102,8 @@ export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const items = user ? NAV.filter((i) => {
     const userRole = user.role || "";
-    if (i.roles && !i.roles.includes(userRole)) return false;
+    const effectiveRole = userRole === "mentor_team" ? user.teamRole || "attendant" : userRole;
+    if (i.roles && !i.roles.includes(effectiveRole)) return false;
     if (userRole === "super_admin") return true;
     if (i.feature && !features[i.feature]) return false;
     return true;
