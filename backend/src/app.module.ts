@@ -36,7 +36,8 @@ import { KanbanModule } from './modules/kanban/kanban.module';
 import { MessagesModule } from './modules/messages/messages.module';
 import { TeamModule } from './modules/team/team.module';
 import { AutomationsModule } from './modules/automations/automations.module';
-import { LibraryModule } from './modules/library/library.module';
+ import { LibraryModule } from './modules/library/library.module';
+ import { DemandsModule } from './modules/demands/demands.module';
 import { QuizModule } from './modules/quiz/quiz.module';
 import { SchedulingModule } from './modules/scheduling/scheduling.module';
 import { TrailsModule } from './modules/trails/trails.module';
@@ -92,7 +93,8 @@ import { buildPgOptions } from './db.config';
     MessagesModule,
     TeamModule,
     AutomationsModule,
-    LibraryModule,
+     LibraryModule,
+     DemandsModule,
     QuizModule,
     SchedulingModule,
     TrailsModule,

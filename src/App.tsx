@@ -41,6 +41,9 @@ import LeadCreatePage from "./pages/app/LeadCreatePage";
 import CompanyDossier from "./pages/app/CompanyDossier";
 import PromptsPage from "./pages/app/PromptsPage";
 import TasksKanban from "./pages/app/TasksKanban";
+import DemandsPage from "./pages/app/DemandsPage";
+import DemandCreatePage from "./pages/app/DemandCreatePage";
+import DemandDetailPage from "./pages/app/DemandDetailPage";
 import ContentsPage from "./pages/app/ContentsPage";
 import MeetingsListPage from "./pages/app/MeetingsListPage";
 import MeetingPreparePage from "./pages/app/MeetingPreparePage";
@@ -199,6 +202,9 @@ const App = () => (
                 <Route path="meetings/:id" element={<MeetingDetailPage />} />
                 <Route path="meetings/:id/prepare" element={<MeetingPreparePage />} />
                 <Route path="tasks" element={<TasksKanban />} />
+                <Route path="demands" element={<DemandsPage />} />
+                <Route path="demands/new" element={<DemandCreatePage />} />
+                <Route path="demands/:id" element={<DemandDetailPage />} />
                 <Route path="contents" element={<ContentsPage />} />
                 <Route path="boards" element={<BoardsListPage />} />
                 <Route path="boards/:id" element={<BoardDetailPage />} />
