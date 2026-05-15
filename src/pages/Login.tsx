@@ -20,6 +20,9 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
+      // Limpa tokens antigos antes de tentar novo login para evitar conflitos de cache
+      localStorage.removeItem("mentorflow_token");
+      
       const u = await login(email, password);
       toast.success(`Bem-vindo, ${u.name}`);
       if (u.mustChangePassword) {
