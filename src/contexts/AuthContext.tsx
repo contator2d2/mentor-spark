@@ -2,7 +2,7 @@
 import { api, setToken, getToken } from "@/lib/api";
 import { useBranding } from "./BrandingContext";
 
- export type Role = "super_admin" | "mentor" | "mentorado" | "prospect" | "admin" | "editor" | "attendant";
+ export type Role = "super_admin" | "mentor" | "mentor_team" | "mentorado" | "prospect" | "admin" | "editor" | "attendant";
 
 export interface SessionUser {
   id: string;
@@ -16,6 +16,8 @@ export interface SessionUser {
   brandAccentColor?: string;
   onboardingCompleted?: boolean;
   mentorId?: string;
+  parentMentorId?: string;
+  teamRole?: "admin" | "editor" | "attendant" | string;
   mustChangePassword?: boolean;
   tenantBrand?: {
     brandName?: string;
@@ -46,8 +48,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
   function applyUserBrand(u: SessionUser) {
     // Mentor/Super Admin → branding próprio.
-    // Mentorado/Prospect → tenantBrand do mentor dono.
-    if (u.role === "mentorado" || u.role === "prospect") {
+    // Mentorado/Prospect/Equipe → tenantBrand do mentor dono.
+    if (u.role === "mentorado" || u.role === "prospect" || u.role === "mentor_team") {
       if (u.tenantBrand) setBrand(u.tenantBrand);
     } else if (u.brandName || u.brandPrimaryColor) {
       setBrand({
@@ -75,11 +77,13 @@ const AuthContext = createContext<AuthContextValue | null>(null);
          brandAccentColor: u.brandAccentColor,
          onboardingCompleted: u.onboardingCompleted,
          mentorId: u.mentorId,
+         parentMentorId: u.parentMentorId,
+         teamRole: u.teamRole,
          mustChangePassword: u.mustChangePassword,
          tenantBrand: u.tenantBrand,
        };
         // Se o usuário for staff (admin/editor/attendant), buscamos o mentor dono
-        if (["admin", "editor", "attendant"].includes(sess.role) && sess.mentorId) {
+        if (sess.role === "mentor_team" && sess.mentorId) {
           try {
             const mentorData = await api<any>(`/public/mentor-by-id/${sess.mentorId}`, { auth: false });
             if (mentorData) {
