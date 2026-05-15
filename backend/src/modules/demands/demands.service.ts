@@ -140,9 +140,10 @@ export class DemandsService {
      const saved = await this.comments.save(comment);
  
      // Se quem comentou não foi a agência, notifica a agência
-     if (demand.agencyId && demand.agencyId !== userId) {
-       await this.notifyAgency(mentorId, demand, 'Novo Comentário', `Um novo comentário foi adicionado na demanda "${demand.title}".`);
-     }
+      if (demand.agencyId && demand.agencyId !== userId) {
+        const attachmentInfo = (dto.attachments && dto.attachments.length > 0) ? ` (com ${dto.attachments.length} anexo(s))` : '';
+        await this.notifyAgency(mentorId, demand, 'Novo Comentário', `Um novo comentário foi adicionado na demanda "${demand.title}"${attachmentInfo}.`);
+      }
  
      return saved;
    }
