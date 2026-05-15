@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+ import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -55,12 +56,15 @@ const PRIORITY_COLORS = {
 };
 
 export default function DemandsPage() {
+   const { user } = useAuth();
   const [demands, setDemands] = useState<Demand[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
+   const isAgency = user?.teamRole === "agency";
+ 
   const load = () => api<Demand[]>("/demands").then(setDemands).finally(() => setLoading(false));
 
   useEffect(() => {
@@ -112,9 +116,11 @@ export default function DemandsPage() {
                <ListIcon className="h-4 w-4 mr-1" /> Lista
              </Button>
           </div>
-          <Button onClick={() => navigate("new")}>
-            <Plus className="h-4 w-4 mr-2" />Nova Demanda
-          </Button>
+           {!isAgency && (
+             <Button onClick={() => navigate("new")}>
+               <Plus className="h-4 w-4 mr-2" />Nova Demanda
+             </Button>
+           )}
         </div>
       </div>
 
