@@ -121,7 +121,7 @@ function HomeRedirect() {
    // Verificação de permissões da equipe (admin, editor, attendant)
    // Membros da equipe são mapeados no backend para a role "mentor" (ou similar) mas possuem um campo de permissão específico
    // No frontend, garantimos que eles sejam direcionados para o painel principal
-   const staffRoles: any[] = ["mentor", "super_admin", "admin", "editor", "attendant"];
+    const staffRoles: any[] = ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"];
    if (staffRoles.includes(user.role)) {
      if (user.role === "mentor" && !user.onboardingCompleted) {
        return <Navigate to="/app/onboarding" replace />;
@@ -137,7 +137,7 @@ function AdminRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
   if (!user) return <Navigate to="/login" replace />;
-   const staffRoles: any[] = ["mentor", "super_admin", "admin", "editor", "attendant"];
+    const staffRoles: any[] = ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"];
    if (staffRoles.includes(user.role)) return <Navigate to="/app" replace />;
   return <Navigate to="/" replace />;
 }
@@ -170,7 +170,7 @@ const App = () => (
               <Route
                 path="/trocar-senha"
                 element={
-                     <ProtectedRoute roles={["mentor", "super_admin", "mentorado", "prospect", "admin", "editor", "attendant"]}>
+                     <ProtectedRoute roles={["mentor", "super_admin", "mentor_team", "mentorado", "prospect", "admin", "editor", "attendant"]}>
                     <ChangePasswordPage />
                   </ProtectedRoute>
                 }
@@ -180,7 +180,7 @@ const App = () => (
               <Route
                 path="/app"
                 element={
-                   <ProtectedRoute roles={["mentor", "super_admin", "admin", "editor", "attendant"]}>
+                    <ProtectedRoute roles={["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"]}>
                     <AppLayout />
                   </ProtectedRoute>
                 }
@@ -241,7 +241,7 @@ const App = () => (
               <Route
                 path="/app/onboarding"
                 element={
-                   <ProtectedRoute roles={["mentor", "super_admin", "admin", "editor", "attendant"]}>
+                    <ProtectedRoute roles={["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"]}>
                     <Onboarding />
                   </ProtectedRoute>
                 }
