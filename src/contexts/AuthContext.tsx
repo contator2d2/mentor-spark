@@ -127,8 +127,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
         console.error("Auth refresh failed:", err);
         // Se for 401 ou 403, desloga. Caso contrário (ex: erro de rede/servidor), 
         // mantemos o estado atual ou apenas logamos o erro para evitar tela branca.
-        const isAuthError = err.message?.includes("401") || err.message?.includes("403") || err.message?.includes("não autorizado");
-        if (isAuthError) {
+        // Se o erro for 403 (Forbidden) e o usuário estiver logado, 
+        // pode ser apenas falta de permissão em um endpoint específico (como admin de outro mentor).
+        // Não devemos deslogar o usuário imediatamente se ele já tem uma sessão,
+        // apenas se for 401 (Não autorizado) ou se não houver usuário.
+        const isUnauthorized = err.message?.includes("401") || err.message?.includes("não autorizado");
+        const isForbidden = err.message?.includes("403") || err.message?.includes("Sem permissão");
+        
+        if (isUnauthorized || (isForbidden && !user)) {
           setToken(null);
           setUser(null);
           setStaffMentor(null);
