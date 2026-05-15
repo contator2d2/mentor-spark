@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+ import { TypeOrmModule } from '@nestjs/typeorm';
+ import { IntegrationsModule } from '../integrations/integrations.module';
+ import { MailService } from '../../shared/mail.service';
 import { Demand } from '../../entities/demand.entity';
 import { DemandVersion } from '../../entities/demand-version.entity';
  import { DemandComment } from '../../entities/demand-comment.entity';
@@ -15,7 +17,7 @@ import { AiModule } from '../ai/ai.module';
      IntegrationsModule,
   ],
   controllers: [DemandsController],
-  providers: [DemandsService],
+   providers: [DemandsService, MailService],
   exports: [DemandsService],
 })
 export class DemandsModule {}
