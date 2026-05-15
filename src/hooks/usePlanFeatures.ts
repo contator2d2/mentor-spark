@@ -51,18 +51,28 @@ export function usePlanFeatures() {
     const update = (d: PlanFeaturesResponse) => { if (alive) setData(d); };
     subscribers.add(update);
 
-    api<PlanFeaturesResponse>("/plans/me/features")
-      .then((r) => {
-        cache = r;
-        subscribers.forEach((fn) => fn(r));
-      })
-      .catch(() => {
-        // Em caso de erro, libera tudo (não bloqueia UX)
+    const fetchFeatures = async () => {
+      try {
+        const r = await api<PlanFeaturesResponse>("/plans/me/features");
+        if (alive) {
+          cache = r;
+          subscribers.forEach((fn) => fn(r));
+        }
+      } catch (err: any) {
+        console.error("Error fetching plan features:", err);
+        // Em caso de erro (ex: 403 por ser admin de equipe sem acesso ao plano do mentor principal)
+        // ou erro de rede, libera tudo para não bloquear a interface (UX em primeiro lugar).
         const fallback: PlanFeaturesResponse = { plan: null, isExpired: false, features: ALL_TRUE };
-        cache = fallback;
-        subscribers.forEach((fn) => fn(fallback));
-      })
-      .finally(() => { if (alive) setLoading(false); });
+        if (alive) {
+          cache = fallback;
+          subscribers.forEach((fn) => fn(fallback));
+        }
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    fetchFeatures();
 
     return () => { alive = false; subscribers.delete(update); };
   }, [user]);
