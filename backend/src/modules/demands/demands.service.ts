@@ -50,6 +50,7 @@ export class DemandsService {
       ...dto,
       mentorId,
       status: DemandStatus.NEW,
+      desiredDeadline: dto.desiredDeadline ? new Date(dto.desiredDeadline) : undefined,
     });
     return this.repo.save(demand);
   }
@@ -57,6 +58,9 @@ export class DemandsService {
   async update(mentorId: string, id: string, dto: any) {
     const demand = await this.repo.findOne({ where: { id, mentorId } });
     if (!demand) throw new NotFoundException();
+    
+    if (dto.desiredDeadline) dto.desiredDeadline = new Date(dto.desiredDeadline);
+    if (dto.definedDeadline) dto.definedDeadline = new Date(dto.definedDeadline);
     
     Object.assign(demand, dto);
     return this.repo.save(demand);
@@ -87,7 +91,7 @@ export class DemandsService {
 
     await this.versions.save(version);
     
-    if (demand.status === DemandStatus.PRODUCTION) {
+    if (demand.status === DemandStatus.PRODUCTION || demand.status === DemandStatus.ADJUSTMENTS) {
         await this.repo.update(demandId, { status: DemandStatus.WAITING_FEEDBACK });
     }
 
@@ -117,7 +121,8 @@ Retorne um JSON com os campos: objective, targetAudience, essentialItems (lista)
 
     const raw = await this.ai.chat('Você é um especialista em marketing e produção de conteúdo.', prompt, { mentorId, useCase: 'demand_briefing' });
     try {
-      return JSON.parse(raw.replace(/^```json\s*|```$/g, '').trim());
+      const jsonStr = raw.replace(/^```json\s*|```$/g, '').trim();
+      return JSON.parse(jsonStr);
     } catch {
       return { objective: raw };
     }
