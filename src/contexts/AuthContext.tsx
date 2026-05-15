@@ -123,11 +123,17 @@ const AuthContext = createContext<AuthContextValue | null>(null);
        } else {
          applyUserBrand(sess);
        }
-     } catch (err) {
-     setToken(null);
-     setUser(null);
-     setStaffMentor(null);
-     }
+      } catch (err: any) {
+        console.error("Auth refresh failed:", err);
+        // Se for 401 ou 403, desloga. Caso contrário (ex: erro de rede/servidor), 
+        // mantemos o estado atual ou apenas logamos o erro para evitar tela branca.
+        const isAuthError = err.message?.includes("401") || err.message?.includes("403") || err.message?.includes("não autorizado");
+        if (isAuthError) {
+          setToken(null);
+          setUser(null);
+          setStaffMentor(null);
+        }
+      }
    }, [refreshFromHost]);
 
   useEffect(() => {
