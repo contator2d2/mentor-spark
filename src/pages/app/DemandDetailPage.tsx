@@ -260,9 +260,9 @@ export default function DemandDetailPage() {
               <Card>
                 <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="h-5 w-5" /> Comunicação</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                   <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
-                     {demand.comments.map(c => {
-                        const isRequestForApproval = c.text.includes("SOLICITAÇÃO DE APROVAÇÃO");
+                   <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 flex flex-col-reverse">
+                     {[...demand.comments].reverse().map(c => {
+                        const isRequestForApproval = c.text && typeof c.text === 'string' && c.text.includes("SOLICITAÇÃO DE APROVAÇÃO");
                         return (
                           <div key={c.id} className={`p-3 rounded-xl border ${isRequestForApproval ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/30 border-border/50'}`}>
                             <div className="flex items-center justify-between mb-1">
