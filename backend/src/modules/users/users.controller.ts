@@ -9,18 +9,30 @@ import { CurrentUser } from '../auth/current-user.decorator';
 export class UsersController {
   constructor(@InjectRepository(User) private users: Repository<User>) {}
 
-  @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
+  @Auth('mentor', 'super_admin', 'mentorado', 'prospect', 'mentor_team')
   @Get()
   async me(@CurrentUser() u: any) {
     const user = await this.users.findOne({ where: { id: u.sub } });
     if (!user) return null;
-    // Se for mentorado/prospect, devolve também o branding do mentor
-    if ((user.role === 'mentorado' || user.role === 'prospect') && user.mentorId) {
-      const mentor = await this.users.findOne({ where: { id: user.mentorId } });
+
+    const tenantMentorId =
+      user.role === 'mentor_team'
+        ? user.parentMentorId || user.mentorId
+        : user.role === 'mentorado' || user.role === 'prospect'
+          ? user.mentorId
+          : null;
+
+    // Se for mentorado/prospect/equipe, devolve também o branding do mentor dono
+    if (tenantMentorId) {
+      const mentor = await this.users.findOne({ where: { id: tenantMentorId } });
       return {
         ...user,
+        mentorId: tenantMentorId,
+        parentMentorId: user.parentMentorId,
+        teamRole: user.teamRole,
         tenantBrand: mentor
           ? {
+              id: mentor.id,
               brandName: mentor.brandName || mentor.name,
               brandLogoUrl: mentor.brandLogoUrl,
               brandPrimaryColor: mentor.brandPrimaryColor,
