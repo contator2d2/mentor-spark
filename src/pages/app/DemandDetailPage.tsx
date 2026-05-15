@@ -18,9 +18,13 @@ import {
   MessageSquare,
   FileText,
   Sparkles,
-  Send,
+   Send,
    Download,
    Upload,
+   Image as ImageIcon,
+   X as CloseIcon,
+   Eye,
+   Plus,
   CheckCircle2,
   AlertCircle,
   Link as LinkIcon,
@@ -60,7 +64,8 @@ interface Demand {
   checklist?: string[];
   links?: string[];
   comments: Comment[];
-  versions: Version[];
+   versions: Version[];
+   references?: { url: string; description?: string }[];
 }
 
 export default function DemandDetailPage() {
@@ -70,7 +75,9 @@ export default function DemandDetailPage() {
   const [demand, setDemand] = useState<Demand | null>(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
-  const [sending, setSending] = useState(false);
+   const [sending, setSending] = useState(false);
+   const [uploading, setUploading] = useState(false);
+   const [commentAttachments, setCommentAttachments] = useState<{ url: string; name: string; type: string }[]>([]);
   const [generating, setGenerating] = useState(false);
 
    const isAgency = user?.teamRole === "agency";
@@ -81,12 +88,63 @@ export default function DemandDetailPage() {
     load();
   }, [id]);
 
-  async function addComment() {
-    if (!commentText.trim()) return;
+   async function addComment() {
+     if (!commentText.trim() && commentAttachments.length === 0) return;
     setSending(true);
     try {
-      await api(`/demands/${id}/comments`, { method: "POST", body: { text: commentText } });
-      setCommentText("");
+       await api(`/demands/${id}/comments`, { method: "POST", body: { text: commentText, attachments: commentAttachments } });
+       setCommentText("");
+       setCommentAttachments([]);
+   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'comment' | 'version') {
+     const files = e.target.files;
+     if (!files || files.length === 0) return;
+ 
+     setUploading(true);
+     try {
+       const formData = new FormData();
+       for (let i = 0; i < files.length; i++) {
+         formData.append("files", files[i]);
+       }
+ 
+       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+         method: "POST",
+         body: formData,
+         headers: {
+           'Authorization': `Bearer ${localStorage.getItem('token')}`
+         }
+       });
+ 
+       if (!response.ok) throw new Error("Upload failed");
+       const data = await response.json();
+       
+       if (target === 'comment') {
+         setCommentAttachments(prev => [...prev, ...data.map((f: any) => ({ url: f.url, name: f.name, type: f.type }))]);
+       } else if (target === 'version') {
+          const versionComment = prompt("Deseja adicionar um comentário para esta entrega?");
+          await api(`/demands/${id}/versions`, { 
+            method: "POST", 
+            body: { files: data.map((f: any) => ({ url: f.url, name: f.name, type: f.type })), comment: versionComment } 
+          });
+          toast.success("Entrega realizada com sucesso!");
+          load();
+       }
+     } catch (e) {
+       toast.error("Erro no upload");
+     } finally {
+       setUploading(false);
+     }
+   }
+ 
+   async function sendToApproval(comment?: string) {
+     try {
+       await updateStatus('waiting_feedback');
+       if (comment) {
+         await api(`/demands/${id}/comments`, { method: "POST", body: { text: `SOLICITAÇÃO DE APROVAÇÃO: ${comment}` } });
+       }
+       load();
+     } catch (e) {}
+   }
+ 
       load();
     } catch (e) {
       toast.error("Erro ao comentar");
@@ -151,11 +209,23 @@ export default function DemandDetailPage() {
             {!isAgency && demand.status === 'new' && (
               <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
             )}
-            {isAgency && (demand.status === 'production' || demand.status === 'adjustments') && (
-               <Button size="sm" className="gap-2" onClick={() => updateStatus('waiting_feedback')}>
-                 <Upload className="h-4 w-4" /> Marcar como Entregue
-               </Button>
-            )}
+             {isAgency && (demand.status === 'production' || demand.status === 'adjustments') && (
+                <div className="flex gap-2">
+                  <input
+                    type="file"
+                    id="delivery-upload"
+                    className="hidden"
+                    multiple
+                    onChange={(e) => handleFileUpload(e, 'version')}
+                  />
+                  <Button size="sm" variant="outline" className="gap-2" onClick={() => document.getElementById('delivery-upload')?.click()} disabled={uploading}>
+                    <Upload className="h-4 w-4" /> Enviar Arquivos
+                  </Button>
+                  <Button size="sm" className="gap-2" onClick={() => sendToApproval()} disabled={demand.versions.length === 0}>
+                    <CheckCircle2 className="h-4 w-4" /> Enviar para Aprovação
+                  </Button>
+                </div>
+             )}
          </div>
       </div>
 
@@ -186,29 +256,92 @@ export default function DemandDetailPage() {
               <Card>
                 <CardHeader><CardTitle className="text-lg flex items-center gap-2"><MessageSquare className="h-5 w-5" /> Comunicação</CardTitle></CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2">
-                    {demand.comments.map(c => (
-                      <div key={c.id} className="bg-muted/30 p-3 rounded-xl border border-border/50">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-bold text-xs">{c.user.name}</span>
-                          <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
-                        </div>
-                        <p className="text-sm">{c.text}</p>
-                      </div>
-                    ))}
+                   <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2">
+                     {demand.comments.map(c => {
+                        const isRequestForApproval = c.text.includes("SOLICITAÇÃO DE APROVAÇÃO");
+                        return (
+                          <div key={c.id} className={`p-3 rounded-xl border ${isRequestForApproval ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/30 border-border/50'}`}>
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-bold text-xs">{c.user.name}</span>
+                              <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
+                            </div>
+                            <p className="text-sm whitespace-pre-wrap">{c.text}</p>
+                            {c.attachments && c.attachments.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-2">
+                                {c.attachments.map((at: any, idx: number) => (
+                                  <div key={idx} className="relative group">
+                                    {at.type?.startsWith('image/') || (typeof at.url === 'string' && at.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? (
+                                      <img 
+                                        src={at.url} 
+                                        alt="attachment" 
+                                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
+                                        onClick={() => window.open(at.url, '_blank')}
+                                      />
+                                    ) : (
+                                      <Button variant="outline" size="sm" className="h-20 w-20 flex-col gap-1" onClick={() => window.open(at.url, '_blank')}>
+                                        <FileText className="h-6 w-6" />
+                                        <span className="text-[10px] truncate w-full px-1">{at.name || 'Arquivo'}</span>
+                                      </Button>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                     })}
                     {demand.comments.length === 0 && <p className="text-center py-4 text-muted-foreground text-sm">Nenhum comentário ainda.</p>}
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="Digite seu comentário..." 
-                      value={commentText} 
-                      onChange={(e) => setCommentText(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && addComment()}
-                    />
-                    <Button size="icon" onClick={addComment} disabled={sending || !commentText.trim()}>
-                      {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                   <div className="space-y-3">
+                     {commentAttachments.length > 0 && (
+                       <div className="flex flex-wrap gap-2 p-2 bg-muted/20 rounded-lg">
+                         {commentAttachments.map((at, idx) => (
+                           <div key={idx} className="relative h-16 w-16 group">
+                             <img src={at.url} alt="preview" className="h-full w-full object-cover rounded-md border" />
+                             <button 
+                               onClick={() => setCommentAttachments(prev => prev.filter((_, i) => i !== idx))}
+                               className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                             >
+                               <CloseIcon className="h-3 w-3" />
+                             </button>
+                           </div>
+                         ))}
+                       </div>
+                     )}
+                     <div className="flex gap-2">
+                       <input
+                         type="file"
+                         id="comment-upload"
+                         className="hidden"
+                         accept="image/*"
+                         multiple
+                         onChange={(e) => handleFileUpload(e, 'comment')}
+                       />
+                       <Button 
+                         variant="outline" 
+                         size="icon" 
+                         onClick={() => document.getElementById('comment-upload')?.click()}
+                         disabled={uploading}
+                       >
+                         {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
+                       </Button>
+                       <Textarea 
+                         placeholder="Digite seu comentário ou descreva o que quer na imagem..." 
+                         value={commentText} 
+                         className="min-h-[40px] h-[40px] py-2 resize-none"
+                         onChange={(e) => setCommentText(e.target.value)}
+                         onKeyDown={(e) => {
+                           if (e.key === 'Enter' && !e.shiftKey) {
+                             e.preventDefault();
+                             addComment();
+                           }
+                         }}
+                       />
+                       <Button size="icon" onClick={addComment} disabled={sending || (!commentText.trim() && commentAttachments.length === 0)}>
+                         {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                       </Button>
+                     </div>
                   </div>
                 </CardContent>
               </Card>
@@ -311,17 +444,67 @@ export default function DemandDetailPage() {
              </CardContent>
           </Card>
 
-          <Card>
-             <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Links e Referências</CardTitle></CardHeader>
-             <CardContent className="space-y-2">
-                {demand.links?.map((l, i) => (
-                  <a key={i} href={l} target="_blank" className="flex items-center gap-2 text-sm text-blue-600 hover:underline truncate">
-                    <LinkIcon className="h-3 w-3" /> {l}
-                  </a>
-                ))}
-                {(!demand.links || demand.links.length === 0) && <p className="text-xs text-muted-foreground">Sem links informados.</p>}
-             </CardContent>
-          </Card>
+           <Card>
+              <CardHeader className="flex flex-row items-center justify-between py-4">
+                <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Referências</CardTitle>
+                {!isAgency && (
+                  <input
+                    type="file"
+                    id="reference-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const files = e.target.files;
+                      if (!files?.length) return;
+                      const formData = new FormData();
+                      formData.append("files", files[0]);
+                      const resp = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+                        method: "POST", body: formData,
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                      });
+                      const data = await resp.json();
+                      const desc = prompt("O que você quer nessa imagem de referência?");
+                      const newRefs = [...(demand.references || []), { url: data[0].url, description: desc }];
+                      await api(`/demands/${id}`, { method: "PATCH", body: { references: newRefs } });
+                      load();
+                    }}
+                  />
+                )}
+                {!isAgency && (
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => document.getElementById('reference-upload')?.click()}>
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                )}
+              </CardHeader>
+              <CardContent className="space-y-4">
+                 {demand.references?.map((ref, i) => (
+                   <div key={i} className="space-y-1">
+                     <img 
+                        src={ref.url} 
+                        alt="ref" 
+                        className="w-full h-32 object-cover rounded-lg border cursor-pointer" 
+                        onClick={() => window.open(ref.url, '_blank')}
+                     />
+                     {ref.description && <p className="text-[10px] text-muted-foreground italic leading-tight">{ref.description}</p>}
+                   </div>
+                 ))}
+                 {(!demand.references || demand.references.length === 0) && (
+                   <p className="text-xs text-muted-foreground italic">Nenhuma referência visual.</p>
+                 )}
+              </CardContent>
+           </Card>
+ 
+           <Card>
+              <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Links</CardTitle></CardHeader>
+              <CardContent className="space-y-2">
+                 {demand.links?.map((l, i) => (
+                   <a key={i} href={l} target="_blank" className="flex items-center gap-2 text-sm text-blue-600 hover:underline truncate">
+                     <LinkIcon className="h-3 w-3" /> {l}
+                   </a>
+                 ))}
+                 {(!demand.links || demand.links.length === 0) && <p className="text-xs text-muted-foreground">Sem links informados.</p>}
+              </CardContent>
+           </Card>
         </div>
       </div>
     </div>
