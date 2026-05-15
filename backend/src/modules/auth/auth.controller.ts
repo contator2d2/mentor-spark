@@ -53,17 +53,29 @@ export class AuthController {
   }
 
   /** Alias compatível com clientes que chamam /auth/me */
-  @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
+  @Auth('mentor', 'super_admin', 'mentorado', 'prospect', 'mentor_team')
   @Get('me')
   async me(@CurrentUser() u: any) {
     const user = await this.users.findOne({ where: { id: u.sub } });
     if (!user) return null;
-    if ((user.role === 'mentorado' || user.role === 'prospect') && user.mentorId) {
-      const mentor = await this.users.findOne({ where: { id: user.mentorId } });
+
+    const tenantMentorId =
+      user.role === 'mentor_team'
+        ? user.parentMentorId || user.mentorId
+        : user.role === 'mentorado' || user.role === 'prospect'
+          ? user.mentorId
+          : null;
+
+    if (tenantMentorId) {
+      const mentor = await this.users.findOne({ where: { id: tenantMentorId } });
       return {
         ...user,
+        mentorId: tenantMentorId,
+        parentMentorId: user.parentMentorId,
+        teamRole: user.teamRole,
         tenantBrand: mentor
           ? {
+              id: mentor.id,
               brandName: mentor.brandName || mentor.name,
               brandLogoUrl: mentor.brandLogoUrl,
               brandPrimaryColor: mentor.brandPrimaryColor,
