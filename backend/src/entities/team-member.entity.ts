@@ -3,7 +3,7 @@ import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateCol
 export enum TeamRole {
   ADMIN = 'admin',         // gerencia equipe + tudo do mentor
   EDITOR = 'editor',       // gerencia conteúdo, leads, mensagens
-  ATTENDANT = 'attendant', // só atende leads e mentorados
+  ATTENDANT = 'attendant', AGENCY = 'agency', // só atende leads e mentorados
 }
 
 export enum TeamStatus {
