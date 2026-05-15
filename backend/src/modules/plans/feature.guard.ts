@@ -30,7 +30,7 @@ export class FeatureGuard implements CanActivate {
 
     if (user.role === 'super_admin') return true;
 
-    const mentorId = user.role === 'mentor' ? (user.sub || user.id) : user.mentorId;
+    const mentorId = user.role === 'mentor' ? (user.sub || user.id) : user.parentMentorId || user.mentorId;
     if (!mentorId) return true;
 
     let ok = true;
