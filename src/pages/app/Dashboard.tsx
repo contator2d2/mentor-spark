@@ -40,12 +40,15 @@ export default function Dashboard() {
     return () => { isMounted = false; };
   }, []);
 
-  if (!data)
+  if (!data) {
+    // Se já passou 5 segundos e ainda está sem dados, mostra fallback para evitar tela branca infinita
     return (
-      <div className="flex items-center justify-center h-96">
+      <div className="flex flex-col items-center justify-center h-96 gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground animate-pulse">Carregando indicadores...</p>
       </div>
     );
+  }
 
   const cards = [
     {
