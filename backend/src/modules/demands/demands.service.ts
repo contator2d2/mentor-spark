@@ -1,27 +1,42 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+ import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Demand, DemandStatus } from '../../entities/demand.entity';
 import { DemandVersion } from '../../entities/demand-version.entity';
 import { DemandComment } from '../../entities/demand-comment.entity';
+ import { User } from '../../entities/user.entity';
 import { AiService } from '../ai/ai.service';
+ import { MailService } from '../../shared/mail.service';
+ import { WhatsappService } from '../integrations/whatsapp.service';
 
 @Injectable()
 export class DemandsService {
+   private readonly logger = new Logger(DemandsService.name);
+ 
   constructor(
     @InjectRepository(Demand) private repo: Repository<Demand>,
     @InjectRepository(DemandVersion) private versions: Repository<DemandVersion>,
     @InjectRepository(DemandComment) private comments: Repository<DemandComment>,
+     @InjectRepository(User) private users: Repository<User>,
     private ai: AiService,
+     private mail: MailService,
+     private whatsapp: WhatsappService,
   ) {}
 
-  async list(mentorId: string) {
-    return this.repo.find({
-      where: { mentorId },
-      relations: ['responsible', 'agency'],
-      order: { createdAt: 'DESC' },
-    });
-  }
+   async list(mentorId: string, user?: any) {
+     const where: any = { mentorId };
+ 
+     // Se for agência, filtra apenas as que ela é responsável
+     if (user?.role === 'mentor_team' && user?.teamRole === 'agency') {
+       where.agencyId = user.sub;
+     }
+ 
+     return this.repo.find({
+       where,
+       relations: ['responsible', 'agency'],
+       order: { createdAt: 'DESC' },
+     });
+   }
 
   async findOne(mentorId: string, id: string) {
     const demand = await this.repo.findOne({
