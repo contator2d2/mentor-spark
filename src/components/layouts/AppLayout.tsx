@@ -100,13 +100,13 @@ export default function AppLayout() {
   const loc = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const items = NAV.filter((i) => {
-    if (i.roles && !i.roles.includes(user?.role || "")) return false;
-    // super_admin sempre vê tudo
-    if (user?.role === "super_admin") return true;
+  const items = user ? NAV.filter((i) => {
+    const userRole = user.role || "";
+    if (i.roles && !i.roles.includes(userRole)) return false;
+    if (userRole === "super_admin") return true;
     if (i.feature && !features[i.feature]) return false;
     return true;
-  });
+  }) : [];
   const displayName = brand?.brandName || user?.brandName || "Mentor Glee-go";
 
   const SidebarContent = ({ onNavigate }: { onNavigate?: () => void }) => (
