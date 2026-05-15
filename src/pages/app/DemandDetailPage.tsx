@@ -34,9 +34,10 @@ import { DemandStatus } from "./DemandsPage";
 
 interface Comment {
   id: string;
-  text: string;
-  user: { name: string };
-  createdAt: string;
+   text: string;
+   user: { name: string };
+   createdAt: string;
+   attachments?: any[];
 }
 
 interface Version {
@@ -90,11 +91,22 @@ export default function DemandDetailPage() {
 
    async function addComment() {
      if (!commentText.trim() && commentAttachments.length === 0) return;
-    setSending(true);
-    try {
-       await api(`/demands/${id}/comments`, { method: "POST", body: { text: commentText, attachments: commentAttachments } });
+     setSending(true);
+     try {
+       await api(`/demands/${id}/comments`, {
+         method: "POST",
+         body: { text: commentText, attachments: commentAttachments }
+       });
        setCommentText("");
        setCommentAttachments([]);
+       load();
+     } catch (e) {
+       toast.error("Erro ao comentar");
+     } finally {
+       setSending(false);
+     }
+   }
+ 
    async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'comment' | 'version') {
      const files = e.target.files;
      if (!files || files.length === 0) return;
@@ -116,17 +128,17 @@ export default function DemandDetailPage() {
  
        if (!response.ok) throw new Error("Upload failed");
        const data = await response.json();
-       
+ 
        if (target === 'comment') {
          setCommentAttachments(prev => [...prev, ...data.map((f: any) => ({ url: f.url, name: f.name, type: f.type }))]);
        } else if (target === 'version') {
-          const versionComment = prompt("Deseja adicionar um comentário para esta entrega?");
-          await api(`/demands/${id}/versions`, { 
-            method: "POST", 
-            body: { files: data.map((f: any) => ({ url: f.url, name: f.name, type: f.type })), comment: versionComment } 
-          });
-          toast.success("Entrega realizada com sucesso!");
-          load();
+         const versionComment = prompt("Deseja adicionar um comentário para esta entrega?");
+         await api(`/demands/${id}/versions`, {
+           method: "POST",
+           body: { files: data.map((f: any) => ({ url: f.url, name: f.name, type: f.type })), comment: versionComment }
+         });
+         toast.success("Entrega realizada com sucesso!");
+         load();
        }
      } catch (e) {
        toast.error("Erro no upload");
@@ -144,14 +156,6 @@ export default function DemandDetailPage() {
        load();
      } catch (e) {}
    }
- 
-      load();
-    } catch (e) {
-      toast.error("Erro ao comentar");
-    } finally {
-      setSending(false);
-    }
-  }
 
   async function generateBriefing() {
     if (!demand) return;
