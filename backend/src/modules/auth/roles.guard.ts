@@ -12,10 +12,10 @@ export class RolesGuard implements CanActivate {
     if (!user) throw new ForbiddenException('Não autenticado');
 
     const isAllowedRole = required.includes(user.role);
-    const isMentorTeamAllowedAsMentor = user.role === 'mentor_team' && required.includes('mentor');
+    const isMentorTeamAllowed = user.role === 'mentor_team' && required.includes('mentor_team');
     const isMentorTeamAllowedByTeamRole = user.role === 'mentor_team' && user.teamRole && required.includes(user.teamRole);
 
-    if (!isAllowedRole && !isMentorTeamAllowedAsMentor && !isMentorTeamAllowedByTeamRole) {
+    if (!isAllowedRole && !isMentorTeamAllowed && !isMentorTeamAllowedByTeamRole) {
       throw new ForbiddenException('Sem permissão');
     }
     return true;
