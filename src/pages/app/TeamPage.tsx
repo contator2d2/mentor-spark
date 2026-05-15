@@ -7,16 +7,17 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
- import { Loader2, Plus, Trash2, Users, Crown, Edit3, Headphones, Settings, Key, UserCheck, UserMinus } from "lucide-react";
+  import { Loader2, Plus, Trash2, Users, Crown, Edit3, Headphones, Settings, Key, UserCheck, UserMinus, Briefcase } from "lucide-react";
 import { toast } from "sonner";
 
- interface Member { id: string; name: string; email: string; phone?: string; role: "admin" | "editor" | "attendant"; status: 'active' | 'inactive'; createdAt: string; }
+ interface Member { id: string; name: string; email: string; phone?: string; role: "admin" | "editor" | "attendant" | "agency"; status: 'active' | 'inactive'; createdAt: string; }
 interface Limits { used: number; max: number; planName: string; canAdd: boolean; }
 
 const ROLE_META: Record<string, { label: string; icon: any; color: string; desc: string }> = {
   admin: { label: "Administrador", icon: Crown, color: "text-amber-400", desc: "Acesso total: equipe, planos, financeiro." },
   editor: { label: "Editor", icon: Edit3, color: "text-violet-400", desc: "Gerencia leads, conteúdos e mensagens." },
   attendant: { label: "Atendente", icon: Headphones, color: "text-blue-400", desc: "Atende leads e mentorados." },
+   agency: { label: "Agência", icon: Briefcase, color: "text-emerald-400", desc: "Gerencia apenas a Central de Demandas." },
 };
 
 export default function TeamPage() {
