@@ -87,7 +87,6 @@ export class DemandsService {
 
     await this.versions.save(version);
     
-    // Auto-move para aguardando feedback se for a agência enviando
     if (demand.status === DemandStatus.PRODUCTION) {
         await this.repo.update(demandId, { status: DemandStatus.WAITING_FEEDBACK });
     }
@@ -118,7 +117,7 @@ Retorne um JSON com os campos: objective, targetAudience, essentialItems (lista)
 
     const raw = await this.ai.chat('Você é um especialista em marketing e produção de conteúdo.', prompt, { mentorId, useCase: 'demand_briefing' });
     try {
-      return JSON.parse(raw.replace(/^' + '$/g, '').trim());
+      return JSON.parse(raw.replace(/^```json\s*|```$/g, '').trim());
     } catch {
       return { objective: raw };
     }
