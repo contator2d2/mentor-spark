@@ -160,6 +160,6 @@ export class TeamController {
   }
 
   private roleLabel(r: TeamRole) {
-    return { admin: 'Administrador', editor: 'Editor de conteúdo', attendant: 'Atendente' }[r] || r;
+    return { admin: 'Administrador', editor: 'Editor de conteúdo', attendant: 'Atendente', agency: 'Agência' }[r] || r;
   }
 }
