@@ -12,7 +12,8 @@ import {
   Sparkles,
   Bell,
   Settings,
-  LogOut,
+   LogOut,
+   UserCircle,
   ShieldCheck,
   QrCode,
   Cpu,
@@ -154,7 +155,10 @@ export default function AppLayout() {
             <div className="text-sm text-white truncate">{user?.name}</div>
             <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
           </div>
-          <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" />
+           <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" />
+           <Button variant="ghost" size="icon" onClick={() => navigate("/app/profile")} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" title="Meu Perfil">
+             <UserCircle className="h-4 w-4" />
+           </Button>
           <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9">
             <LogOut className="h-4 w-4" />
           </Button>
