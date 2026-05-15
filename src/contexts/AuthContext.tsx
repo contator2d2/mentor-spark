@@ -177,8 +177,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
     setToken(res.access_token);
     setUser(res.user);
     applyUserBrand(res.user);
-    // Mentorado/Prospect: precisa buscar tenantBrand
-    if (res.user.role === "mentorado" || res.user.role === "prospect") {
+    // Mentorado/Prospect/Equipe: precisa buscar tenantBrand e o mentor dono
+    if (res.user.role === "mentorado" || res.user.role === "prospect" || res.user.role === "mentor_team") {
       await refreshUser();
     }
     return res.user;
