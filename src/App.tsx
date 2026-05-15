@@ -91,7 +91,13 @@ function HomeRedirect() {
   const { user, loading: authLoading } = useAuth();
   const { brand, loading: brandLoading } = useBranding();
   
-  if (authLoading || brandLoading) return null;
+    if (authLoading || brandLoading) {
+      return (
+        <div className="flex h-screen items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
+      );
+    }
   
     // O domínio é customizado se não for o domínio principal ou localhost
     const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1"];
