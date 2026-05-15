@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+ import { api } from "@/lib/api";
+ import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,7 +19,8 @@ import {
   FileText,
   Sparkles,
   Send,
-  Download,
+   Download,
+   Upload,
   CheckCircle2,
   AlertCircle,
   Link as LinkIcon,
@@ -62,6 +64,7 @@ interface Demand {
 }
 
 export default function DemandDetailPage() {
+   const { user } = useAuth();
   const { id } = useParams();
   const navigate = useNavigate();
   const [demand, setDemand] = useState<Demand | null>(null);
@@ -70,6 +73,8 @@ export default function DemandDetailPage() {
   const [sending, setSending] = useState(false);
   const [generating, setGenerating] = useState(false);
 
+   const isAgency = user?.teamRole === "agency";
+ 
   const load = () => api<Demand>(`/demands/${id}`).then(setDemand).finally(() => setLoading(false));
 
   useEffect(() => {
@@ -136,17 +141,22 @@ export default function DemandDetailPage() {
              <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {demand.definedDeadline ? new Date(demand.definedDeadline).toLocaleDateString() : 'Sem prazo'}</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-           {demand.status === 'waiting_feedback' && (
-             <>
-               <Button variant="destructive" size="sm" onClick={() => updateStatus('adjustments')}>Solicitar Ajustes</Button>
-               <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700" size="sm" onClick={() => updateStatus('approved')}>Aprovar</Button>
-             </>
-           )}
-           {demand.status === 'new' && (
-             <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
-           )}
-        </div>
+         <div className="flex items-center gap-2">
+            {!isAgency && demand.status === 'waiting_feedback' && (
+              <>
+                <Button variant="destructive" size="sm" onClick={() => updateStatus('adjustments')}>Solicitar Ajustes</Button>
+                <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700" size="sm" onClick={() => updateStatus('approved')}>Aprovar</Button>
+              </>
+            )}
+            {!isAgency && demand.status === 'new' && (
+              <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
+            )}
+            {isAgency && (demand.status === 'production' || demand.status === 'adjustments') && (
+               <Button size="sm" className="gap-2" onClick={() => updateStatus('waiting_feedback')}>
+                 <Upload className="h-4 w-4" /> Marcar como Entregue
+               </Button>
+            )}
+         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -206,13 +216,15 @@ export default function DemandDetailPage() {
 
             <TabsContent value="briefing" className="mt-4 space-y-4">
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-lg">Briefing Detalhado</CardTitle>
-                  <Button variant="outline" size="sm" onClick={generateBriefing} disabled={generating} className="gap-2">
-                    {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
-                    {demand.briefing ? "Refinar com IA" : "Gerar com IA"}
-                  </Button>
-                </CardHeader>
+                 <CardHeader className="flex flex-row items-center justify-between">
+                   <CardTitle className="text-lg">Briefing Detalhado</CardTitle>
+                   {!isAgency && (
+                     <Button variant="outline" size="sm" onClick={generateBriefing} disabled={generating} className="gap-2">
+                       {generating ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                       {demand.briefing ? "Refinar com IA" : "Gerar com IA"}
+                     </Button>
+                   )}
+                 </CardHeader>
                 <CardContent className="space-y-6">
                   {demand.briefing ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">

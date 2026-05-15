@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Put, Post } from '@nestjs/common';
+ import { Body, Controller, Get, Put, Post, Patch } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
@@ -45,7 +45,20 @@ export class UsersController {
     return user;
   }
 
-  @Auth('mentor', 'super_admin')
+   @Auth('mentor', 'super_admin', 'mentorado', 'prospect', 'mentor_team')
+   @Patch()
+   async updateProfile(@CurrentUser() u: any, @Body() dto: { name?: string; phone?: string }) {
+     const patch: any = {};
+     if (dto.name) patch.name = dto.name;
+     if (dto.phone) patch.phone = dto.phone;
+     
+     if (Object.keys(patch).length > 0) {
+       await this.users.update(u.sub, patch);
+     }
+     return this.users.findOne({ where: { id: u.sub } });
+   }
+ 
+   @Auth('mentor', 'super_admin')
   @Put('brand')
   async updateBrand(
     @CurrentUser() u: any,

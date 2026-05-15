@@ -7,10 +7,10 @@ import { DemandsService } from './demands.service';
 export class DemandsController {
   constructor(private demandsService: DemandsService) {}
 
-  @Auth('mentor', 'super_admin', 'mentor_team')
+   @Auth('mentor', 'super_admin', 'mentor_team')
   @Get()
-  list(@TenantId() mentorId: string) {
-    return this.demandsService.list(mentorId);
+   list(@TenantId() mentorId: string, @CurrentUser() user: any) {
+     return this.demandsService.list(mentorId, user);
   }
 
   @Auth('mentor', 'super_admin', 'mentor_team')

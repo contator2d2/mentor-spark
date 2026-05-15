@@ -12,10 +12,15 @@ import {
   Activity,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Link } from "react-router-dom";
+ import { Link, Navigate } from "react-router-dom";
 
 export default function Dashboard() {
   const { user } = useAuth();
+   
+   if (user?.role === "mentor_team" && user?.teamRole === "agency") {
+     return <Navigate to="/app/demands" replace />;
+   }
+ 
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {

@@ -73,7 +73,8 @@ import SchedulingPage from "./pages/app/SchedulingPage";
 import SchedulingBookingsPage from "./pages/app/SchedulingBookingsPage";
 import SchedulingPublicPage from "./pages/SchedulingPublicPage";
 import MentorBillingPage from "./pages/app/MentorBillingPage";
-import TrailsListPage from "./pages/app/TrailsListPage";
+ import TrailsListPage from "./pages/app/TrailsListPage";
+ import ProfilePage from "./pages/app/ProfilePage";
 import TrailEditorPage from "./pages/app/TrailEditorPage";
 import AccessGroupsPage from "./pages/app/AccessGroupsPage";
 import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
@@ -217,7 +218,8 @@ const App = () => (
                 <Route path="ai" element={<AiAssistant />} />
                 <Route path="prompts" element={<PromptsPage />} />
                 <Route path="capture" element={<CaptureSettings />} />
-                <Route path="events" element={<EventsPage />} />
+                 <Route path="events" element={<EventsPage />} />
+                 <Route path="profile" element={<ProfilePage />} />
                 <Route path="events/:id" element={<EventDetailPage />} />
                 <Route path="quiz/host/:sessionId" element={<QuizHostPage />} />
                 <Route path="quiz" element={<QuizzesPage />} />

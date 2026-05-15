@@ -12,7 +12,8 @@ import {
   Sparkles,
   Bell,
   Settings,
-  LogOut,
+   LogOut,
+   UserCircle,
   ShieldCheck,
   QrCode,
   Cpu,
@@ -49,11 +50,11 @@ interface NavItem {
 }
 
 const NAV: NavItem[] = [
-   { to: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
+    { to: "/app", label: "Dashboard", icon: LayoutDashboard, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant", "agency"] },
    { to: "/app/agenda", label: "Agenda", icon: CalendarClock, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/leads", label: "Leads & Funil", icon: Kanban, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/boards", label: "Meus Kanbans", icon: KanbanSquare, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
-   { to: "/app/demands", label: "Central de Demandas", icon: Briefcase, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor"] },
+    { to: "/app/demands", label: "Central de Demandas", icon: Briefcase, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "agency"] },
    { to: "/app/mentorados", label: "Mentorados", icon: Users, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/tests", label: "Testes", icon: ClipboardList, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/quiz", label: "Quizzes PVP", icon: Zap, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
@@ -154,7 +155,10 @@ export default function AppLayout() {
             <div className="text-sm text-white truncate">{user?.name}</div>
             <div className="text-xs text-sidebar-foreground/60 truncate">{user?.email}</div>
           </div>
-          <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" />
+           <ThemeToggle className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" />
+           <Button variant="ghost" size="icon" onClick={() => navigate("/app/profile")} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9" title="Meu Perfil">
+             <UserCircle className="h-4 w-4" />
+           </Button>
           <Button variant="ghost" size="icon" onClick={logout} className="text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-white h-9 w-9">
             <LogOut className="h-4 w-4" />
           </Button>
