@@ -6,7 +6,8 @@ import { useBranding } from "./BrandingContext";
 
 export interface SessionUser {
   id: string;
-  email: string;
+   email: string;
+   phone?: string;
   name: string;
   role: Role;
   slug?: string;
@@ -67,7 +68,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
        const u = await api<any>("/me");
        const sess: SessionUser = {
          id: u.id,
-         email: u.email,
+          email: u.email,
+          phone: u.phone,
          name: u.name,
          role: u.role,
          slug: u.slug,
