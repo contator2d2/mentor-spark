@@ -4,6 +4,7 @@ import { KanbanColumn } from './kanban-column.entity';
 export enum BoardType {
   LEADS = 'leads',
   TASKS = 'tasks',
+  DEMANDS = 'demands',
   CUSTOM = 'custom',
 }
 
