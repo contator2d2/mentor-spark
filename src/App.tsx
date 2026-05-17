@@ -227,7 +227,9 @@ const App = () => (
                 <Route path="quiz" element={<QuizzesPage />} />
                 <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
-                <Route path="integrations" element={<IntegrationsPage />} />
+                 <Route path="integrations" element={<IntegrationsPage />} />
+                 <Route path="cms" element={<CmsDashboard />} />
+                 <Route path="cms/modules" element={<CmsModulesPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="admin/plans" element={<AdminPlans />} />
                 <Route path="admin/tenants" element={<AdminTenants />} />
