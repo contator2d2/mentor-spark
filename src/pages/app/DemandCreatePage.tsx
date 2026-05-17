@@ -30,11 +30,93 @@ export default function DemandCreatePage() {
     title: "",
     type: "",
     description: "",
-    objective: "",
-    priority: "medium",
-    desiredDeadline: "",
-    agencyId: "",
-  });
+   objective: "",
+   priority: "medium",
+   desiredDeadline: "",
+   agencyId: "",
+   references: [] as { url: string; description?: string }[],
+ });
+ const [refUrl, setRefUrl] = useState("");
+ const [refDesc, setRefDesc] = useState("");
+ const [uploading, setUploading] = useState(false);
+   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+     const files = e.target.files;
+     if (!files || files.length === 0) return;
+     setUploading(true);
+     try {
+       const formData = new FormData();
+       for (let i = 0; i < files.length; i++) formData.append("files", files[i]);
+       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+         method: "POST",
+         body: formData,
+         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+       });
+       if (!response.ok) throw new Error("Upload failed");
+       const data = await response.json();
+       const newRefs = data.map((f: any) => ({ url: f.url, description: "" }));
+       setForm(prev => ({ ...prev, references: [...prev.references, ...newRefs] }));
+     } catch (e) {
+       toast.error("Erro no upload");
+     } finally {
+       setUploading(false);
+     }
+   }
+
+   function addReference() {
+     if (!refUrl) return;
+     setForm(prev => ({ ...prev, references: [...prev.references, { url: refUrl, description: refDesc }] }));
+     setRefUrl("");
+     setRefDesc("");
+   }
+
+             <div className="space-y-4 pt-4 border-t">
+               <Label>Referências visuais e imagens</Label>
+               <div className="flex flex-wrap gap-4">
+                 {form.references.map((ref, idx) => (
+                   <div key={idx} className="relative group w-32 border rounded-lg overflow-hidden bg-muted/20">
+                     {ref.url.match(/\.(jpg|jpeg|png|gif|webp)$/i) || ref.url.includes('upload') ? (
+                       <img src={ref.url} alt="Ref" className="w-full h-24 object-cover" />
+                     ) : (
+                       <div className="w-full h-24 flex items-center justify-center bg-muted">
+                         <span className="text-[10px] break-all p-1">{ref.url}</span>
+                       </div>
+                     )}
+                     <Button 
+                       type="button" 
+                       variant="destructive" 
+                       size="icon" 
+                       className="absolute -top-2 -right-2 h-6 w-6 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                       onClick={() => setForm(prev => ({ ...prev, references: prev.references.filter((_, i) => i !== idx) }))}
+                     >
+                       <span className="text-xs">×</span>
+                     </Button>
+                     <Input 
+                       className="h-7 text-[10px] px-1 rounded-none border-x-0 border-b-0" 
+                       placeholder="O que quer aqui?" 
+                       value={ref.description} 
+                       onChange={e => {
+                         const newRefs = [...form.references];
+                         newRefs[idx].description = e.target.value;
+                         setForm({...form, references: newRefs});
+                       }}
+                     />
+                   </div>
+                 ))}
+                 <div className="flex flex-col gap-2 w-full max-w-sm">
+                   <div className="flex gap-2">
+                     <Input placeholder="URL da referência" value={refUrl} onChange={e => setRefUrl(e.target.value)} />
+                     <Button type="button" variant="outline" onClick={addReference}>Add Link</Button>
+                   </div>
+                   <div className="flex gap-2 items-center">
+                     <input type="file" id="ref-upload" className="hidden" accept="image/*" multiple onChange={handleFileUpload} />
+                     <Button type="button" variant="secondary" className="w-full gap-2" onClick={() => document.getElementById('ref-upload')?.click()} disabled={uploading}>
+                       {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} Upload de Imagens
+                     </Button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+
 
   useEffect(() => {
     api("/team").then(data => {
