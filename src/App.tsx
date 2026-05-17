@@ -1,5 +1,7 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+ import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+ import CmsDashboard from "./pages/app/cms/CmsDashboard";
+ import CmsModulesPage from "./pages/app/cms/CmsModulesPage";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -225,7 +227,9 @@ const App = () => (
                 <Route path="quiz" element={<QuizzesPage />} />
                 <Route path="contracts/templates" element={<ContractTemplatesPage />} />
                 <Route path="settings/branding" element={<BrandingSettings />} />
-                <Route path="integrations" element={<IntegrationsPage />} />
+                 <Route path="integrations" element={<IntegrationsPage />} />
+                 <Route path="cms" element={<CmsDashboard />} />
+                 <Route path="cms/modules" element={<CmsModulesPage />} />
                 <Route path="admin" element={<AdminPage />} />
                 <Route path="admin/plans" element={<AdminPlans />} />
                 <Route path="admin/tenants" element={<AdminTenants />} />
