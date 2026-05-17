@@ -1,8 +1,8 @@
+ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
  import CmsDashboard from "./pages/app/cms/CmsDashboard";
  import CmsModulesPage from "./pages/app/cms/CmsModulesPage";
                  <Route path="cms" element={<CmsDashboard />} />
                  <Route path="cms/modules" element={<CmsModulesPage />} />
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
