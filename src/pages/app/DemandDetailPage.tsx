@@ -26,6 +26,7 @@ import {
    Eye,
    Plus,
    CheckCircle2,
+   AlertCircle,
  import {
    Dialog,
    DialogContent,
@@ -33,11 +34,6 @@ import {
    DialogTitle,
    DialogFooter,
  } from "@/components/ui/dialog";
-   const [referenceModalOpen, setReferenceModalOpen] = useState(false);
-   const [currentRefUrl, setCurrentRefUrl] = useState("");
-   const [currentRefDesc, setCurrentRefDesc] = useState("");
- 
-  AlertCircle,
   Link as LinkIcon,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -80,8 +76,11 @@ interface Demand {
    references?: { url: string; description?: string }[];
 }
 
-export default function DemandDetailPage() {
-   const { user } = useAuth();
+ export default function DemandDetailPage() {
+    const { user } = useAuth();
+    const [referenceModalOpen, setReferenceModalOpen] = useState(false);
+    const [currentRefUrl, setCurrentRefUrl] = useState("");
+    const [currentRefDesc, setCurrentRefDesc] = useState("");
   const { id } = useParams();
   const navigate = useNavigate();
   const [demand, setDemand] = useState<Demand | null>(null);
