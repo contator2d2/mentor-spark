@@ -25,7 +25,18 @@ import {
    X as CloseIcon,
    Eye,
    Plus,
-  CheckCircle2,
+   CheckCircle2,
+ import {
+   Dialog,
+   DialogContent,
+   DialogHeader,
+   DialogTitle,
+   DialogFooter,
+ } from "@/components/ui/dialog";
+   const [referenceModalOpen, setReferenceModalOpen] = useState(false);
+   const [currentRefUrl, setCurrentRefUrl] = useState("");
+   const [currentRefDesc, setCurrentRefDesc] = useState("");
+ 
   AlertCircle,
   Link as LinkIcon,
 } from "lucide-react";
@@ -452,33 +463,39 @@ export default function DemandDetailPage() {
               <CardHeader className="flex flex-row items-center justify-between py-4">
                 <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Referências</CardTitle>
                 {!isAgency && (
-                  <input
-                    type="file"
-                    id="reference-upload"
-                    className="hidden"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      const files = e.target.files;
-                      if (!files?.length) return;
-                      const formData = new FormData();
-                      formData.append("files", files[0]);
-                      const resp = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
-                        method: "POST", body: formData,
-                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                      });
-                      const data = await resp.json();
-                      const desc = prompt("O que você quer nessa imagem de referência?");
-                      const newRefs = [...(demand.references || []), { url: data[0].url, description: desc }];
-                      await api(`/demands/${id}`, { method: "PATCH", body: { references: newRefs } });
-                      load();
-                    }}
-                  />
-                )}
-                {!isAgency && (
-                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => document.getElementById('reference-upload')?.click()}>
-                    <Plus className="h-4 w-4" />
-                  </Button>
-                )}
+                   <>
+                     <input
+                       type="file"
+                       id="reference-upload"
+                       className="hidden"
+                       accept="image/*"
+                       onChange={async (e) => {
+                         const files = e.target.files;
+                         if (!files?.length) return;
+                         setUploading(true);
+                         try {
+                           const formData = new FormData();
+                           formData.append("files", files[0]);
+                           const resp = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+                             method: "POST", body: formData,
+                             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                           });
+                           const data = await resp.json();
+                           setCurrentRefUrl(data[0].url);
+                           setCurrentRefDesc("");
+                           setReferenceModalOpen(true);
+                         } catch (err) {
+                           toast.error("Erro ao carregar imagem");
+                         } finally {
+                           setUploading(false);
+                         }
+                       }}
+                     />
+                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => document.getElementById('reference-upload')?.click()} disabled={uploading}>
+                       {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                     </Button>
+                   </>
+                 )}
               </CardHeader>
               <CardContent className="space-y-4">
                  {demand.references?.map((ref, i) => (
@@ -510,7 +527,52 @@ export default function DemandDetailPage() {
               </CardContent>
            </Card>
         </div>
-      </div>
-    </div>
-  );
-}
+       </div>
+ 
+       <Dialog open={referenceModalOpen} onOpenChange={setReferenceModalOpen}>
+         <DialogContent className="sm:max-w-[425px]">
+           <DialogHeader>
+             <DialogTitle>Descrição da Referência</DialogTitle>
+           </DialogHeader>
+           <div className="space-y-4 py-4">
+             {currentRefUrl && (
+               <img 
+                 src={currentRefUrl} 
+                 alt="Preview" 
+                 className="w-full h-48 object-cover rounded-lg border" 
+               />
+             )}
+             <div className="space-y-2">
+               <Label htmlFor="ref-desc">O que você quer nessa imagem de referência?</Label>
+               <Textarea 
+                 id="ref-desc"
+                 placeholder="Descreva detalhes, cores, elementos ou o que deseja que seja seguido nesta imagem..."
+                 value={currentRefDesc}
+                 onChange={(e) => setCurrentRefDesc(e.target.value)}
+                 className="min-h-[100px]"
+               />
+             </div>
+           </div>
+           <DialogFooter>
+             <Button variant="outline" onClick={() => setReferenceModalOpen(false)}>Cancelar</Button>
+             <Button 
+               onClick={async () => {
+                 const newRefs = [...(demand.references || []), { url: currentRefUrl, description: currentRefDesc }];
+                 try {
+                   await api(`/demands/${id}`, { method: "PATCH", body: { references: newRefs } });
+                   toast.success("Referência adicionada!");
+                   setReferenceModalOpen(false);
+                   load();
+                 } catch (err) {
+                   toast.error("Erro ao salvar referência");
+                 }
+               }}
+             >
+               Salvar Referência
+             </Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
+     </div>
+   );
+ }
