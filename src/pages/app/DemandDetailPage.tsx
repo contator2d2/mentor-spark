@@ -93,6 +93,27 @@ interface Demand {
   const [generating, setGenerating] = useState(false);
 
    const isAgency = user?.teamRole === "agency";
+   const normalizeUpload = (file: any) => ({
+     url: file.url?.startsWith("http") ? file.url : `${API_BASE.replace(/\/api$/, "")}${file.url}`,
+     name: file.originalName || file.name || "Arquivo",
+     type: file.mimetype || file.type || "application/octet-stream",
+   });
+ 
+   async function uploadFile(file: File) {
+     const formData = new FormData();
+     formData.append("file", file);
+     const token = getToken();
+     const response = await fetch(`${API_BASE}/uploads`, {
+       method: "POST",
+       body: formData,
+       headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+     });
+     if (!response.ok) {
+       const error = await response.json().catch(() => ({}));
+       throw new Error(error.message || "Upload failed");
+     }
+     return normalizeUpload(await response.json());
+   }
  
   const load = () => api<Demand>(`/demands/${id}`).then(setDemand).finally(() => setLoading(false));
 
@@ -124,21 +145,7 @@ interface Demand {
  
      setUploading(true);
      try {
-       const formData = new FormData();
-       for (let i = 0; i < files.length; i++) {
-         formData.append("files", files[i]);
-       }
- 
-        const response = await fetch(`${API_BASE}/upload`, {
-         method: "POST",
-         body: formData,
-         headers: {
-            'Authorization': `Bearer ${getToken()}`
-         }
-       });
- 
-       if (!response.ok) throw new Error("Upload failed");
-       const data = await response.json();
+        const data = await Promise.all(Array.from(files).map(uploadFile));
  
        if (target === 'comment') {
          setCommentAttachments(prev => [...prev, ...data.map((f: any) => ({ url: f.url, name: f.name, type: f.type }))]);
@@ -474,14 +481,8 @@ interface Demand {
                          if (!files?.length) return;
                          setUploading(true);
                          try {
-                           const formData = new FormData();
-                           formData.append("files", files[0]);
-                            const resp = await fetch(`${API_BASE}/upload`, {
-                             method: "POST", body: formData,
-                              headers: { 'Authorization': `Bearer ${getToken()}` }
-                           });
-                           const data = await resp.json();
-                           setCurrentRefUrl(data[0].url);
+                            const data = await uploadFile(files[0]);
+                            setCurrentRefUrl(data.url);
                            setCurrentRefDesc("");
                            setReferenceModalOpen(true);
                          } catch (err) {

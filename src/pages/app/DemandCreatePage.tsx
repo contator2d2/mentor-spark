@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "@/lib/api";
+import { api, API_BASE, getToken } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -44,16 +44,22 @@ export default function DemandCreatePage() {
      if (!files || files.length === 0) return;
      setUploading(true);
      try {
-       const formData = new FormData();
-       for (let i = 0; i < files.length; i++) formData.append("files", files[i]);
-       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
-         method: "POST",
-         body: formData,
-         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-       });
-       if (!response.ok) throw new Error("Upload failed");
-       const data = await response.json();
-       const newRefs = data.map((f: any) => ({ url: f.url, description: "" }));
+       const data = await Promise.all(Array.from(files).map(async (file) => {
+         const formData = new FormData();
+         formData.append("file", file);
+         const token = getToken();
+         const response = await fetch(`${API_BASE}/uploads`, {
+           method: "POST",
+           body: formData,
+           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+         });
+         if (!response.ok) throw new Error("Upload failed");
+         return response.json();
+       }));
+       const newRefs = data.map((f: any) => ({
+         url: f.url?.startsWith("http") ? f.url : `${API_BASE.replace(/\/api$/, "")}${f.url}`,
+         description: ""
+       }));
        setForm(prev => ({ ...prev, references: [...prev.references, ...newRefs] }));
      } catch (e) {
        toast.error("Erro no upload");

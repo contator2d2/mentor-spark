@@ -1,5 +1,5 @@
-import { BadRequestException, Controller, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { BadRequestException, Controller, Post, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import * as path from 'path';
@@ -24,12 +24,12 @@ const ALLOWED = /^(image|audio|video)\/|^application\/(pdf|msword|vnd\.openxmlfo
 
 @ApiTags('uploads')
 @ApiBearerAuth()
-@Controller('uploads')
+@Controller()
 export class UploadsController {
-  @Auth('mentor', 'super_admin', 'mentorado', 'prospect')
-  @Post()
+  @Auth('mentor', 'super_admin', 'mentorado', 'prospect', 'mentor_team')
+  @Post(['uploads', 'upload'])
   @UseInterceptors(
-    FileInterceptor('file', {
+    AnyFilesInterceptor({
       storage: diskStorage({
         destination: (req, file, cb) => {
           const kind = detectKind(file.mimetype);
@@ -52,17 +52,20 @@ export class UploadsController {
       limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
     }),
   )
-  async upload(@UploadedFile() file: any) {
-    if (!file) throw new BadRequestException('Arquivo obrigatório');
-    const kind = detectKind(file.mimetype);
-    const url = `/uploads/media/${kind}/${file.filename}`;
-    return {
-      ok: true,
-      url,
-      kind,
-      mimetype: file.mimetype,
-      size: file.size,
-      originalName: file.originalname,
-    };
+  async upload(@UploadedFiles() files: any[]) {
+    if (!files?.length) throw new BadRequestException('Arquivo obrigatório');
+    const payload = files.map((file) => {
+      const kind = detectKind(file.mimetype);
+      const url = `/uploads/media/${kind}/${file.filename}`;
+      return {
+        ok: true,
+        url,
+        kind,
+        mimetype: file.mimetype,
+        size: file.size,
+        originalName: file.originalname,
+      };
+    });
+    return files.length === 1 && files[0].fieldname === 'file' ? payload[0] : payload;
   }
 }
