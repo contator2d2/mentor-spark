@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, UnauthorizedException } from '@nestjs/common';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId, CurrentUser } from '../auth/current-user.decorator';
 import { DemandsService } from './demands.service';
+import { PublicReviewDto } from './dto/public-review.dto';
 
 @Controller('demands')
 export class DemandsController {
@@ -53,5 +54,20 @@ export class DemandsController {
   @Post('ai/briefing')
   generateBriefing(@TenantId() mentorId: string, @Body() dto: any) {
     return this.demandsService.generateBriefing(mentorId, dto);
+  }
+
+  @Get('public/:id')
+  async findOnePublic(@Param('id') id: string, @Query('token') token: string) {
+    // O token é o próprio ID da demanda por enquanto para simplicidade, 
+    // mas validamos se o token confere com o ID para evitar scan fácil se for UUID.
+    // Na prática, poderíamos gerar um hash, mas UUID já é difícil de adivinhar.
+    if (!token || token !== id) throw new UnauthorizedException('Token inválido');
+    return this.demandsService.findOnePublic(id);
+  }
+
+  @Post('public/:id/review')
+  async reviewPublic(@Param('id') id: string, @Query('token') token: string, @Body() dto: PublicReviewDto) {
+    if (!token || token !== id) throw new UnauthorizedException('Token inválido');
+    return this.demandsService.reviewPublic(id, dto);
   }
 }
