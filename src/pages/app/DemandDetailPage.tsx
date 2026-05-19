@@ -205,14 +205,27 @@ interface Demand {
      }
    }
  
-   async function sendToApproval(comment?: string) {
+   async function sendToApproval() {
+     const comment = prompt("Deseja adicionar uma mensagem para o cliente nesta solicitação de aprovação?");
      try {
        await updateStatus('waiting_feedback');
-       if (comment) {
-         await api(`/demands/${id}/comments`, { method: "POST", body: { text: `SOLICITAÇÃO DE APROVAÇÃO: ${comment}` } });
-       }
+       
+       const baseUrl = window.location.origin;
+       const publicUrl = `${baseUrl}/demands/public/${id}?token=${id}`;
+       
+       await api(`/demands/${id}/comments`, { 
+         method: "POST", 
+         body: { 
+           text: `🚀 SOLICITAÇÃO DE APROVAÇÃO ENVIADA\n\n${comment || "Arquivos enviados para sua revisão."}\n\n🔗 Link para aprovação rápida: ${publicUrl}`,
+           attachments: []
+         } 
+       });
+       
+       toast.success("Solicitação de aprovação enviada e registrada!");
        load();
-     } catch (e) {}
+     } catch (e) {
+       toast.error("Erro ao enviar para aprovação");
+     }
    }
 
   async function generateBriefing() {
@@ -262,16 +275,43 @@ interface Demand {
           </div>
         </div>
          <div className="flex items-center gap-2">
-            {!isAgency && demand.status === 'waiting_feedback' && (
-              <>
-                <Button variant="destructive" size="sm" onClick={() => updateStatus('adjustments')}>Solicitar Ajustes</Button>
-                <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700" size="sm" onClick={() => updateStatus('approved')}>Aprovar</Button>
-              </>
-            )}
+             {!isAgency && (demand.status === 'waiting_feedback' || demand.status === 'adjustments') && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => {
+                      const reason = prompt("Por favor, descreva os ajustes necessários:");
+                      if (!reason) return;
+                      
+                      api(`/demands/${id}`, { method: "PATCH", body: { status: 'adjustments' } })
+                        .then(() => api(`/demands/${id}/comments`, { 
+                          method: "POST", 
+                          body: { text: `❌ AJUSTES SOLICITADOS:\n${reason}` } 
+                        }))
+                        .then(() => {
+                          toast.success("Solicitação de ajustes enviada");
+                          load();
+                        })
+                        .catch(() => toast.error("Erro ao processar solicitação"));
+                    }}
+                  >
+                    Solicitar Ajustes
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    className="bg-emerald-600 hover:bg-emerald-700" 
+                    size="sm" 
+                    onClick={() => updateStatus('approved')}
+                  >
+                    Aprovar
+                  </Button>
+                </div>
+              )}
             {!isAgency && demand.status === 'new' && (
               <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
             )}
-             {isAgency && (demand.status === 'production' || demand.status === 'adjustments') && (
+             {isAgency && (
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -280,11 +320,22 @@ interface Demand {
                     multiple
                     onChange={(e) => handleFileUpload(e, 'version')}
                   />
-                  <Button size="sm" variant="outline" className="gap-2" onClick={() => document.getElementById('delivery-upload')?.click()} disabled={uploading}>
+                   <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="gap-2 border-primary/20 hover:border-primary/50" 
+                    onClick={() => document.getElementById('delivery-upload')?.click()} 
+                    disabled={uploading}
+                  >
                     <Upload className="h-4 w-4" /> Enviar Arquivos
                   </Button>
-                  <Button size="sm" className="gap-2" onClick={() => sendToApproval()} disabled={demand.versions.length === 0}>
-                    <CheckCircle2 className="h-4 w-4" /> Enviar para Aprovação
+                   <Button 
+                    size="sm" 
+                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 shadow-sm" 
+                    onClick={() => sendToApproval()} 
+                    disabled={demand.versions.length === 0}
+                  >
+                    <Send className="h-4 w-4" /> Enviar para Aprovação
                   </Button>
                 </div>
              )}
@@ -458,28 +509,64 @@ interface Demand {
               </Card>
             </TabsContent>
 
-            <TabsContent value="versions" className="mt-4 space-y-4">
-               {demand.versions.map(v => (
-                 <Card key={v.id}>
-                    <CardHeader className="py-4">
+             <TabsContent value="versions" className="mt-4 space-y-6">
+                {demand.versions.map((v, vIdx) => (
+                  <Card key={v.id} className={vIdx === 0 ? "border-primary/20 shadow-md" : ""}>
+                    <CardHeader className="py-4 bg-muted/20">
                       <div className="flex items-center justify-between">
-                        <CardTitle className="text-md font-bold">Versão {v.versionNumber}</CardTitle>
-                        <Badge variant="secondary">{new Date(v.createdAt).toLocaleString()}</Badge>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-md font-bold">Versão {v.versionNumber}</CardTitle>
+                          {vIdx === 0 && <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20">Última</Badge>}
+                        </div>
+                        <Badge variant="outline" className="text-[10px]">{new Date(v.createdAt).toLocaleString()}</Badge>
                       </div>
-                      <p className="text-xs text-muted-foreground">Enviado por {v.creator.name}</p>
+                      <p className="text-xs text-muted-foreground mt-1">Enviado por {v.creator.name}</p>
                     </CardHeader>
-                    <CardContent className="space-y-4">
-                      {v.comment && <p className="text-sm italic text-muted-foreground border-l-2 pl-3">"{v.comment}"</p>}
-                      <div className="flex flex-wrap gap-2">
-                        {v.files?.map((f: any, i: number) => (
-                          <Button key={i} variant="outline" size="sm" className="gap-2" onClick={() => window.open(f.url, '_blank')}>
-                            <Download className="h-3 w-3" /> {f.name || 'Arquivo'}
-                          </Button>
-                        ))}
+                    <CardContent className="p-6 space-y-6">
+                      {v.comment && (
+                        <div className="bg-muted/30 p-4 rounded-xl text-sm italic border-l-4 border-primary/40">
+                          "{v.comment}"
+                        </div>
+                      )}
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                        {v.files?.map((f: any, i: number) => {
+                          const isImg = isImageAttachment(f);
+                          return (
+                            <div key={i} className="group relative bg-muted/20 rounded-2xl overflow-hidden border border-border/50 transition-all hover:shadow-lg">
+                              {isImg ? (
+                                <div className="aspect-square relative flex flex-col cursor-pointer" onClick={() => setPreviewImage({ url: f.url, name: f.name })}>
+                                  <img src={f.url} alt={f.name} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                    <Eye className="h-5 w-5 text-white" />
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="aspect-square flex flex-col items-center justify-center p-4 text-center">
+                                  <FileText className="h-10 w-10 text-muted-foreground/30 mb-2" />
+                                  <span className="text-[10px] font-medium truncate w-full px-2">{f.name || 'Arquivo'}</span>
+                                </div>
+                              )}
+                              <div className="p-3 border-t bg-card flex items-center justify-between">
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-8 w-full text-[10px] font-bold uppercase gap-2 hover:bg-primary/5 hover:text-primary"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.open(f.url, '_blank');
+                                  }}
+                                >
+                                  <Download className="h-3.5 w-3.5" /> Baixar
+                                </Button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     </CardContent>
-                 </Card>
-               ))}
+                  </Card>
+                ))}
                {demand.versions.length === 0 && (
                  <div className="text-center py-12 border rounded-xl bg-muted/20">
                     <History className="h-8 w-8 mx-auto text-muted-foreground/30 mb-3" />
