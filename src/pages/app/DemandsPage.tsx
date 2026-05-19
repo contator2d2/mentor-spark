@@ -16,6 +16,13 @@ import {
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export type DemandStatus = 
   | 'new' 
@@ -46,6 +53,19 @@ const STATUS_COLUMNS: { key: DemandStatus; label: string; color: string }[] = [
   { key: "production", label: "Em Produção", color: "border-t-amber-400" },
   { key: "waiting_feedback", label: "Aguardando", color: "border-t-purple-400" },
   { key: "approved", label: "Aprovada", color: "border-t-emerald-400" },
+];
+
+const ALL_STATUSES: { key: DemandStatus; label: string }[] = [
+  { key: "new", label: "Nova" },
+  { key: "analysis", label: "Em Análise" },
+  { key: "planned", label: "Planejada" },
+  { key: "production", label: "Em Produção" },
+  { key: "waiting_feedback", label: "Aguardando Feedback" },
+  { key: "review", label: "Em Revisão" },
+  { key: "adjustments", label: "Ajustes" },
+  { key: "approved", label: "Aprovada" },
+  { key: "finished", label: "Finalizada" },
+  { key: "canceled", label: "Cancelada" },
 ];
 
 const PRIORITY_COLORS = {
@@ -193,6 +213,30 @@ export default function DemandsPage() {
                             {new Date(d.definedDeadline).toLocaleDateString()}
                           </div>
                         )}
+
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          onPointerDown={(e) => e.stopPropagation()}
+                          draggable={false}
+                          onDragStart={(e) => e.preventDefault()}
+                          className="mt-1"
+                        >
+                          <Select
+                            value={d.status}
+                            onValueChange={(v) => moveDemand(d.id, v as DemandStatus)}
+                          >
+                            <SelectTrigger className="h-7 text-[11px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ALL_STATUSES.map((s) => (
+                                <SelectItem key={s.key} value={s.key} className="text-xs">
+                                  {s.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       </div>
                     </div>
                   ))}
