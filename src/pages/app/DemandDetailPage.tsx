@@ -549,9 +549,9 @@ interface Demand {
                    <div key={i} className="space-y-1">
                      <img 
                         src={ref.url} 
-                        alt="ref" 
+                         alt={ref.description || "Referência visual"} 
                         className="w-full h-32 object-cover rounded-lg border cursor-pointer" 
-                        onClick={() => window.open(ref.url, '_blank')}
+                         onClick={() => setPreviewImage({ url: ref.url, name: ref.description || "Referência visual" })}
                      />
                      {ref.description && <p className="text-[10px] text-muted-foreground italic leading-tight">{ref.description}</p>}
                    </div>
@@ -620,6 +620,25 @@ interface Demand {
            </DialogFooter>
          </DialogContent>
        </Dialog>
+ 
+        <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+          <DialogContent className="max-w-4xl p-3 sm:p-4">
+            <DialogHeader>
+              <DialogTitle className="text-sm font-medium truncate pr-8">
+                {previewImage?.name || "Imagem"}
+              </DialogTitle>
+            </DialogHeader>
+            {previewImage && (
+              <div className="max-h-[75vh] overflow-auto rounded-lg bg-muted/20">
+                <img
+                  src={previewImage.url}
+                  alt={previewImage.name || "Imagem ampliada"}
+                  className="mx-auto max-h-[75vh] w-auto max-w-full object-contain"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
      </div>
    );
  }
