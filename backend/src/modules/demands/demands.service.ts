@@ -198,7 +198,13 @@ export class DemandsService {
  
          // WhatsApp
          if (target.phone) {
-           const waMessage = `🔔 *${title}*\n\nOlá ${target.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\n🔗 *Acessar Demanda:* ${demandUrl}\n\nEquipe ${mentor.brandName || mentor.name}`;
+         let publicSuffix = '';
+         if (demand.status === DemandStatus.WAITING_FEEDBACK) {
+           const publicUrl = `${baseUrl}/demands/public/${demand.id}?token=${demand.id}`;
+           publicSuffix = `\n\n📢 *Link para o Cliente:* ${publicUrl}`;
+         }
+         
+         const waMessage = `🔔 *${title}*\n\nOlá ${target.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\n🔗 *Acessar Painel:* ${demandUrl}${publicSuffix}\n\nEquipe ${mentor.brandName || mentor.name}`;
            await this.whatsapp.sendText(mentorId, target.phone, waMessage).catch(e => this.logger.error(`Erro WhatsApp: ${e.message}`));
          }
        }
