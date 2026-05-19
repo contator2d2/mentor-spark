@@ -222,4 +222,54 @@ Retorne um JSON com os campos: objective, targetAudience, essentialItems (lista)
       return { objective: raw };
     }
   }
+
+  async findOnePublic(id: string) {
+    const demand = await this.repo.findOne({
+      where: { id },
+      relations: ['responsible', 'agency'],
+    });
+    if (!demand) throw new NotFoundException('Demanda não encontrada');
+    
+    const versions = await this.versions.find({
+      where: { demandId: id },
+      relations: ['creator'],
+      order: { versionNumber: 'DESC' },
+    });
+
+    const comments = await this.comments.find({
+      where: { demandId: id },
+      relations: ['user'],
+      order: { createdAt: 'ASC' },
+    });
+
+    return { ...demand, versions, comments };
+  }
+
+  async reviewPublic(id: string, dto: any) {
+    const demand = await this.repo.findOne({ where: { id }, relations: ['responsible', 'agency'] });
+    if (!demand) throw new NotFoundException();
+
+    const oldStatus = demand.status;
+    demand.status = dto.status;
+    const updated = await this.repo.save(demand);
+
+    if (dto.comment) {
+      // Adiciona comentário do "Cliente (Via Link Público)"
+      // Como não temos um userId autenticado, usamos o id do mentor/responsável ou um sistema fixo
+      const comment = this.comments.create({
+        demandId: id,
+        userId: demand.responsibleId || demand.mentorId, // Atribui ao responsável como se fosse nota
+        text: `REVISÃO PÚBLICA (${dto.status === DemandStatus.APPROVED ? 'APROVADO' : 'AJUSTES'}): ${dto.comment}`,
+      });
+      await this.comments.save(comment);
+    }
+
+    // Notifica agência sobre a decisão do cliente
+    if (demand.agencyId) {
+      const action = dto.status === DemandStatus.APPROVED ? 'Aprovada' : 'Ajustes Solicitados';
+      await this.notifyAgency(demand.mentorId, updated, `Revisão de Cliente: ${action}`, `O cliente revisou a demanda "${demand.title}" via link público e marcou como: ${action}.`);
+    }
+
+    return updated;
+  }
 }
