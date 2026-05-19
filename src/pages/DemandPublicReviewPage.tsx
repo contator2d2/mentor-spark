@@ -22,7 +22,10 @@ import { Textarea } from "@/components/ui/textarea";
     History,
     Plus,
     Check,
- } from "lucide-react";
+    Sparkles,
+    User,
+    Calendar,
+  } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DemandPublicReviewPage() {
