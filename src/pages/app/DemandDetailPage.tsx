@@ -90,6 +90,7 @@ interface Demand {
    const [sending, setSending] = useState(false);
    const [uploading, setUploading] = useState(false);
    const [commentAttachments, setCommentAttachments] = useState<{ url: string; name: string; type: string }[]>([]);
+   const [previewImage, setPreviewImage] = useState<{ url: string; name?: string } | null>(null);
   const [generating, setGenerating] = useState(false);
 
    const isAgency = user?.teamRole === "agency";
@@ -114,6 +115,41 @@ interface Demand {
      }
      return normalizeUpload(await response.json());
    }
+
+    const isImageAttachment = (attachment: any) =>
+      attachment?.type?.startsWith('image/') ||
+      (typeof attachment?.url === 'string' && attachment.url.match(/\.(jpg|jpeg|png|gif|webp|bmp|svg)$/i));
+
+    async function addFilesToComment(files: File[]) {
+      const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+      if (imageFiles.length === 0) return;
+      setUploading(true);
+      try {
+        const data = await Promise.all(imageFiles.map(uploadFile));
+        setCommentAttachments(prev => [...prev, ...data.map((f: any) => ({ url: f.url, name: f.name, type: f.type }))]);
+        toast.success(imageFiles.length === 1 ? "Imagem anexada" : `${imageFiles.length} imagens anexadas`);
+      } catch (e) {
+        toast.error("Erro no upload");
+      } finally {
+        setUploading(false);
+      }
+    }
+
+    async function handleCommentPaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+      const pastedFiles = Array.from(e.clipboardData.files).filter((file) => file.type.startsWith('image/'));
+      const itemFiles = Array.from(e.clipboardData.items)
+        .filter((item) => item.kind === 'file' && item.type.startsWith('image/'))
+        .map((item) => item.getAsFile())
+        .filter((file): file is File => Boolean(file));
+      const imageFiles = pastedFiles.length > 0 ? pastedFiles : itemFiles;
+
+      if (imageFiles.length === 0) return;
+
+      e.preventDefault();
+      const text = e.clipboardData.getData('text/plain')?.trim();
+      if (text) setCommentText(prev => `${prev}${prev ? '\n' : ''}${text}`);
+      await addFilesToComment(imageFiles);
+    }
  
   const load = () => api<Demand>(`/demands/${id}`).then(setDemand).finally(() => setLoading(false));
 
@@ -142,14 +178,17 @@ interface Demand {
    async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>, target: 'comment' | 'version') {
      const files = e.target.files;
      if (!files || files.length === 0) return;
+      if (target === 'comment') {
+        await addFilesToComment(Array.from(files));
+        e.currentTarget.value = "";
+        return;
+      }
  
      setUploading(true);
      try {
         const data = await Promise.all(Array.from(files).map(uploadFile));
  
-       if (target === 'comment') {
-         setCommentAttachments(prev => [...prev, ...data.map((f: any) => ({ url: f.url, name: f.name, type: f.type }))]);
-       } else if (target === 'version') {
+        if (target === 'version') {
          const versionComment = prompt("Deseja adicionar um comentário para esta entrega?");
          await api(`/demands/${id}/versions`, {
            method: "POST",
@@ -162,6 +201,7 @@ interface Demand {
        toast.error("Erro no upload");
      } finally {
        setUploading(false);
+        e.currentTarget.value = "";
      }
    }
  
@@ -292,12 +332,12 @@ interface Demand {
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {c.attachments.map((at: any, idx: number) => (
                                   <div key={idx} className="relative group">
-                                    {at.type?.startsWith('image/') || (typeof at.url === 'string' && at.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? (
+                                     {isImageAttachment(at) ? (
                                       <img 
                                         src={at.url} 
-                                        alt="attachment" 
-                                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
-                                        onClick={() => window.open(at.url, '_blank')}
+                                         alt={at.name || "Imagem anexada"} 
+                                         className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
+                                         onClick={() => setPreviewImage({ url: at.url, name: at.name })}
                                       />
                                     ) : (
                                       <Button variant="outline" size="sm" className="h-20 w-20 flex-col gap-1" onClick={() => window.open(at.url, '_blank')}>
@@ -317,10 +357,15 @@ interface Demand {
                   
                    <div className="space-y-3">
                      {commentAttachments.length > 0 && (
-                       <div className="flex flex-wrap gap-2 p-2 bg-muted/20 rounded-lg">
+                        <div className="flex flex-wrap gap-2 p-2 bg-muted/20 rounded-lg">
                          {commentAttachments.map((at, idx) => (
-                           <div key={idx} className="relative h-16 w-16 group">
-                             <img src={at.url} alt="preview" className="h-full w-full object-cover rounded-md border" />
+                            <div key={idx} className="relative h-16 w-16 group">
+                              <img
+                                src={at.url}
+                                alt={at.name || "Prévia"}
+                                className="h-full w-full object-cover rounded-md border cursor-pointer"
+                                onClick={() => setPreviewImage({ url: at.url, name: at.name })}
+                              />
                              <button 
                                onClick={() => setCommentAttachments(prev => prev.filter((_, i) => i !== idx))}
                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -331,7 +376,7 @@ interface Demand {
                          ))}
                        </div>
                      )}
-                     <div className="flex gap-2">
+                      <div className="flex gap-2">
                        <input
                          type="file"
                          id="comment-upload"
@@ -349,10 +394,11 @@ interface Demand {
                          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
                        </Button>
                        <Textarea 
-                         placeholder="Digite seu comentário ou descreva o que quer na imagem..." 
+                          placeholder="Digite seu comentário, cole imagens com Ctrl+V ou descreva a correção..." 
                          value={commentText} 
                          className="min-h-[40px] h-[40px] py-2 resize-none"
                          onChange={(e) => setCommentText(e.target.value)}
+                          onPaste={handleCommentPaste}
                          onKeyDown={(e) => {
                            if (e.key === 'Enter' && !e.shiftKey) {
                              e.preventDefault();
@@ -503,9 +549,9 @@ interface Demand {
                    <div key={i} className="space-y-1">
                      <img 
                         src={ref.url} 
-                        alt="ref" 
+                         alt={ref.description || "Referência visual"} 
                         className="w-full h-32 object-cover rounded-lg border cursor-pointer" 
-                        onClick={() => window.open(ref.url, '_blank')}
+                         onClick={() => setPreviewImage({ url: ref.url, name: ref.description || "Referência visual" })}
                      />
                      {ref.description && <p className="text-[10px] text-muted-foreground italic leading-tight">{ref.description}</p>}
                    </div>
@@ -574,6 +620,25 @@ interface Demand {
            </DialogFooter>
          </DialogContent>
        </Dialog>
+ 
+        <Dialog open={!!previewImage} onOpenChange={(open) => !open && setPreviewImage(null)}>
+          <DialogContent className="max-w-4xl p-3 sm:p-4">
+            <DialogHeader>
+              <DialogTitle className="text-sm font-medium truncate pr-8">
+                {previewImage?.name || "Imagem"}
+              </DialogTitle>
+            </DialogHeader>
+            {previewImage && (
+              <div className="max-h-[75vh] overflow-auto rounded-lg bg-muted/20">
+                <img
+                  src={previewImage.url}
+                  alt={previewImage.name || "Imagem ampliada"}
+                  className="mx-auto max-h-[75vh] w-auto max-w-full object-contain"
+                />
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
      </div>
    );
  }
