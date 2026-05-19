@@ -332,12 +332,12 @@ interface Demand {
                               <div className="mt-2 flex flex-wrap gap-2">
                                 {c.attachments.map((at: any, idx: number) => (
                                   <div key={idx} className="relative group">
-                                    {at.type?.startsWith('image/') || (typeof at.url === 'string' && at.url.match(/\.(jpg|jpeg|png|gif|webp)$/i)) ? (
+                                     {isImageAttachment(at) ? (
                                       <img 
                                         src={at.url} 
-                                        alt="attachment" 
-                                        className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
-                                        onClick={() => window.open(at.url, '_blank')}
+                                         alt={at.name || "Imagem anexada"} 
+                                         className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
+                                         onClick={() => setPreviewImage({ url: at.url, name: at.name })}
                                       />
                                     ) : (
                                       <Button variant="outline" size="sm" className="h-20 w-20 flex-col gap-1" onClick={() => window.open(at.url, '_blank')}>
@@ -357,10 +357,15 @@ interface Demand {
                   
                    <div className="space-y-3">
                      {commentAttachments.length > 0 && (
-                       <div className="flex flex-wrap gap-2 p-2 bg-muted/20 rounded-lg">
+                        <div className="flex flex-wrap gap-2 p-2 bg-muted/20 rounded-lg">
                          {commentAttachments.map((at, idx) => (
-                           <div key={idx} className="relative h-16 w-16 group">
-                             <img src={at.url} alt="preview" className="h-full w-full object-cover rounded-md border" />
+                            <div key={idx} className="relative h-16 w-16 group">
+                              <img
+                                src={at.url}
+                                alt={at.name || "Prévia"}
+                                className="h-full w-full object-cover rounded-md border cursor-pointer"
+                                onClick={() => setPreviewImage({ url: at.url, name: at.name })}
+                              />
                              <button 
                                onClick={() => setCommentAttachments(prev => prev.filter((_, i) => i !== idx))}
                                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -371,7 +376,7 @@ interface Demand {
                          ))}
                        </div>
                      )}
-                     <div className="flex gap-2">
+                      <div className="flex gap-2">
                        <input
                          type="file"
                          id="comment-upload"
@@ -389,10 +394,11 @@ interface Demand {
                          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ImageIcon className="h-4 w-4" />}
                        </Button>
                        <Textarea 
-                         placeholder="Digite seu comentário ou descreva o que quer na imagem..." 
+                          placeholder="Digite seu comentário, cole imagens com Ctrl+V ou descreva a correção..." 
                          value={commentText} 
                          className="min-h-[40px] h-[40px] py-2 resize-none"
                          onChange={(e) => setCommentText(e.target.value)}
+                          onPaste={handleCommentPaste}
                          onKeyDown={(e) => {
                            if (e.key === 'Enter' && !e.shiftKey) {
                              e.preventDefault();
