@@ -58,6 +58,7 @@ import EventNpsPage from "./pages/EventNpsPage";
 import ContractTemplatesPage from "./pages/app/ContractTemplatesPage";
 import OnboardingPublicPage from "./pages/OnboardingPublicPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
+import DemandPublicReviewPage from "./pages/DemandPublicReviewPage";
 import BoardsListPage from "./pages/app/BoardsListPage";
 import BoardDetailPage from "./pages/app/BoardDetailPage";
 import BoardSettingsPage from "./pages/app/BoardSettingsPage";
@@ -171,6 +172,7 @@ const App = () => (
               <Route path="/quiz/:pin" element={<QuizPlayerPage />} />
               <Route path="/quiz" element={<QuizPlayerPage />} />
               <Route path="/agendar/:slug" element={<SchedulingPublicPage />} />
+              <Route path="/demands/public/:id" element={<DemandPublicReviewPage />} />
 
               {/* Troca de senha (forçada no 1º login) — exige auth, qualquer role */}
               <Route
