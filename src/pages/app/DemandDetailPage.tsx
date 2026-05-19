@@ -24,10 +24,11 @@ import {
    Image as ImageIcon,
    X as CloseIcon,
    Eye,
-   Plus,
-   CheckCircle2,
-    AlertCircle,
-    Link as LinkIcon,
+    Plus,
+    CheckCircle2,
+     AlertCircle,
+     Link as LinkIcon,
+     Clock,
  } from "lucide-react";
  
  import {
@@ -371,29 +372,71 @@ interface Demand {
                 <CardContent className="space-y-4">
                    <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 flex flex-col-reverse">
                      {[...demand.comments].reverse().map(c => {
-                        const isRequestForApproval = c.text && typeof c.text === 'string' && c.text.includes("SOLICITAÇÃO DE APROVAÇÃO");
+                        const isRequestForApproval = c.text && typeof c.text === 'string' && (c.text.includes("SOLICITAÇÃO DE APROVAÇÃO") || c.text.includes("REVISÃO PÚBLICA"));
+                        const isAprove = c.text && typeof c.text === 'string' && c.text.includes("APROVADO");
+                        const isAdjust = c.text && typeof c.text === 'string' && c.text.includes("AJUSTES");
+                        
+                        let cardClass = 'bg-muted/30 border-border/50';
+                        if (isRequestForApproval) {
+                          if (isAprove) cardClass = 'bg-emerald-500/10 border-emerald-500/30 ring-1 ring-emerald-500/20';
+                          else if (isAdjust) cardClass = 'bg-rose-500/10 border-rose-500/30 ring-1 ring-rose-500/20';
+                          else cardClass = 'bg-amber-500/10 border-amber-500/30 shadow-sm';
+                        }
+
                         return (
-                          <div key={c.id} className={`p-3 rounded-xl border ${isRequestForApproval ? 'bg-amber-500/10 border-amber-500/30' : 'bg-muted/30 border-border/50'}`}>
+                          <div key={c.id} className={`p-4 rounded-2xl border transition-all ${cardClass}`}>
                             <div className="flex items-center justify-between mb-1">
-                              <span className="font-bold text-xs">{c.user.name}</span>
-                              <span className="text-[10px] text-muted-foreground">{new Date(c.createdAt).toLocaleString()}</span>
+                              <div className="flex items-center gap-2">
+                                <div className="h-6 w-6 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold">
+                                  {c.user.name.charAt(0)}
+                                </div>
+                                <span className="font-bold text-xs">{c.user.name}</span>
+                              </div>
+                              <span className="text-[10px] text-muted-foreground font-medium">{new Date(c.createdAt).toLocaleString('pt-BR')}</span>
                             </div>
-                            <p className="text-sm whitespace-pre-wrap">{c.text}</p>
+                            
+                            <div className="mt-2 space-y-3">
+                              <p className="text-sm whitespace-pre-wrap leading-relaxed text-slate-700">{c.text}</p>
+                              
+                              {isRequestForApproval && (
+                                <div className="flex items-center gap-2 py-2 border-y border-black/5">
+                                   {isAprove ? (
+                                     <Badge className="bg-emerald-600 hover:bg-emerald-600 border-none rounded-full px-3 py-1 text-[10px] gap-1">
+                                       <CheckCircle2 className="h-3 w-3" /> APROVADO PELO CLIENTE
+                                     </Badge>
+                                   ) : isAdjust ? (
+                                     <Badge variant="destructive" className="rounded-full px-3 py-1 text-[10px] gap-1">
+                                       <AlertCircle className="h-3 w-3" /> AJUSTES SOLICITADOS
+                                     </Badge>
+                                   ) : (
+                                     <Badge variant="outline" className="border-amber-500/50 text-amber-600 rounded-full px-3 py-1 text-[10px] gap-1 bg-amber-500/5">
+                                       <Clock className="h-3 w-3" /> AGUARDANDO REVISÃO
+                                     </Badge>
+                                   )}
+                                </div>
+                              )}
+                            </div>
+
                             {c.attachments && c.attachments.length > 0 && (
-                              <div className="mt-2 flex flex-wrap gap-2">
+                              <div className="mt-3 flex flex-wrap gap-2">
                                 {c.attachments.map((at: any, idx: number) => (
-                                  <div key={idx} className="relative group">
+                                  <div key={idx} className="relative group overflow-hidden rounded-xl border border-black/5 shadow-sm">
                                      {isImageAttachment(at) ? (
-                                      <img 
-                                        src={at.url} 
-                                         alt={at.name || "Imagem anexada"} 
-                                         className="h-20 w-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity" 
-                                         onClick={() => setPreviewImage({ url: at.url, name: at.name })}
-                                      />
+                                      <div className="relative h-24 w-24">
+                                        <img 
+                                          src={at.url} 
+                                           alt={at.name || "Imagem anexada"} 
+                                           className="h-full w-full object-cover cursor-pointer transition-transform duration-500 group-hover:scale-110" 
+                                           onClick={() => setPreviewImage({ url: at.url, name: at.name })}
+                                        />
+                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                          <Eye className="h-4 w-4 text-white" />
+                                        </div>
+                                      </div>
                                     ) : (
-                                      <Button variant="outline" size="sm" className="h-20 w-20 flex-col gap-1" onClick={() => window.open(at.url, '_blank')}>
-                                        <FileText className="h-6 w-6" />
-                                        <span className="text-[10px] truncate w-full px-1">{at.name || 'Arquivo'}</span>
+                                      <Button variant="ghost" size="sm" className="h-24 w-24 flex-col gap-1 bg-white" onClick={() => window.open(at.url, '_blank')}>
+                                        <FileText className="h-8 w-8 text-slate-400" />
+                                        <span className="text-[9px] font-bold truncate w-full px-2">{at.name || 'Arquivo'}</span>
                                       </Button>
                                     )}
                                   </div>

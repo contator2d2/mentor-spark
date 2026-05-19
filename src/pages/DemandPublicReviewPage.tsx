@@ -16,10 +16,16 @@ import { Textarea } from "@/components/ui/textarea";
    MessageSquare,
    Eye,
    ExternalLink,
-   X,
-   ChevronRight,
-   ArrowRight,
- } from "lucide-react";
+    X,
+    ChevronRight,
+    ArrowRight,
+    History,
+    Plus,
+    Check,
+    Sparkles,
+    User,
+    Calendar,
+  } from "lucide-react";
 import { toast } from "sonner";
 
 export default function DemandPublicReviewPage() {
@@ -96,13 +102,23 @@ export default function DemandPublicReviewPage() {
     </div>
   );
 
-   const latestVersion = demand.versions?.[0];
+   const versions = demand.versions || [];
+   const latestVersion = versions[0];
+   const [selectedVersion, setSelectedVersion] = useState<any>(null);
+
+   useEffect(() => {
+     if (latestVersion && !selectedVersion) {
+       setSelectedVersion(latestVersion);
+     }
+   }, [latestVersion]);
+
+   const currentDisplayVersion = selectedVersion || latestVersion;
 
    return (
      <div className="min-h-screen bg-[#f8f9fa] pb-12">
        {/* Header Modernizado */}
-       <header className="bg-white/80 backdrop-blur-md border-b sticky top-0 z-50 px-6 py-4">
-         <div className="max-w-5xl mx-auto flex items-center justify-between">
+        <header className="bg-white/90 backdrop-blur-md border-b sticky top-0 z-50 px-6 py-4 shadow-sm">
+          <div className="max-w-6xl mx-auto flex items-center justify-between">
            <div className="flex items-center gap-4">
              <div className="bg-primary/10 p-2 rounded-xl">
                <FileText className="h-5 w-5 text-primary" />
@@ -112,7 +128,9 @@ export default function DemandPublicReviewPage() {
                <div className="flex items-center gap-2">
                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-bold">{demand.type}</span>
                  <span className="w-1 h-1 rounded-full bg-slate-300" />
-                 <span className="text-[10px] text-muted-foreground font-medium">Versão {latestVersion?.versionNumber || 1}</span>
+                  <span className="text-[10px] text-muted-foreground font-medium">
+                    Exibindo Versão {currentDisplayVersion?.versionNumber || 1}
+                  </span>
                </div>
              </div>
            </div>
@@ -124,85 +142,106 @@ export default function DemandPublicReviewPage() {
          </div>
        </header>
 
-       <main className="max-w-5xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <main className="max-w-6xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
          {/* Coluna Principal: Conteúdo da Entrega */}
          <div className="lg:col-span-8 space-y-8">
-           <section className="space-y-4">
-             <div className="flex items-center justify-between">
-               <div className="flex items-center gap-2 text-slate-900 font-bold">
-                 <Clock className="h-4 w-4 text-primary" />
-                 <h2>Arquivos da Entrega</h2>
-               </div>
-               {latestVersion && (
-                 <span className="text-xs text-muted-foreground bg-white px-2 py-1 rounded-lg border shadow-sm">
-                   Enviado em {new Date(latestVersion.createdAt).toLocaleDateString('pt-BR')}
-                 </span>
-               )}
-             </div>
+            <section className="space-y-6">
+              <div className="flex items-center justify-between bg-white p-4 rounded-2xl border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="bg-primary/10 p-2 rounded-lg text-primary">
+                    <History className="h-5 w-5" />
+                  </div>
+                  <h2 className="font-bold text-slate-800">Evolução do Projeto</h2>
+                </div>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 max-w-[200px] sm:max-w-none">
+                  {versions.slice().reverse().map((v: any) => (
+                    <button
+                      key={v.id}
+                      onClick={() => setSelectedVersion(v)}
+                      className={`flex flex-col items-center justify-center min-w-[50px] h-12 rounded-xl border-2 transition-all ${
+                        currentDisplayVersion?.id === v.id
+                          ? "border-primary bg-primary/5 text-primary shadow-inner"
+                          : "border-slate-100 bg-slate-50 text-slate-400 hover:border-slate-200"
+                      }`}
+                    >
+                      <span className="text-[10px] font-bold">V{v.versionNumber}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-             {latestVersion ? (
-               <div className="space-y-6">
-                 {latestVersion.comment && (
-                   <div className="bg-white p-5 rounded-2xl border shadow-sm text-slate-700 leading-relaxed relative overflow-hidden">
-                     <div className="absolute top-0 left-0 w-1 h-full bg-primary" />
-                     <MessageSquare className="h-4 w-4 text-primary/30 absolute top-4 right-4" />
-                     <p className="text-sm italic">"{latestVersion.comment}"</p>
-                   </div>
-                 )}
+              {currentDisplayVersion ? (
+                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <div className="bg-white p-6 rounded-3xl border shadow-md relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                      <Sparkles className="h-20 w-20 text-primary" />
+                    </div>
+                    
+                    <div className="flex items-start gap-4 mb-6">
+                      <div className="bg-slate-100 h-10 w-10 rounded-full flex items-center justify-center text-slate-500 shrink-0">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-slate-900">{currentDisplayVersion.creator?.name || "Equipe de Produção"}</h4>
+                          <span className="text-[10px] text-slate-400 font-medium">
+                            {new Date(currentDisplayVersion.createdAt).toLocaleString('pt-BR')}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-600 mt-1 leading-relaxed whitespace-pre-wrap">
+                          {currentDisplayVersion.comment || "Os arquivos desta versão estão prontos para sua revisão."}
+                        </p>
+                      </div>
+                    </div>
 
-                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                   {latestVersion.files?.map((file: any, idx: number) => {
-                     const isImage = file.type?.startsWith('image/') || file.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-                     return (
-                       <div key={idx} className="group relative bg-white rounded-3xl overflow-hidden border shadow-sm transition-all hover:shadow-xl hover:-translate-y-1">
-                         {isImage ? (
-                           <div className="aspect-[4/3] relative">
-                             <img src={file.url} alt={file.name} className="w-full h-full object-cover" />
-                             <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {currentDisplayVersion.files?.map((file: any, idx: number) => {
+                        const isImage = file.type?.startsWith('image/') || file.url.match(/\.(jpg|jpeg|png|gif|webp)$/i);
+                        return (
+                          <div key={idx} className="group relative bg-slate-50 rounded-2xl overflow-hidden border border-slate-200/60 transition-all hover:ring-2 hover:ring-primary/20">
+                            {isImage ? (
+                              <div className="aspect-video relative overflow-hidden cursor-zoom-in" onClick={() => setPreviewFile(file)}>
+                                <img src={file.url} alt={file.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+                                  <div className="flex gap-2 w-full">
+                                    <Button size="sm" className="rounded-full bg-white/20 backdrop-blur-md text-white border-white/30 hover:bg-white/40 flex-1">
+                                      <Eye className="h-3 w-3 mr-2" /> Ampliar
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="aspect-video flex flex-col items-center justify-center p-4 bg-slate-100">
+                                <div className="bg-white p-3 rounded-xl shadow-sm mb-3">
+                                  <FileText className="h-8 w-8 text-primary/40" />
+                                </div>
+                                <p className="text-[10px] font-bold text-slate-700 truncate w-full px-4 text-center">{file.name}</p>
+                              </div>
+                            )}
+                            <div className="p-3 bg-white border-t flex items-center justify-between">
+                               <div className="flex flex-col min-w-0">
+                                 <span className="text-[10px] font-bold text-slate-800 truncate">{file.name}</span>
+                                 <span className="text-[8px] text-slate-400 font-medium uppercase">{isImage ? 'Visual' : 'Anexo'}</span>
+                               </div>
                                <Button 
-                                 size="sm" 
-                                 className="rounded-full bg-white text-slate-900 hover:bg-slate-100"
-                                 onClick={() => setPreviewFile(file)}
-                               >
-                                 <Eye className="h-4 w-4 mr-2" /> Ver Grande
-                               </Button>
-                               <Button 
-                                 size="sm" 
-                                 variant="outline" 
-                                 className="rounded-full bg-transparent text-white border-white hover:bg-white/20"
-                                 onClick={() => window.open(file.url, '_blank')}
+                                 variant="ghost" 
+                                 size="icon" 
+                                 className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary transition-colors"
+                                 onClick={(e) => {
+                                   e.stopPropagation();
+                                   window.open(file.url, '_blank');
+                                 }}
                                >
                                  <Download className="h-4 w-4" />
                                </Button>
-                             </div>
-                           </div>
-                         ) : (
-                           <div className="aspect-[4/3] flex flex-col items-center justify-center p-8 text-center bg-slate-50">
-                             <div className="bg-white p-4 rounded-2xl shadow-sm mb-4">
-                               <FileText className="h-10 w-10 text-primary/40" />
-                             </div>
-                             <p className="text-xs font-bold text-slate-900 truncate w-full px-4 mb-4">{file.name}</p>
-                             <div className="flex gap-2">
-                               <Button 
-                                 size="sm" 
-                                 className="rounded-full"
-                                 onClick={() => window.open(file.url, '_blank')}
-                               >
-                                 <Download className="h-4 w-4 mr-2" /> Baixar
-                               </Button>
-                             </div>
-                           </div>
-                         )}
-                         <div className="p-4 border-t bg-white flex items-center justify-between">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase truncate max-w-[150px]">{file.name}</span>
-                            <Badge variant="secondary" className="text-[8px] rounded-full uppercase">{isImage ? 'Imagem' : 'Documento'}</Badge>
-                         </div>
-                       </div>
-                     );
-                   })}
-                 </div>
-               </div>
-             ) : (
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
                <div className="bg-white rounded-3xl p-16 text-center border-2 border-dashed border-slate-200">
                  <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
                    <AlertCircle className="h-8 w-8" />
@@ -215,66 +254,66 @@ export default function DemandPublicReviewPage() {
          </div>
 
          {/* Sidebar: Ações e Info */}
-         <div className="lg:col-span-4 space-y-6">
-           <section className="sticky top-24 space-y-6">
-             {/* Painel de Decisão */}
-             <Card className="rounded-[32px] overflow-hidden border-none shadow-2xl shadow-primary/5 bg-white">
-               <CardHeader className="bg-slate-900 text-white p-6">
-                 <CardTitle className="text-lg flex items-center gap-2 font-display">
-                   <CheckCircle2 className="h-5 w-5 text-emerald-400" />
-                   Sua Decisão
-                 </CardTitle>
-                 <p className="text-slate-400 text-xs mt-1 leading-relaxed">Avalie o trabalho entregue e decida os próximos passos.</p>
-               </CardHeader>
-               <CardContent className="p-6 space-y-6">
-                 <div className="space-y-3">
-                   <Label htmlFor="comment" className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-                     <MessageSquare className="h-3 w-3" />
-                     Feedback ou Correções
-                   </Label>
-                   <Textarea
-                     id="comment"
-                     placeholder="Descreva aqui o que achou ou o que precisa ser alterado..."
-                     className="min-h-[140px] rounded-2xl border-slate-200 focus:ring-primary/20 bg-slate-50/50 resize-none text-sm p-4"
-                     value={reviewComment}
-                     onChange={(e) => setReviewComment(e.target.value)}
-                   />
-                 </div>
+          <div className="lg:col-span-4">
+            <aside className="sticky top-24 space-y-6">
+              <Card className="rounded-[32px] overflow-hidden border-none shadow-xl shadow-slate-200/50 bg-white">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 text-white p-6">
+                  <div className="flex items-center gap-2 mb-1">
+                    <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-white/50">Central de Aprovação</span>
+                  </div>
+                  <h3 className="text-xl font-bold font-display">Decisão Final</h3>
+                </div>
+                
+                <div className="p-6 space-y-6">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="comment" className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Observações ou Ajustes
+                      </Label>
+                    </div>
+                    <Textarea
+                      id="comment"
+                      placeholder="Ex: Gostei muito, mas podemos alterar a cor do botão?"
+                      className="min-h-[120px] rounded-2xl border-slate-100 focus:ring-primary/10 bg-slate-50/50 resize-none text-sm p-4 transition-all focus:bg-white"
+                      value={reviewComment}
+                      onChange={(e) => setReviewComment(e.target.value)}
+                    />
+                  </div>
 
-                 <div className="flex flex-col gap-3">
-                   <Button
-                     className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-200 transition-all active:scale-95 group"
-                     onClick={() => handleReview('approved')}
-                     disabled={submitting}
-                   >
-                     {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
-                       <>
-                         <CheckCircle2 className="h-5 w-5 mr-2" />
-                         Aprovar Projeto
-                         <ArrowRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-                       </>
-                     )}
-                   </Button>
-                   
-                   <Button
-                     variant="outline"
-                     className="w-full h-14 rounded-2xl border-2 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 font-bold transition-all active:scale-95 text-slate-600"
-                     onClick={() => handleReview('adjustments')}
-                     disabled={submitting}
-                   >
-                     {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
-                       <>
-                         <AlertCircle className="h-5 w-5 mr-2" />
-                         Solicitar Ajustes
-                       </>
-                     )}
-                   </Button>
-                 </div>
-               </CardContent>
-             </Card>
+                  <div className="flex flex-col gap-3">
+                    <Button
+                      className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-lg shadow-emerald-600/20 transition-all active:scale-[0.98] group"
+                      onClick={() => handleReview('approved')}
+                      disabled={submitting}
+                    >
+                      {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                        <div className="flex items-center justify-center w-full">
+                          <Check className="h-5 w-5 mr-2 stroke-[3px]" />
+                          Aprovar Agora
+                          <ArrowRight className="h-4 w-4 ml-auto opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+                        </div>
+                      )}
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full h-14 rounded-2xl border-2 border-slate-100 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 font-bold transition-all active:scale-[0.98] text-slate-600 group"
+                      onClick={() => handleReview('adjustments')}
+                      disabled={submitting}
+                    >
+                      {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : (
+                        <div className="flex items-center justify-center w-full">
+                          <X className="h-5 w-5 mr-2 stroke-[3px]" />
+                          Solicitar Ajustes
+                        </div>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </Card>
 
-             {/* Resumo da Demanda */}
-             <Card className="rounded-3xl border-slate-200 shadow-sm bg-white overflow-hidden">
+              <Card className="rounded-3xl border-slate-100 shadow-sm bg-white overflow-hidden">
                <div className="p-5 border-b bg-slate-50/50">
                  <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">Objetivo Inicial</h3>
                </div>
@@ -283,46 +322,87 @@ export default function DemandPublicReviewPage() {
                    {demand.description || demand.objective || "Sem descrição disponível."}
                  </p>
                </CardContent>
-             </Card>
-           </section>
-         </div>
-       </main>
+              </Card>
+            </aside>
+          </div>
+        </main>
 
-       {/* Modal de Preview Moderno */}
-       {previewFile && (
-         <div className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-sm flex flex-col animate-in fade-in duration-300">
-           <div className="flex items-center justify-between p-6">
-             <div className="flex flex-col">
-               <h3 className="text-white font-bold">{previewFile.name}</h3>
-               <span className="text-white/40 text-xs uppercase tracking-widest">Pré-visualização</span>
-             </div>
-             <div className="flex items-center gap-3">
-               <Button 
-                 variant="outline" 
-                 className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20"
-                 onClick={() => window.open(previewFile.url, '_blank')}
-               >
-                 <ExternalLink className="h-4 w-4 mr-2" /> Abrir Original
-               </Button>
-               <Button 
-                 size="icon" 
-                 variant="ghost" 
-                 className="rounded-full text-white hover:bg-white/10"
-                 onClick={() => setPreviewFile(null)}
-               >
-                 <X className="h-6 w-6" />
-               </Button>
-             </div>
-           </div>
-           <div className="flex-1 flex items-center justify-center p-4 md:p-12 overflow-hidden">
-             <img 
-               src={previewFile.url} 
-               alt={previewFile.name} 
-               className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-500" 
-             />
-           </div>
-         </div>
-       )}
+        {previewFile && (
+          <div className="fixed inset-0 z-[100] bg-slate-900/98 backdrop-blur-md flex flex-col animate-in fade-in duration-300">
+            <div className="flex items-center justify-between p-6 border-b border-white/10">
+              <div className="flex flex-col">
+                <h3 className="text-white font-bold">{previewFile.name}</h3>
+                <span className="text-white/40 text-[10px] uppercase tracking-widest">Visualização em Alta Definição</span>
+              </div>
+              <div className="flex items-center gap-4">
+                <Button 
+                  variant="outline" 
+                  className="rounded-full bg-white/10 border-white/20 text-white hover:bg-white/20 h-11 px-6"
+                  onClick={() => window.open(previewFile.url, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" /> Abrir Original
+                </Button>
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="rounded-full text-white hover:bg-white/20 h-11 w-11"
+                  onClick={() => setPreviewFile(null)}
+                >
+                  <X className="h-6 w-6" />
+                </Button>
+              </div>
+            </div>
+            <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden">
+              <img 
+                src={previewFile.url} 
+                alt={previewFile.name} 
+                className="max-w-full max-h-[80vh] object-contain rounded-xl shadow-2xl animate-in zoom-in-95 duration-500 ring-1 ring-white/20" 
+              />
+              
+              {/* Barra de Aprovação Flutuante no Preview */}
+              <div className="mt-8 bg-white rounded-3xl p-2 shadow-2xl flex items-center gap-2 animate-in slide-in-from-bottom-10 duration-700 delay-300">
+                <Button 
+                  className="rounded-2xl bg-emerald-600 hover:bg-emerald-700 h-12 px-8 font-bold"
+                  onClick={() => {
+                    setPreviewFile(null);
+                    handleReview('approved');
+                  }}
+                >
+                  Aprovar Versão
+                </Button>
+                <Button 
+                  variant="ghost"
+                  className="rounded-2xl h-12 px-8 font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-600"
+                  onClick={() => {
+                    setPreviewFile(null);
+                    const el = document.getElementById('comment');
+                    el?.focus();
+                    el?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  Solicitar Ajustes
+                </Button>
+              </div>
+            </div>
+            
+            <div className="p-6 border-t border-white/10 bg-black/20 text-center">
+              <div className="flex items-center justify-center gap-6 text-white/60 text-xs">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-3 w-3" />
+                  <span>{new Date(currentDisplayVersion.createdAt).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Clock className="h-3 w-3" />
+                  <span>{new Date(currentDisplayVersion.createdAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <User className="h-3 w-3" />
+                  <span>{currentDisplayVersion.creator?.name || "Equipe"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
      </div>
    );
 }
