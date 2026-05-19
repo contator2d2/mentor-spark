@@ -284,7 +284,7 @@ interface Demand {
             {!isAgency && demand.status === 'new' && (
               <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
             )}
-             {isAgency && (demand.status === 'production' || demand.status === 'adjustments') && (
+             {isAgency && (
                 <div className="flex gap-2">
                   <input
                     type="file"
@@ -293,11 +293,22 @@ interface Demand {
                     multiple
                     onChange={(e) => handleFileUpload(e, 'version')}
                   />
-                  <Button size="sm" variant="outline" className="gap-2" onClick={() => document.getElementById('delivery-upload')?.click()} disabled={uploading}>
+                   <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="gap-2 border-primary/20 hover:border-primary/50" 
+                    onClick={() => document.getElementById('delivery-upload')?.click()} 
+                    disabled={uploading}
+                  >
                     <Upload className="h-4 w-4" /> Enviar Arquivos
                   </Button>
-                  <Button size="sm" className="gap-2" onClick={() => sendToApproval()} disabled={demand.versions.length === 0}>
-                    <CheckCircle2 className="h-4 w-4" /> Enviar para Aprovação
+                   <Button 
+                    size="sm" 
+                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 shadow-sm" 
+                    onClick={() => sendToApproval()} 
+                    disabled={demand.versions.length === 0}
+                  >
+                    <Send className="h-4 w-4" /> Enviar para Aprovação
                   </Button>
                 </div>
              )}
