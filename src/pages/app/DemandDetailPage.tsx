@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
- import { api } from "@/lib/api";
+import { api, API_BASE, getToken } from "@/lib/api";
  import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -129,11 +129,11 @@ interface Demand {
          formData.append("files", files[i]);
        }
  
-       const response = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+        const response = await fetch(`${API_BASE}/upload`, {
          method: "POST",
          body: formData,
          headers: {
-           'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${getToken()}`
          }
        });
  
@@ -476,9 +476,9 @@ interface Demand {
                          try {
                            const formData = new FormData();
                            formData.append("files", files[0]);
-                           const resp = await fetch(`${import.meta.env.VITE_API_URL || '/api'}/upload`, {
+                            const resp = await fetch(`${API_BASE}/upload`, {
                              method: "POST", body: formData,
-                             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                              headers: { 'Authorization': `Bearer ${getToken()}` }
                            });
                            const data = await resp.json();
                            setCurrentRefUrl(data[0].url);
