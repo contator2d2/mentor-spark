@@ -71,7 +71,7 @@ export class DemandsService {
   }
 
    async update(mentorId: string, id: string, dto: any) {
-     const demand = await this.repo.findOne({ where: { id, mentorId }, relations: ['agency'] });
+      const demand = await this.repo.findOne({ where: { id, mentorId }, relations: ['agency', 'responsible'] });
      if (!demand) throw new NotFoundException();
      
      const oldStatus = demand.status;
@@ -83,11 +83,11 @@ export class DemandsService {
      Object.assign(demand, dto);
      const updated = await this.repo.save(demand);
  
-     if (updated.agencyId) {
+     if (updated.agencyId || updated.responsibleId) {
        if (oldStatus !== updated.status) {
          await this.notifyAgency(mentorId, updated, 'Alteração de Status', `O status da demanda "${updated.title}" foi alterado para: ${updated.status}.`);
-       } else if (!oldAgencyId && updated.agencyId) {
-         await this.notifyAgency(mentorId, updated, 'Nova Demanda Atribuída', `Você foi definido como responsável pela demanda: ${updated.title}.`);
+        } else if ((!oldAgencyId && updated.agencyId) || (!demand.responsibleId && updated.responsibleId)) {
+          await this.notifyAgency(mentorId, updated, 'Nova Demanda Atribuída', `Você foi definido como responsável pela demanda: ${updated.title}.`);
        }
      }
  
@@ -100,7 +100,7 @@ export class DemandsService {
   }
 
   async addVersion(mentorId: string, demandId: string, userId: string, dto: any) {
-    const demand = await this.repo.findOne({ where: { id: demandId, mentorId } });
+    const demand = await this.repo.findOne({ where: { id: demandId, mentorId }, relations: ['responsible', 'agency'] });
     if (!demand) throw new NotFoundException();
 
     const last = await this.versions.findOne({
@@ -121,13 +121,17 @@ export class DemandsService {
     
     if (demand.status === DemandStatus.PRODUCTION || demand.status === DemandStatus.ADJUSTMENTS) {
         await this.repo.update(demandId, { status: DemandStatus.WAITING_FEEDBACK });
+        // Notifica o responsável original/mentor que uma nova prova subiu
+        if (demand.responsibleId) {
+          await this.notifyAgency(mentorId, demand, 'Nova Prova Enviada', `Uma nova versão/prova foi enviada para a demanda "${demand.title}".`);
+        }
     }
 
     return version;
   }
 
    async addComment(mentorId: string, demandId: string, userId: string, dto: any) {
-     const demand = await this.repo.findOne({ where: { id: demandId, mentorId }, relations: ['agency'] });
+      const demand = await this.repo.findOne({ where: { id: demandId, mentorId }, relations: ['agency', 'responsible'] });
      if (!demand) throw new NotFoundException();
  
      const comment = this.comments.create({
@@ -139,10 +143,13 @@ export class DemandsService {
  
      const saved = await this.comments.save(comment);
  
-     // Se quem comentou não foi a agência, notifica a agência
+      // Notifica a outra parte (se mentor comentou, notifica agência; se agência comentou, notifica mentor/responsável)
+      const attachmentInfo = (dto.attachments && dto.attachments.length > 0) ? ` (com ${dto.attachments.length} anexo(s))` : '';
+      
       if (demand.agencyId && demand.agencyId !== userId) {
-        const attachmentInfo = (dto.attachments && dto.attachments.length > 0) ? ` (com ${dto.attachments.length} anexo(s))` : '';
         await this.notifyAgency(mentorId, demand, 'Novo Comentário', `Um novo comentário foi adicionado na demanda "${demand.title}"${attachmentInfo}.`);
+      } else if (demand.responsibleId && demand.responsibleId !== userId) {
+        await this.notifyAgency(mentorId, demand, 'Novo Comentário', `A agência adicionou um comentário na demanda "${demand.title}"${attachmentInfo}.`);
       }
  
      return saved;
@@ -150,41 +157,50 @@ export class DemandsService {
  
    private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
      try {
-       const [mentor, agency] = await Promise.all([
+       const [mentor, agency, responsible] = await Promise.all([
          this.users.findOne({ where: { id: mentorId } }),
          this.users.findOne({ where: { id: demand.agencyId } }),
+         this.users.findOne({ where: { id: demand.responsibleId } }),
        ]);
  
-       if (!agency || !mentor) return;
+       if (!mentor) return;
+       
+       // Define o alvo da notificação (quem NÃO disparou a ação)
+       // Simplificação: notifica tanto agência quanto responsável se existirem e forem diferentes
+       const targets = [agency, responsible].filter(t => t && t.id);
+       
+       const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
+       const demandUrl = mentor.customDomain 
+         ? `https://${mentor.customDomain}/app/demands/${demand.id}`
+         : `${baseUrl}/app/demands/${demand.id}`;
  
-       // Email
-       if (agency.email) {
-         const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
-         const loginUrl = mentor.customDomain 
-           ? `https://${mentor.customDomain}/login`
-           : `${baseUrl}/login`;
+       for (const target of targets) {
+         if (!target) continue;
  
-         const html = this.mail.generateStandardTemplate({
-           brandName: mentor.brandName || mentor.name,
-           brandLogoUrl: mentor.brandLogoUrl,
-           brandPrimaryColor: mentor.brandPrimaryColor,
-           firstName: agency.name.split(' ')[0],
-           message: `${message}<br><br><b>Demanda:</b> ${demand.title}<br><b>Status:</b> ${demand.status}`,
-           email: agency.email,
-           loginUrl,
-         });
+         // Email
+         if (target.email) {
+           const html = this.mail.generateStandardTemplate({
+             brandName: mentor.brandName || mentor.name,
+             brandLogoUrl: mentor.brandLogoUrl,
+             brandPrimaryColor: mentor.brandPrimaryColor,
+             firstName: target.name.split(' ')[0],
+             message: `${message}<br><br><b>Demanda:</b> ${demand.title}<br><b>Status:</b> ${demand.status}`,
+             email: target.email,
+             loginUrl: demandUrl,
+           });
  
-         await this.mail.send({
-           to: agency.email,
-           subject: `[${mentor.brandName || 'Mentor'}] ${title}`,
-           html,
-         }).catch(e => this.logger.error(`Erro email agência: ${e.message}`));
-       }
+           await this.mail.send({
+             to: target.email,
+             subject: `[${mentor.brandName || 'Mentor'}] ${title}`,
+             html,
+           }).catch(e => this.logger.error(`Erro email: ${e.message}`));
+         }
  
-       // WhatsApp
-       if (agency.phone) {
-         const waMessage = `🔔 *${title}*\n\nOlá ${agency.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\nEquipe ${mentor.brandName || mentor.name}`;
-         await this.whatsapp.sendText(mentorId, agency.phone, waMessage).catch(e => this.logger.error(`Erro WhatsApp agência: ${e.message}`));
+         // WhatsApp
+         if (target.phone) {
+           const waMessage = `🔔 *${title}*\n\nOlá ${target.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\n🔗 *Acessar Demanda:* ${demandUrl}\n\nEquipe ${mentor.brandName || mentor.name}`;
+           await this.whatsapp.sendText(mentorId, target.phone, waMessage).catch(e => this.logger.error(`Erro WhatsApp: ${e.message}`));
+         }
        }
      } catch (err) {
        this.logger.error(`Erro geral notifyAgency: ${err.message}`);
