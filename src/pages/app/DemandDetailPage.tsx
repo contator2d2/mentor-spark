@@ -275,12 +275,39 @@ interface Demand {
           </div>
         </div>
          <div className="flex items-center gap-2">
-            {!isAgency && demand.status === 'waiting_feedback' && (
-              <>
-                <Button variant="destructive" size="sm" onClick={() => updateStatus('adjustments')}>Solicitar Ajustes</Button>
-                <Button variant="default" className="bg-emerald-600 hover:bg-emerald-700" size="sm" onClick={() => updateStatus('approved')}>Aprovar</Button>
-              </>
-            )}
+             {!isAgency && (demand.status === 'waiting_feedback' || demand.status === 'adjustments') && (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    onClick={() => {
+                      const reason = prompt("Por favor, descreva os ajustes necessários:");
+                      if (!reason) return;
+                      
+                      api(`/demands/${id}`, { method: "PATCH", body: { status: 'adjustments' } })
+                        .then(() => api(`/demands/${id}/comments`, { 
+                          method: "POST", 
+                          body: { text: `❌ AJUSTES SOLICITADOS:\n${reason}` } 
+                        }))
+                        .then(() => {
+                          toast.success("Solicitação de ajustes enviada");
+                          load();
+                        })
+                        .catch(() => toast.error("Erro ao processar solicitação"));
+                    }}
+                  >
+                    Solicitar Ajustes
+                  </Button>
+                  <Button 
+                    variant="default" 
+                    className="bg-emerald-600 hover:bg-emerald-700" 
+                    size="sm" 
+                    onClick={() => updateStatus('approved')}
+                  >
+                    Aprovar
+                  </Button>
+                </div>
+              )}
             {!isAgency && demand.status === 'new' && (
               <Button size="sm" onClick={() => updateStatus('production')}>Iniciar Produção</Button>
             )}
