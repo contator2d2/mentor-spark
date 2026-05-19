@@ -119,11 +119,12 @@ export class DemandsService {
 
     await this.versions.save(version);
     
+    const updatedDemand = { ...demand, status: DemandStatus.WAITING_FEEDBACK };
     if (demand.status === DemandStatus.PRODUCTION || demand.status === DemandStatus.ADJUSTMENTS) {
         await this.repo.update(demandId, { status: DemandStatus.WAITING_FEEDBACK });
         // Notifica o responsável original/mentor que uma nova prova subiu
         if (demand.responsibleId) {
-          await this.notifyAgency(mentorId, demand, 'Nova Prova Enviada', `Uma nova versão/prova foi enviada para a demanda "${demand.title}".`);
+          await this.notifyAgency(mentorId, updatedDemand as any, 'Nova Prova Enviada', `Uma nova versão/prova foi enviada para a demanda "${demand.title}".`);
         }
     }
 
