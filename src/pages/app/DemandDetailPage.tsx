@@ -205,14 +205,27 @@ interface Demand {
      }
    }
  
-   async function sendToApproval(comment?: string) {
+   async function sendToApproval() {
+     const comment = prompt("Deseja adicionar uma mensagem para o cliente nesta solicitação de aprovação?");
      try {
        await updateStatus('waiting_feedback');
-       if (comment) {
-         await api(`/demands/${id}/comments`, { method: "POST", body: { text: `SOLICITAÇÃO DE APROVAÇÃO: ${comment}` } });
-       }
+       
+       const baseUrl = window.location.origin;
+       const publicUrl = `${baseUrl}/demands/public/${id}?token=${id}`;
+       
+       await api(`/demands/${id}/comments`, { 
+         method: "POST", 
+         body: { 
+           text: `🚀 SOLICITAÇÃO DE APROVAÇÃO ENVIADA\n\n${comment || "Arquivos enviados para sua revisão."}\n\n🔗 Link para aprovação rápida: ${publicUrl}`,
+           attachments: []
+         } 
+       });
+       
+       toast.success("Solicitação de aprovação enviada e registrada!");
        load();
-     } catch (e) {}
+     } catch (e) {
+       toast.error("Erro ao enviar para aprovação");
+     }
    }
 
   async function generateBriefing() {
