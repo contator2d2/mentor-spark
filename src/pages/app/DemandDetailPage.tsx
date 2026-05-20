@@ -661,31 +661,59 @@ interface Demand {
           </Tabs>
         </div>
 
-        <div className="space-y-6">
-          <Card>
-             <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Configurações</CardTitle></CardHeader>
-             <CardContent className="space-y-4">
-               <div className="space-y-1">
-                 <Label className="text-xs">Prioridade</Label>
-                 <Badge className="w-full justify-center py-1">{demand.priority.toUpperCase()}</Badge>
-               </div>
-               <div className="space-y-1">
-                 <Label className="text-xs">Tipo de Material</Label>
-                 <Input disabled value={demand.type} className="uppercase font-bold" />
-               </div>
-               <div className="space-y-1">
-                 <Label className="text-xs">Agência Responsável</Label>
-                 <div className="flex items-center gap-2 p-2 rounded-lg border bg-muted/30">
-                   <User className="h-4 w-4 text-muted-foreground" />
-                   <span className="text-sm">{demand.agency?.name || 'Não atribuída'}</span>
-                 </div>
-               </div>
-             </CardContent>
+        <div className="space-y-5">
+          <Card className="overflow-hidden">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold">Detalhes da demanda</CardTitle>
+              <p className="text-xs text-muted-foreground">Informações principais do projeto</p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <dl className="divide-y divide-border/60">
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Prioridade</dt>
+                  <dd>
+                    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${priorityMeta.tone}`}>
+                      {priorityMeta.label}
+                    </span>
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Tipo</dt>
+                  <dd className="text-sm font-medium">{demand.type}</dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Status</dt>
+                  <dd>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px] font-medium ${statusMeta.tone}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dot}`} />
+                      {statusMeta.label}
+                    </span>
+                  </dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Responsável</dt>
+                  <dd className="text-sm font-medium text-right">{demand.responsible?.name || <span className="text-muted-foreground font-normal">—</span>}</dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Agência</dt>
+                  <dd className="text-sm font-medium text-right">{demand.agency?.name || <span className="text-muted-foreground font-normal">Não atribuída</span>}</dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Prazo</dt>
+                  <dd className="text-sm font-medium text-right">
+                    {demand.definedDeadline ? new Date(demand.definedDeadline).toLocaleDateString('pt-BR') : <span className="text-muted-foreground font-normal">Sem prazo</span>}
+                  </dd>
+                </div>
+              </dl>
+            </CardContent>
           </Card>
 
            <Card>
-              <CardHeader className="flex flex-row items-center justify-between py-4">
-                <CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Referências</CardTitle>
+              <CardHeader className="flex flex-row items-center justify-between pb-3">
+                <div>
+                  <CardTitle className="text-sm font-semibold">Referências visuais</CardTitle>
+                  <p className="text-xs text-muted-foreground">Inspirações enviadas pelo cliente</p>
+                </div>
                 {!isAgency && (
                    <>
                      <input
@@ -709,39 +737,55 @@ interface Demand {
                          }
                        }}
                      />
-                     <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => document.getElementById('reference-upload')?.click()} disabled={uploading}>
-                       {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+                     <Button variant="outline" size="sm" className="h-8 gap-1.5" onClick={() => document.getElementById('reference-upload')?.click()} disabled={uploading}>
+                       {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Plus className="h-3.5 w-3.5" />}
+                       Adicionar
                      </Button>
                    </>
                  )}
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="pt-0">
+                 {demand.references && demand.references.length > 0 ? (
+                   <div className="grid grid-cols-2 gap-2">
                  {demand.references?.map((ref, i) => (
-                   <div key={i} className="space-y-1">
+                     <div key={i} className="group space-y-1">
                      <img 
                         src={ref.url} 
                          alt={ref.description || "Referência visual"} 
-                        className="w-full h-32 object-cover rounded-lg border cursor-pointer" 
+                          className="w-full aspect-square object-cover rounded-lg border cursor-pointer transition group-hover:opacity-90"
                          onClick={() => setPreviewImage({ url: ref.url, name: ref.description || "Referência visual" })}
                      />
-                     {ref.description && <p className="text-[10px] text-muted-foreground italic leading-tight">{ref.description}</p>}
+                       {ref.description && <p className="text-[10px] text-muted-foreground leading-tight line-clamp-2">{ref.description}</p>}
                    </div>
                  ))}
-                 {(!demand.references || demand.references.length === 0) && (
-                   <p className="text-xs text-muted-foreground italic">Nenhuma referência visual.</p>
+                   </div>
+                 ) : (
+                   <div className="text-center py-6 border border-dashed rounded-lg">
+                     <ImageIcon className="h-5 w-5 mx-auto text-muted-foreground/40 mb-1.5" />
+                     <p className="text-xs text-muted-foreground">Nenhuma referência</p>
+                   </div>
                  )}
               </CardContent>
            </Card>
  
            <Card>
-              <CardHeader><CardTitle className="text-sm uppercase tracking-wider text-muted-foreground">Links</CardTitle></CardHeader>
-              <CardContent className="space-y-2">
-                 {demand.links?.map((l, i) => (
-                   <a key={i} href={l} target="_blank" className="flex items-center gap-2 text-sm text-blue-600 hover:underline truncate">
-                     <LinkIcon className="h-3 w-3" /> {l}
-                   </a>
-                 ))}
-                 {(!demand.links || demand.links.length === 0) && <p className="text-xs text-muted-foreground">Sem links informados.</p>}
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-semibold">Links úteis</CardTitle>
+                <p className="text-xs text-muted-foreground">Materiais externos relacionados</p>
+              </CardHeader>
+              <CardContent className="pt-0 space-y-1.5">
+                 {demand.links && demand.links.length > 0 ? (
+                   demand.links.map((l, i) => (
+                     <a key={i} href={l} target="_blank" rel="noreferrer" className="flex items-center gap-2 text-sm text-primary hover:underline truncate p-2 rounded-md hover:bg-muted/50">
+                       <LinkIcon className="h-3.5 w-3.5 shrink-0" /> <span className="truncate">{l}</span>
+                     </a>
+                   ))
+                 ) : (
+                   <div className="text-center py-6 border border-dashed rounded-lg">
+                     <LinkIcon className="h-5 w-5 mx-auto text-muted-foreground/40 mb-1.5" />
+                     <p className="text-xs text-muted-foreground">Nenhum link</p>
+                   </div>
+                 )}
               </CardContent>
            </Card>
         </div>
