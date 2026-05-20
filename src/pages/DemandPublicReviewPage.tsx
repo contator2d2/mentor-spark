@@ -39,6 +39,7 @@ export default function DemandPublicReviewPage() {
    const [submitting, setSubmitting] = useState(false);
    const [done, setDone] = useState(false);
    const [previewFile, setPreviewFile] = useState<any>(null);
+   const [selectedVersion, setSelectedVersion] = useState<any>(null);
 
   useEffect(() => {
     if (!id || !token) {
@@ -55,6 +56,14 @@ export default function DemandPublicReviewPage() {
       .catch(e => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [id, token]);
+
+   // Seleciona automaticamente a versão mais recente quando os dados carregam
+   useEffect(() => {
+     const latest = demand?.versions?.[0];
+     if (latest && !selectedVersion) {
+       setSelectedVersion(latest);
+     }
+   }, [demand, selectedVersion]);
 
   async function handleReview(status: 'approved' | 'adjustments') {
     if (status === 'adjustments' && !reviewComment.trim()) {
@@ -104,14 +113,6 @@ export default function DemandPublicReviewPage() {
 
    const versions = demand.versions || [];
    const latestVersion = versions[0];
-   const [selectedVersion, setSelectedVersion] = useState<any>(null);
-
-   useEffect(() => {
-     if (latestVersion && !selectedVersion) {
-       setSelectedVersion(latestVersion);
-     }
-   }, [latestVersion]);
-
    const currentDisplayVersion = selectedVersion || latestVersion;
 
    return (
