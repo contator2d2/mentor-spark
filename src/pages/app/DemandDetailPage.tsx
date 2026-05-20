@@ -279,23 +279,43 @@ interface Demand {
   if (loading) return <div className="flex h-40 items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
   if (!demand) return <div>Não encontrado</div>;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/app/demands")}>
-          <ChevronLeft className="h-4 w-4" />
-        </Button>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="font-display text-2xl font-bold truncate">{demand.title}</h1>
-            <Badge variant="outline" className="uppercase">{demand.status}</Badge>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-             <span className="flex items-center gap-1"><User className="h-3 w-3" /> {demand.responsible?.name || 'Sem resp.'}</span>
-             <span className="flex items-center gap-1"><Calendar className="h-3 w-3" /> {demand.definedDeadline ? new Date(demand.definedDeadline).toLocaleDateString() : 'Sem prazo'}</span>
-          </div>
-        </div>
-         <div className="flex items-center gap-2">
+   const statusMeta = STATUS_META[demand.status] || STATUS_META.new;
+   const priorityMeta = PRIORITY_META[demand.priority] || PRIORITY_META.medium;
+
+   return (
+     <div className="space-y-6">
+       {/* HERO HEADER */}
+       <div className="rounded-2xl border bg-card p-5 shadow-sm">
+         <div className="flex items-start gap-4">
+           <Button variant="ghost" size="icon" className="mt-1 shrink-0" onClick={() => navigate("/app/demands")}>
+             <ChevronLeft className="h-4 w-4" />
+           </Button>
+           <div className="flex-1 min-w-0 space-y-3">
+             <div className="flex items-center gap-2 flex-wrap">
+               <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${statusMeta.tone}`}>
+                 <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dot}`} />
+                 {statusMeta.label}
+               </span>
+               <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{demand.type}</span>
+             </div>
+             <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight truncate">{demand.title}</h1>
+             <div className="flex items-center gap-5 text-sm text-muted-foreground flex-wrap">
+               <span className="flex items-center gap-1.5">
+                 <User className="h-3.5 w-3.5" />
+                 <span className="text-foreground/80">{demand.responsible?.name || 'Sem responsável'}</span>
+               </span>
+               <span className="flex items-center gap-1.5">
+                 <Calendar className="h-3.5 w-3.5" />
+                 <span className="text-foreground/80">
+                   {demand.definedDeadline ? new Date(demand.definedDeadline).toLocaleDateString('pt-BR') : 'Sem prazo definido'}
+                 </span>
+               </span>
+               <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] font-medium ${priorityMeta.tone}`}>
+                 Prioridade {priorityMeta.label}
+               </span>
+             </div>
+           </div>
+          <div className="flex items-center gap-2 shrink-0">
              {!isAgency && (demand.status === 'waiting_feedback' || demand.status === 'adjustments') && (
                 <div className="flex gap-2">
                   <Button 
