@@ -30,6 +30,26 @@ import {
      Link as LinkIcon,
      Clock,
  } from "lucide-react";
+
+const STATUS_META: Record<string, { label: string; tone: string; dot: string }> = {
+  new:               { label: "Nova",               tone: "bg-slate-100 text-slate-700 border-slate-200",        dot: "bg-slate-400" },
+  analysis:          { label: "Em análise",         tone: "bg-sky-50 text-sky-700 border-sky-200",                dot: "bg-sky-500" },
+  planned:           { label: "Planejada",          tone: "bg-indigo-50 text-indigo-700 border-indigo-200",       dot: "bg-indigo-500" },
+  production:        { label: "Em produção",        tone: "bg-violet-50 text-violet-700 border-violet-200",       dot: "bg-violet-500" },
+  waiting_feedback:  { label: "Aguardando aprovação", tone: "bg-amber-50 text-amber-700 border-amber-200",        dot: "bg-amber-500" },
+  review:            { label: "Em revisão",         tone: "bg-amber-50 text-amber-700 border-amber-200",          dot: "bg-amber-500" },
+  adjustments:       { label: "Ajustes solicitados", tone: "bg-rose-50 text-rose-700 border-rose-200",            dot: "bg-rose-500" },
+  approved:          { label: "Aprovada",           tone: "bg-emerald-50 text-emerald-700 border-emerald-200",    dot: "bg-emerald-500" },
+  finished:          { label: "Finalizada",         tone: "bg-emerald-50 text-emerald-700 border-emerald-200",    dot: "bg-emerald-500" },
+  canceled:          { label: "Cancelada",          tone: "bg-slate-100 text-slate-500 border-slate-200",         dot: "bg-slate-400" },
+};
+
+const PRIORITY_META: Record<string, { label: string; tone: string }> = {
+  low:    { label: "Baixa",   tone: "bg-slate-100 text-slate-700" },
+  medium: { label: "Média",   tone: "bg-sky-50 text-sky-700" },
+  high:   { label: "Alta",    tone: "bg-amber-50 text-amber-700" },
+  urgent: { label: "Urgente", tone: "bg-rose-50 text-rose-700" },
+};
  
  import {
    Dialog,
