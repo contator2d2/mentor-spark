@@ -44,6 +44,23 @@ export class DemandsService {
       relations: ['responsible', 'agency'],
     });
     if (!demand) throw new NotFoundException('Demanda não encontrada');
+
+    let responsibles: User[] = [];
+    if (demand.responsibleIds && demand.responsibleIds.length > 0) {
+      responsibles = await this.users.find({
+        where: { id: (this.repo.manager.connection.options.type === 'postgres' ? (demand.responsibleIds as any) : (demand.responsibleIds as any)) }, // TypeORM In operator works with array
+      });
+      // Wait, TypeORM In needs the operator
+    }
+    
+    // Correct way for In operator
+    const { In } = require('typeorm');
+    if (demand.responsibleIds && demand.responsibleIds.length > 0) {
+      responsibles = await this.users.find({
+        where: { id: In(demand.responsibleIds) },
+      });
+    }
+
     
     const versions = await this.versions.find({
       where: { demandId: id },
@@ -57,7 +74,7 @@ export class DemandsService {
       order: { createdAt: 'ASC' },
     });
 
-    return { ...demand, versions, comments };
+    return { ...demand, versions, comments, responsibles };
   }
 
   async create(mentorId: string, dto: any) {
