@@ -31,11 +31,26 @@ export class DemandsService {
        where.agencyId = user.sub;
      }
  
-     return this.repo.find({
+     const demands = await this.repo.find({
        where,
        relations: ['responsible', 'agency'],
        order: { createdAt: 'DESC' },
      });
+
+     // Popular múltiplos responsáveis
+     const allResponsibleIds = Array.from(new Set(demands.flatMap(d => d.responsibleIds || [])));
+     if (allResponsibleIds.length > 0) {
+       const users = await this.users.find({
+         where: { id: In(allResponsibleIds) },
+       });
+       const userMap = new Map(users.map(u => [u.id, u]));
+       return demands.map(d => ({
+         ...d,
+         responsibles: (d.responsibleIds || []).map(id => userMap.get(id)).filter(Boolean),
+       }));
+     }
+
+     return demands;
    }
 
   async findOne(mentorId: string, id: string) {
