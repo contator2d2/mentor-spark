@@ -202,7 +202,11 @@ export default function DemandsPage() {
                         <div className="flex items-center justify-between text-[10px]">
                            <div className="flex items-center gap-1 text-muted-foreground">
                              <UserIcon className="h-3 w-3" />
-                             <span className="truncate max-w-[80px]">{d.agency?.name || d.responsible?.name || 'Sem resp.'}</span>
+                             <span className="truncate max-w-[80px]">
+                               {d.responsibles && d.responsibles.length > 0 
+                                 ? d.responsibles.map(r => r.name).join(', ') 
+                                 : (d.agency?.name || d.responsible?.name || 'Sem resp.')}
+                             </span>
                            </div>
                            <Badge variant="secondary" className={`text-[9px] ${PRIORITY_COLORS[d.priority]}`}>
                              {d.priority.toUpperCase()}
