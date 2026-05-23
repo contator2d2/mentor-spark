@@ -697,6 +697,10 @@ interface Demand {
                   </dd>
                 </div>
                 <div className="flex items-center justify-between py-2.5">
+                  <dt className="text-xs text-muted-foreground">Área / Depto</dt>
+                  <dd className="text-sm font-medium text-right uppercase tracking-wider">{demand.department || <span className="text-muted-foreground font-normal">Geral</span>}</dd>
+                </div>
+                <div className="flex items-center justify-between py-2.5">
                   <dt className="text-xs text-muted-foreground">Responsáveis</dt>
                   <dd className="text-sm font-medium text-right">
                     {demand.responsibles && demand.responsibles.length > 0 
