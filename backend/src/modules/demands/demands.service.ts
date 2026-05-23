@@ -1,6 +1,6 @@
  import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Demand, DemandStatus } from '../../entities/demand.entity';
 import { DemandVersion } from '../../entities/demand-version.entity';
 import { DemandComment } from '../../entities/demand-comment.entity';
@@ -48,18 +48,10 @@ export class DemandsService {
     let responsibles: User[] = [];
     if (demand.responsibleIds && demand.responsibleIds.length > 0) {
       responsibles = await this.users.find({
-        where: { id: (this.repo.manager.connection.options.type === 'postgres' ? (demand.responsibleIds as any) : (demand.responsibleIds as any)) }, // TypeORM In operator works with array
-      });
-      // Wait, TypeORM In needs the operator
-    }
-    
-    // Correct way for In operator
-    const { In } = require('typeorm');
-    if (demand.responsibleIds && demand.responsibleIds.length > 0) {
-      responsibles = await this.users.find({
         where: { id: In(demand.responsibleIds) },
       });
     }
+
 
     
     const versions = await this.versions.find({
