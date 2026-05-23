@@ -182,17 +182,20 @@ export class DemandsService {
  
    private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
      try {
-       const [mentor, agency, responsible] = await Promise.all([
-         this.users.findOne({ where: { id: mentorId } }),
-         this.users.findOne({ where: { id: demand.agencyId } }),
-         this.users.findOne({ where: { id: demand.responsibleId } }),
-       ]);
+        const [mentor, agency, responsibles] = await Promise.all([
+          this.users.findOne({ where: { id: mentorId } }),
+          this.users.findOne({ where: { id: demand.agencyId } }),
+          demand.responsibleIds && demand.responsibleIds.length > 0 
+            ? this.users.find({ where: { id: In(demand.responsibleIds) } })
+            : this.users.findOne({ where: { id: demand.responsibleId } }).then(u => u ? [u] : []),
+        ]);
+
  
        if (!mentor) return;
        
-       // Define o alvo da notificação (quem NÃO disparou a ação)
-       // Simplificação: notifica tanto agência quanto responsável se existirem e forem diferentes
-       const targets = [agency, responsible].filter(t => t && t.id);
+        // Define o alvo da notificação (quem NÃO disparou a ação)
+        // Notifica tanto agência quanto todos os responsáveis se existirem e forem diferentes
+        const targets = [agency, ...responsibles].filter(t => t && t.id);
        
        const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
        const demandUrl = mentor.customDomain 
