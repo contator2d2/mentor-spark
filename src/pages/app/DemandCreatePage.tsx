@@ -7,8 +7,20 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, ChevronLeft, Save } from "lucide-react";
+import { Loader2, ChevronLeft, Save, Users, Check } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+
+
+const DEPARTMENTS = [
+  "Marketing",
+  "Administrativo",
+  "Financeiro",
+  "Vendas",
+  "Outros",
+];
 
 const DEMAND_TYPES = [
   "Post para Instagram",
@@ -19,6 +31,9 @@ const DEMAND_TYPES = [
   "Copywriting",
   "Apresentação PDF",
   "E-mail Marketing",
+  "Relatório de Vendas",
+  "Planilha Financeira",
+  "Contrato / Documento",
   "Outros",
 ];
 
@@ -28,14 +43,15 @@ export default function DemandCreatePage() {
   const [agencies, setAgencies] = useState<any[]>([]);
   const [form, setForm] = useState({
     title: "",
+    department: "Marketing",
     type: "",
     description: "",
-   objective: "",
-   priority: "medium",
-   desiredDeadline: "",
-   agencyId: "",
-   references: [] as { url: string; description?: string }[],
- });
+    objective: "",
+    priority: "medium",
+    desiredDeadline: "",
+    responsibleIds: [] as string[],
+    references: [] as { url: string; description?: string }[],
+  });
  const [refUrl, setRefUrl] = useState("");
  const [refDesc, setRefDesc] = useState("");
  const [uploading, setUploading] = useState(false);
@@ -176,6 +192,18 @@ export default function DemandCreatePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
+                <Label>Departamento / Área *</Label>
+                <Select value={form.department} onValueChange={v => setForm({...form, department: v})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a área" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map(d => <SelectItem key={d} value={d}>{d}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Tipo de Material *</Label>
                 <Select value={form.type} onValueChange={v => setForm({...form, type: v})}>
                   <SelectTrigger>
@@ -186,21 +214,21 @@ export default function DemandCreatePage() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <Label>Prioridade</Label>
-                <Select value={form.priority} onValueChange={v => setForm({...form, priority: v})}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Baixa</SelectItem>
-                    <SelectItem value="medium">Média</SelectItem>
-                    <SelectItem value="high">Alta</SelectItem>
-                    <SelectItem value="urgent">Urgente</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>Prioridade</Label>
+              <Select value={form.priority} onValueChange={v => setForm({...form, priority: v})}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Baixa</SelectItem>
+                  <SelectItem value="medium">Média</SelectItem>
+                  <SelectItem value="high">Alta</SelectItem>
+                  <SelectItem value="urgent">Urgente</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
@@ -233,15 +261,53 @@ export default function DemandCreatePage() {
               </div>
 
               <div className="space-y-2">
-                <Label>Atribuir Responsável / Agência</Label>
-                <Select value={form.agencyId} onValueChange={v => setForm({...form, agencyId: v})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione alguém" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {agencies.map(a => <SelectItem key={a.id} value={a.userId}>{a.name} ({a.role})</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                <Label>Atribuir Responsáveis</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between h-auto py-2 min-h-10">
+                      <div className="flex flex-wrap gap-1">
+                        {form.responsibleIds.length === 0 && <span className="text-muted-foreground">Selecionar responsáveis...</span>}
+                        {form.responsibleIds.map(id => {
+                          const agent = agencies.find(a => a.userId === id);
+                          return (
+                            <Badge key={id} variant="secondary" className="mr-1">
+                              {agent?.name || id}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      <Users className="h-4 w-4 opacity-50 ml-2" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <div className="p-2 space-y-1">
+                      {agencies.map(a => (
+                        <div 
+                          key={a.id} 
+                          className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md cursor-pointer"
+                          onClick={() => {
+                            const current = [...form.responsibleIds];
+                            if (current.includes(a.userId)) {
+                              setForm({...form, responsibleIds: current.filter(id => id !== a.userId)});
+                            } else {
+                              setForm({...form, responsibleIds: [...current, a.userId]});
+                            }
+                          }}
+                        >
+                          <Checkbox 
+                            checked={form.responsibleIds.includes(a.userId)}
+                            onCheckedChange={() => {}} // Handle in div click for better UX
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{a.name}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase">{a.role}</span>
+                          </div>
+                          {form.responsibleIds.includes(a.userId) && <Check className="h-4 w-4 ml-auto text-primary" />}
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           </CardContent>

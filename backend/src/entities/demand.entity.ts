@@ -35,6 +35,9 @@ export class Demand {
   @Column()
   title: string;
 
+  @Column({ nullable: true })
+  department?: string; // Marketing, Administrativo, Financeiro, Vendas, etc.
+
   @Column()
   type: string; // post, video, copy, etc.
 
@@ -61,6 +64,9 @@ export class Demand {
 
   @Column({ type: 'uuid', nullable: true })
   responsibleId?: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  responsibleIds?: string[];
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'responsibleId' })

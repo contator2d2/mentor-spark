@@ -1,6 +1,6 @@
  import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Demand, DemandStatus } from '../../entities/demand.entity';
 import { DemandVersion } from '../../entities/demand-version.entity';
 import { DemandComment } from '../../entities/demand-comment.entity';
@@ -31,11 +31,26 @@ export class DemandsService {
        where.agencyId = user.sub;
      }
  
-     return this.repo.find({
+     const demands = await this.repo.find({
        where,
        relations: ['responsible', 'agency'],
        order: { createdAt: 'DESC' },
      });
+
+     // Popular múltiplos responsáveis
+     const allResponsibleIds = Array.from(new Set(demands.flatMap(d => d.responsibleIds || [])));
+     if (allResponsibleIds.length > 0) {
+       const users = await this.users.find({
+         where: { id: In(allResponsibleIds) },
+       });
+       const userMap = new Map(users.map(u => [u.id, u]));
+       return demands.map(d => ({
+         ...d,
+         responsibles: (d.responsibleIds || []).map(id => userMap.get(id)).filter(Boolean),
+       }));
+     }
+
+     return demands;
    }
 
   async findOne(mentorId: string, id: string) {
@@ -44,6 +59,15 @@ export class DemandsService {
       relations: ['responsible', 'agency'],
     });
     if (!demand) throw new NotFoundException('Demanda não encontrada');
+
+    let responsibles: User[] = [];
+    if (demand.responsibleIds && demand.responsibleIds.length > 0) {
+      responsibles = await this.users.find({
+        where: { id: In(demand.responsibleIds) },
+      });
+    }
+
+
     
     const versions = await this.versions.find({
       where: { demandId: id },
@@ -57,7 +81,7 @@ export class DemandsService {
       order: { createdAt: 'ASC' },
     });
 
-    return { ...demand, versions, comments };
+    return { ...demand, versions, comments, responsibles };
   }
 
   async create(mentorId: string, dto: any) {
@@ -158,17 +182,20 @@ export class DemandsService {
  
    private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
      try {
-       const [mentor, agency, responsible] = await Promise.all([
-         this.users.findOne({ where: { id: mentorId } }),
-         this.users.findOne({ where: { id: demand.agencyId } }),
-         this.users.findOne({ where: { id: demand.responsibleId } }),
-       ]);
+        const [mentor, agency, responsibles] = await Promise.all([
+          this.users.findOne({ where: { id: mentorId } }),
+          this.users.findOne({ where: { id: demand.agencyId } }),
+          demand.responsibleIds && demand.responsibleIds.length > 0 
+            ? this.users.find({ where: { id: In(demand.responsibleIds) } })
+            : this.users.findOne({ where: { id: demand.responsibleId } }).then(u => u ? [u] : []),
+        ]);
+
  
        if (!mentor) return;
        
-       // Define o alvo da notificação (quem NÃO disparou a ação)
-       // Simplificação: notifica tanto agência quanto responsável se existirem e forem diferentes
-       const targets = [agency, responsible].filter(t => t && t.id);
+        // Define o alvo da notificação (quem NÃO disparou a ação)
+        // Notifica tanto agência quanto todos os responsáveis se existirem e forem diferentes
+        const targets = [agency, ...responsibles].filter(t => t && t.id);
        
        const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
        const demandUrl = mentor.customDomain 
