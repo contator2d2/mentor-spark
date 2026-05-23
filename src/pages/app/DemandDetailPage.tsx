@@ -84,11 +84,13 @@ interface Demand {
   type: string;
   status: DemandStatus;
   priority: string;
+  department?: string;
   description?: string;
   objective?: string;
   targetAudience?: string;
   definedDeadline?: string;
   responsible?: { name: string };
+  responsibles?: { id: string, name: string }[];
   agency?: { name: string };
   briefing?: any;
   checklist?: string[];
@@ -296,13 +298,17 @@ interface Demand {
                  <span className={`h-1.5 w-1.5 rounded-full ${statusMeta.dot}`} />
                  {statusMeta.label}
                </span>
-               <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{demand.type}</span>
+                <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{demand.department ? `${demand.department} • ` : ''}{demand.type}</span>
              </div>
              <h1 className="font-display text-2xl md:text-3xl font-bold tracking-tight truncate">{demand.title}</h1>
              <div className="flex items-center gap-5 text-sm text-muted-foreground flex-wrap">
                <span className="flex items-center gap-1.5">
                  <User className="h-3.5 w-3.5" />
-                 <span className="text-foreground/80">{demand.responsible?.name || 'Sem responsável'}</span>
+                  <span className="text-foreground/80">
+                    {demand.responsibles && demand.responsibles.length > 0 
+                      ? demand.responsibles.map(r => r.name).join(', ') 
+                      : (demand.responsible?.name || 'Sem responsável')}
+                  </span>
                </span>
                <span className="flex items-center gap-1.5">
                  <Calendar className="h-3.5 w-3.5" />

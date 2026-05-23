@@ -42,8 +42,10 @@ interface Demand {
   type: string;
   status: DemandStatus;
   priority: 'low' | 'medium' | 'high' | 'urgent';
+  department?: string;
   definedDeadline?: string;
   responsible?: { name: string };
+  responsibles?: { id: string, name: string }[];
   agency?: { name: string };
 }
 
@@ -191,7 +193,7 @@ export default function DemandsPage() {
                             {d.title}
                           </p>
                           <Badge variant="secondary" className="mt-1.5 text-[10px] uppercase font-bold tracking-tighter py-0">
-                            {d.type}
+                            {d.department ? `${d.department} • ` : ''}{d.type}
                           </Badge>
                         </div>
                       </div>
