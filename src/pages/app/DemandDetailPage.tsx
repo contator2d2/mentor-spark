@@ -697,8 +697,12 @@ interface Demand {
                   </dd>
                 </div>
                 <div className="flex items-center justify-between py-2.5">
-                  <dt className="text-xs text-muted-foreground">Responsável</dt>
-                  <dd className="text-sm font-medium text-right">{demand.responsible?.name || <span className="text-muted-foreground font-normal">—</span>}</dd>
+                  <dt className="text-xs text-muted-foreground">Responsáveis</dt>
+                  <dd className="text-sm font-medium text-right">
+                    {demand.responsibles && demand.responsibles.length > 0 
+                      ? demand.responsibles.map(r => r.name).join(', ') 
+                      : (demand.responsible?.name || <span className="text-muted-foreground font-normal">—</span>)}
+                  </dd>
                 </div>
                 <div className="flex items-center justify-between py-2.5">
                   <dt className="text-xs text-muted-foreground">Agência</dt>
