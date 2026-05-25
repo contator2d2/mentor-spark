@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Save, Trash2, Plus, Settings as SettingsIcon, GripVertical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Loader2, Save, Trash2, Plus, Settings as SettingsIcon, GripVertical, BellOff, Bell } from "lucide-react";
 import { toast } from "sonner";
 import {
   DndContext,
