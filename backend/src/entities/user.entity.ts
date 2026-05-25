@@ -87,6 +87,10 @@ export class User {
   @Column({ nullable: true })
   teamRole?: string;
 
+  /** IDs dos kanbans que este membro da equipe pode ver. Null = todos. */
+  @Column({ type: 'jsonb', nullable: true })
+  allowedKanbanIds?: string[];
+
   @Column({ nullable: true })
   company?: string;
 

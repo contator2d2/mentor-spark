@@ -32,8 +32,13 @@ export class KanbanController {
   // ============== BOARDS ==============
   @Auth('mentor', 'super_admin', 'mentor_team')
   @Get('boards')
-  async listBoards(@TenantId() mentorId: string, @Query('type') type?: string) {
+  async listBoards(@TenantId() mentorId: string, @CurrentUser() user: any, @Query('type') type?: string) {
     let list = await this.boards.find({ where: { mentorId }, order: { order: 'ASC', createdAt: 'ASC' } });
+    
+    // Filtrar boards permitidos para o membro da equipe
+    if (user.role === 'mentor_team' && user.allowedKanbanIds && user.allowedKanbanIds.length > 0) {
+      list = list.filter(b => user.allowedKanbanIds.includes(b.id));
+    }
 
     // Auto-cria board default de leads se não houver nenhum
     if (list.length === 0) {
@@ -74,7 +79,7 @@ export class KanbanController {
 
   @Auth('mentor', 'super_admin')
   @Post('boards')
-  async createBoard(@TenantId() mentorId: string, @Body() dto: { name: string; type?: BoardType; color?: string; description?: string; useTemplate?: 'leads' | 'tasks' | null }) {
+  async createBoard(@TenantId() mentorId: string, @Body() dto: { name: string; type?: BoardType; color?: string; description?: string; useTemplate?: 'leads' | 'tasks' | 'demands' | null }) {
     if (!dto.name) throw new BadRequestException('Nome é obrigatório');
     const last = await this.boards.find({ where: { mentorId }, order: { order: 'DESC' }, take: 1 });
     const order = (last[0]?.order ?? -1) + 1;
@@ -92,6 +97,16 @@ export class KanbanController {
         { name: 'Concluído', slug: 'done', color: '#10b981', order: 2, outcome: 'won' as const },
       ];
       for (const c of tcols) await this.columns.save(this.columns.create({ ...c, boardId: board.id }));
+    } else if (dto.useTemplate === 'demands') {
+      const dcols = [
+        { name: 'Nova', slug: 'new', color: '#64748b', order: 0 },
+        { name: 'Em análise', slug: 'analysis', color: '#3b82f6', order: 1 },
+        { name: 'Em produção', slug: 'production', color: '#f59e0b', order: 2 },
+        { name: 'Aguardando Aprovação', slug: 'waiting_feedback', color: '#8b5cf6', order: 3 },
+        { name: 'Aprovada', slug: 'approved', color: '#10b981', order: 4, outcome: 'won' as const },
+      ];
+      for (const c of dcols) await this.columns.save(this.columns.create({ ...c, boardId: board.id }));
+      await this.boards.update(board.id, { type: BoardType.DEMANDS });
     } else {
       // Pelo menos uma coluna inicial
       await this.columns.save(this.columns.create({ name: 'Novo', slug: 'new', color: '#64748b', order: 0, boardId: board.id }));

@@ -9,9 +9,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogT
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
   import { Loader2, Plus, Trash2, Users, Crown, Edit3, Headphones, Settings, Key, UserCheck, UserMinus, Briefcase } from "lucide-react";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 
- interface Member { id: string; name: string; email: string; phone?: string; role: "admin" | "editor" | "attendant" | "agency"; status: 'active' | 'inactive'; createdAt: string; }
+ interface Member { id: string; name: string; email: string; phone?: string; role: "admin" | "editor" | "attendant" | "agency"; status: 'active' | 'inactive'; createdAt: string; allowedKanbanIds?: string[]; }
 interface Limits { used: number; max: number; planName: string; canAdd: boolean; }
+interface Board { id: string; name: string; type: string; }
 
 const ROLE_META: Record<string, { label: string; icon: any; color: string; desc: string }> = {
   admin: { label: "Administrador", icon: Crown, color: "text-amber-400", desc: "Acesso total: equipe, planos, financeiro." },
@@ -25,7 +27,8 @@ export default function TeamPage() {
   const [limits, setLimits] = useState<Limits | null>(null);
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "attendant" as Member["role"], password: "" });
+  const [boards, setBoards] = useState<Board[]>([]);
+   const [form, setForm] = useState({ name: "", email: "", phone: "", role: "attendant" as Member["role"], password: "", allowedKanbanIds: [] as string[] });
    const [editingMember, setEditingMember] = useState<Member | null>(null);
    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
    const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
@@ -33,8 +36,12 @@ export default function TeamPage() {
 
   async function load() {
     try {
-      const [m, l] = await Promise.all([api<Member[]>("/team"), api<Limits>("/team/limits")]);
-      setMembers(m); setLimits(l);
+      const [m, l, b] = await Promise.all([
+        api<Member[]>("/team"), 
+        api<Limits>("/team/limits"),
+        api<Board[]>("/kanban/boards")
+      ]);
+      setMembers(m); setLimits(l); setBoards(b);
     } catch (e: any) { toast.error(e.message); }
   }
   useEffect(() => { load(); }, []);
@@ -50,10 +57,10 @@ export default function TeamPage() {
        } else {
          await api("/team", { method: "POST", body: form });
          toast.success("Membro adicionado! Email com senha enviado.");
-         setOpen(false);
-       }
-       setForm({ name: "", email: "", phone: "", role: "attendant", password: "" });
-       setEditingMember(null);
+          setOpen(false);
+        }
+        setForm({ name: "", email: "", phone: "", role: "attendant", password: "", allowedKanbanIds: [] });
+        setEditingMember(null);
        load();
      } catch (e: any) { toast.error(e.message); } finally { setSaving(false); }
    }
@@ -85,11 +92,18 @@ export default function TeamPage() {
     catch (e: any) { toast.error(e.message); }
   }
 
-   function startEdit(member: Member) {
-     setEditingMember(member);
-     setForm({ name: member.name, email: member.email, phone: member.phone || "", role: member.role, password: "" });
-     setIsEditDialogOpen(true);
-   }
+    function startEdit(member: Member) {
+      setEditingMember(member);
+      setForm({ 
+        name: member.name, 
+        email: member.email, 
+        phone: member.phone || "", 
+        role: member.role, 
+        password: "",
+        allowedKanbanIds: member.allowedKanbanIds || []
+      });
+      setIsEditDialogOpen(true);
+    }
  
    function startPasswordChange(member: Member) {
      setEditingMember(member);
@@ -132,6 +146,29 @@ export default function TeamPage() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {boards.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs">Boards Permitidos (Deixe vazio para todos)</Label>
+                      <div className="grid grid-cols-2 gap-2 border rounded-md p-3 bg-muted/20">
+                        {boards.map(b => (
+                          <div key={b.id} className="flex items-center space-x-2">
+                            <Checkbox 
+                              id={`board-${b.id}`} 
+                              checked={form.allowedKanbanIds.includes(b.id)}
+                              onCheckedChange={(checked) => {
+                                const ids = checked 
+                                  ? [...form.allowedKanbanIds, b.id]
+                                  : form.allowedKanbanIds.filter(id => id !== b.id);
+                                setForm({ ...form, allowedKanbanIds: ids });
+                              }}
+                            />
+                            <label htmlFor={`board-${b.id}`} className="text-xs truncate">{b.name}</label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                  <DialogFooter><Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Adicionar e enviar convite</Button></DialogFooter>
               </DialogContent>
@@ -163,9 +200,32 @@ export default function TeamPage() {
                      <SelectItem key={k} value={k}>{v.label} — {v.desc}</SelectItem>
                    ))}
                  </SelectContent>
-               </Select>
+                 </Select>
+               </div>
+
+               {boards.length > 0 && (
+                 <div className="space-y-2">
+                   <Label className="text-xs">Boards Permitidos (Deixe vazio para todos)</Label>
+                   <div className="grid grid-cols-2 gap-2 border rounded-md p-3 bg-muted/20">
+                     {boards.map(b => (
+                       <div key={b.id} className="flex items-center space-x-2">
+                         <Checkbox 
+                           id={`edit-board-${b.id}`} 
+                           checked={form.allowedKanbanIds.includes(b.id)}
+                           onCheckedChange={(checked) => {
+                             const ids = checked 
+                               ? [...form.allowedKanbanIds, b.id]
+                               : form.allowedKanbanIds.filter(id => id !== b.id);
+                             setForm({ ...form, allowedKanbanIds: ids });
+                           }}
+                         />
+                         <label htmlFor={`edit-board-${b.id}`} className="text-xs truncate">{b.name}</label>
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               )}
              </div>
-           </div>
            <DialogFooter><Button onClick={save} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Salvar alterações</Button></DialogFooter>
          </DialogContent>
        </Dialog>

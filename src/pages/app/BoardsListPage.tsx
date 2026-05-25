@@ -86,7 +86,7 @@ function SortableBoardCard({
 export default function BoardsListPage() {
   const [boards, setBoards] = useState<Board[] | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", type: "custom" as const, useTemplate: "" as "" | "leads" | "tasks", color: "#6366f1", description: "" });
+  const [form, setForm] = useState({ name: "", type: "custom" as const, useTemplate: "" as "" | "leads" | "tasks" | "demands", color: "#6366f1", description: "" });
   const [saving, setSaving] = useState(false);
   const nav = useNavigate();
 
@@ -151,9 +151,15 @@ export default function BoardsListPage() {
                     <SelectItem value="">Em branco (1 coluna)</SelectItem>
                     <SelectItem value="leads">Funil de vendas (6 etapas)</SelectItem>
                     <SelectItem value="tasks">Tarefas (A fazer / Fazendo / Feito)</SelectItem>
+                    <SelectItem value="demands">Demandas (Fluxo completo de produção)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+              {form.useTemplate === "demands" && (
+                <div className="bg-muted/50 p-2 rounded text-[10px] text-muted-foreground border">
+                  Este modelo cria um board configurado especificamente para a Central de Demandas.
+                </div>
+              )}
               <div><Label className="text-xs">Cor</Label><Input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-10 w-20" /></div>
             </div>
             <DialogFooter><Button onClick={create} disabled={saving}>{saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Criar</Button></DialogFooter>
