@@ -23,6 +23,7 @@ export interface SessionUser {
   demandNotificationSettings?: {
     notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
     reminderMinutes?: number;
+    overdueReminderFrequencyHours?: number;
   };
   tenantBrand?: {
     brandName?: string;
