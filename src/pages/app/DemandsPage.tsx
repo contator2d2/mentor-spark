@@ -12,9 +12,18 @@ import {
   LayoutGrid,
   List as ListIcon,
   Search,
+  Bell,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import {
   Select,
@@ -84,8 +93,43 @@ export default function DemandsPage() {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState({
+    notifyVia: "both" as "whatsapp" | "email" | "both" | "none",
+    reminderMinutes: 60,
+  });
 
-   const isAgency = user?.teamRole === "agency";
+  const loadSettings = () => {
+    if (user?.role === "mentor" || user?.role === "super_admin") {
+      setNotificationSettings({
+        notifyVia: user.demandNotificationSettings?.notifyVia || "both",
+        reminderMinutes: user.demandNotificationSettings?.reminderMinutes || 60,
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, [user]);
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    try {
+      await api("/me/brand", {
+        method: "PUT",
+        body: { demandNotificationSettings: notificationSettings },
+      });
+      toast.success("Configurações de notificação salvas!");
+      setSettingsOpen(false);
+    } catch (e: any) {
+      toast.error("Erro ao salvar configurações");
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  const isAgency = user?.teamRole === "agency";
  
   const load = () => api<Demand[]>("/demands").then(setDemands).finally(() => setLoading(false));
 
@@ -120,6 +164,11 @@ export default function DemandsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {(user?.role === "mentor" || user?.role === "super_admin") && (
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="gap-2">
+              <Bell className="h-4 w-4" /> Notificações
+            </Button>
+          )}
           <div className="bg-muted p-1 rounded-lg flex items-center gap-1 mr-2">
              <Button 
                variant={view === "kanban" ? "secondary" : "ghost"} 
@@ -287,6 +336,50 @@ export default function DemandsPage() {
           </table>
         </div>
       )}
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurações de Notificação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Enviar notificações por:</Label>
+              <Select 
+                value={notificationSettings.notifyVia} 
+                onValueChange={(v: any) => setNotificationSettings({ ...notificationSettings, notifyVia: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">WhatsApp e E-mail</SelectItem>
+                  <SelectItem value="whatsapp">Apenas WhatsApp</SelectItem>
+                  <SelectItem value="email">Apenas E-mail</SelectItem>
+                  <SelectItem value="none">Nenhum (Desativar)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reminder-minutes">Lembrete de prazos (minutos antes):</Label>
+              <Input 
+                id="reminder-minutes"
+                type="number" 
+                value={notificationSettings.reminderMinutes}
+                onChange={(e) => setNotificationSettings({ ...notificationSettings, reminderMinutes: parseInt(e.target.value) || 0 })}
+                placeholder="Ex: 60"
+              />
+              <p className="text-[10px] text-muted-foreground">Tempo padrão para alertas de demandas próximas do vencimento.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSettingsOpen(false)}>Cancelar</Button>
+            <Button onClick={saveSettings} disabled={savingSettings}>
+              {savingSettings && <Loader2 className="h-4 w-4 animate-spin mr-2" />} Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

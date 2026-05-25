@@ -20,6 +20,10 @@ export interface SessionUser {
   parentMentorId?: string;
   teamRole?: "admin" | "editor" | "attendant" | string;
   mustChangePassword?: boolean;
+  demandNotificationSettings?: {
+    notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
+    reminderMinutes?: number;
+  };
   tenantBrand?: {
     brandName?: string;
     brandLogoUrl?: string;
@@ -82,6 +86,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
          parentMentorId: u.parentMentorId,
          teamRole: u.teamRole,
          mustChangePassword: u.mustChangePassword,
+         demandNotificationSettings: u.demandNotificationSettings,
          tenantBrand: u.tenantBrand,
        };
         // Se o usuário for staff (admin/editor/attendant), buscamos o mentor dono

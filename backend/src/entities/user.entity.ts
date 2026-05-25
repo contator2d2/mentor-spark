@@ -97,6 +97,13 @@ export class User {
   @Column({ type: 'numeric', precision: 14, scale: 2, nullable: true })
   revenue?: number;
 
+  /** Configurações de notificação de demandas (ex: { notifyVia: 'whatsapp', demandReminderMinutes: 60 }) */
+  @Column({ type: 'jsonb', nullable: true })
+  demandNotificationSettings?: {
+    notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
+    reminderMinutes?: number;
+  };
+
   /** Plano atual do mentor (FK para plans.id). Null = sem plano (free implícito) */
   @Column({ type: 'uuid', nullable: true })
   planId?: string;

@@ -70,6 +70,10 @@ export class UsersController {
       brandAccentColor?: string;
       customDomain?: string;
       slug?: string;
+      demandNotificationSettings?: {
+        notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
+        reminderMinutes?: number;
+      };
     },
   ) {
     const patch: any = { ...dto };
