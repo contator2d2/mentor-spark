@@ -100,6 +100,7 @@ export default function BoardSettingsPage() {
       setName(b.name || "");
       setDescription(b.description || "");
       setColor(b.color || "#6366f1");
+      setNotificationsDisabled(b.notificationsDisabled || false);
     } catch (e: any) {
       toast.error(e.message);
     }
