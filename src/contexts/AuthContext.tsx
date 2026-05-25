@@ -20,6 +20,10 @@ export interface SessionUser {
   parentMentorId?: string;
   teamRole?: "admin" | "editor" | "attendant" | string;
   mustChangePassword?: boolean;
+  demandNotificationSettings?: {
+    notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
+    reminderMinutes?: number;
+  };
   tenantBrand?: {
     brandName?: string;
     brandLogoUrl?: string;
