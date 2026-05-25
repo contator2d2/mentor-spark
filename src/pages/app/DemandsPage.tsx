@@ -98,6 +98,7 @@ export default function DemandsPage() {
   const [notificationSettings, setNotificationSettings] = useState({
     notifyVia: "both" as "whatsapp" | "email" | "both" | "none",
     reminderMinutes: 60,
+    overdueReminderFrequencyHours: 24,
   });
 
   const loadSettings = () => {
@@ -105,6 +106,7 @@ export default function DemandsPage() {
       setNotificationSettings({
         notifyVia: user.demandNotificationSettings?.notifyVia || "both",
         reminderMinutes: user.demandNotificationSettings?.reminderMinutes || 60,
+        overdueReminderFrequencyHours: user.demandNotificationSettings?.overdueReminderFrequencyHours || 24,
       });
     }
   };
@@ -370,6 +372,17 @@ export default function DemandsPage() {
                 placeholder="Ex: 60"
               />
               <p className="text-[10px] text-muted-foreground">Tempo padrão para alertas de demandas próximas do vencimento.</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="overdue-hours">Frequência de alertas para tarefas atrasadas (horas):</Label>
+              <Input 
+                id="overdue-hours"
+                type="number" 
+                value={notificationSettings.overdueReminderFrequencyHours}
+                onChange={(e) => setNotificationSettings({ ...notificationSettings, overdueReminderFrequencyHours: parseInt(e.target.value) || 0 })}
+                placeholder="Ex: 24"
+              />
+              <p className="text-[10px] text-muted-foreground">Intervalo entre notificações quando uma tarefa já passou do prazo.</p>
             </div>
           </div>
           <DialogFooter>

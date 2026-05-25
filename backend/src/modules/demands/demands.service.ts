@@ -187,25 +187,34 @@ export class DemandsService {
           this.logger.log(`Notificações desativadas para a demanda ${demand.id}`);
           return;
         }
-        // Anti-spam: Evita enviar exatamente a mesma notificação para o mesmo mentor/demanda em menos de 1 minuto
+
+        const mentor = await this.users.findOne({ where: { id: mentorId } });
+        if (!mentor) return;
+
+        const settings = mentor.demandNotificationSettings || { notifyVia: 'both' };
+        
+        // Anti-spam / Controle de Timer
+        const isOverdue = demand.definedDeadline && new Date(demand.definedDeadline).getTime() < Date.now();
+        const intervalMs = isOverdue 
+          ? (settings.overdueReminderFrequencyHours || 24) * 3600000 
+          : 60000; // 1 minuto para movimentações normais
+
         const lockKey = `${mentorId}:${demand.id}:${title}`;
         const lastSent = this.lastNotificationMap.get(lockKey);
         const now = Date.now();
-        if (lastSent && now - lastSent < 60000) {
-          this.logger.warn(`Notificação duplicada evitada para demanda ${demand.id}: ${title}`);
+        
+        if (lastSent && now - lastSent < intervalMs) {
+          this.logger.warn(`Notificação ignorada (intervalo de ${intervalMs/60000}min não atingido) para demanda ${demand.id}: ${title}`);
           return;
         }
         this.lastNotificationMap.set(lockKey, now);
 
-        const [mentor, agency, responsibles] = await Promise.all([
-          this.users.findOne({ where: { id: mentorId } }),
+        const [agency, responsibles] = await Promise.all([
           this.users.findOne({ where: { id: demand.agencyId } }),
           demand.responsibleIds && demand.responsibleIds.length > 0 
             ? this.users.find({ where: { id: In(demand.responsibleIds) } })
             : (demand.responsibleId ? this.users.find({ where: { id: demand.responsibleId } }) : Promise.resolve([])),
         ]);
-
-        if (!mentor) return;
         
         // Define o alvo da notificação
         const targets = [agency, ...responsibles].filter(t => t && t.id);
@@ -218,8 +227,7 @@ export class DemandsService {
         for (const target of targets) {
           if (!target) continue;
 
-          // Busca as configurações do mentor para decidir o canal
-          const settings = mentor.demandNotificationSettings || { notifyVia: 'both' };
+          // Usa as configurações do mentor já carregadas acima
           const notifyVia = settings.notifyVia || 'both';
 
           // Email
