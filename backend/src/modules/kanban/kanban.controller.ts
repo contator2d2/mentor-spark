@@ -32,8 +32,13 @@ export class KanbanController {
   // ============== BOARDS ==============
   @Auth('mentor', 'super_admin', 'mentor_team')
   @Get('boards')
-  async listBoards(@TenantId() mentorId: string, @Query('type') type?: string) {
+  async listBoards(@TenantId() mentorId: string, @CurrentUser() user: any, @Query('type') type?: string) {
     let list = await this.boards.find({ where: { mentorId }, order: { order: 'ASC', createdAt: 'ASC' } });
+    
+    // Filtrar boards permitidos para o membro da equipe
+    if (user.role === 'mentor_team' && user.allowedKanbanIds && user.allowedKanbanIds.length > 0) {
+      list = list.filter(b => user.allowedKanbanIds.includes(b.id));
+    }
 
     // Auto-cria board default de leads se não houver nenhum
     if (list.length === 0) {
