@@ -2,7 +2,6 @@
    Globe,
    LayoutGrid,
    Home,
-   LayoutPanelLeft,
    LayoutDashboard,
    Users,
    Kanban,
@@ -81,7 +80,7 @@ const NAV: NavItem[] = [
     { to: "/app/contracts/templates", label: "Contratos", icon: FileText, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
     { to: "/app/integrations", label: "Integrações", icon: Plug, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
      { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
-     { to: "/app/cms", label: "Site / CMS", icon: LayoutPanelLeft, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
+     
   { to: "/app/admin", label: "Mentores", icon: ShieldCheck, roles: ["super_admin"] },
   { to: "/app/admin/finance", label: "Financeiro", icon: Wallet, roles: ["super_admin"] },
   { to: "/app/admin/plans", label: "Planos", icon: Layers, roles: ["super_admin"] },
