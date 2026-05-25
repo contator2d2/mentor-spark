@@ -102,6 +102,7 @@ export class User {
   demandNotificationSettings?: {
     notifyVia?: 'whatsapp' | 'email' | 'both' | 'none';
     reminderMinutes?: number;
+    overdueReminderFrequencyHours?: number;
   };
 
   /** Plano atual do mentor (FK para plans.id). Null = sem plano (free implícito) */
