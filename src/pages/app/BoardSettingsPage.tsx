@@ -87,6 +87,7 @@ export default function BoardSettingsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("#6366f1");
+  const [notificationsDisabled, setNotificationsDisabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newCol, setNewCol] = useState({ name: "", color: "#6366f1" });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
