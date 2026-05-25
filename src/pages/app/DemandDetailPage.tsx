@@ -98,9 +98,10 @@ interface Demand {
   checklist?: string[];
   links?: string[];
   comments: Comment[];
-   versions: Version[];
-   references?: { url: string; description?: string }[];
-}
+    versions: Version[];
+    references?: { url: string; description?: string }[];
+    notificationsEnabled?: boolean;
+ }
 
  export default function DemandDetailPage() {
     const { user } = useAuth();
