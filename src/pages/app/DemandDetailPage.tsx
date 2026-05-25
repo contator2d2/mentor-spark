@@ -323,8 +323,25 @@ interface Demand {
                  Prioridade {priorityMeta.label}
                </span>
              </div>
-           </div>
-          <div className="flex items-center gap-2 shrink-0">
+            </div>
+          <div className="flex items-center gap-3 shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              title={demand.notificationsEnabled === false ? "Ativar notificações desta demanda" : "Silenciar esta demanda"}
+              className={demand.notificationsEnabled === false ? "text-rose-500" : "text-muted-foreground"}
+              onClick={() => {
+                const newValue = demand.notificationsEnabled === false;
+                api(`/demands/${id}`, { method: "PATCH", body: { notificationsEnabled: newValue } })
+                  .then(() => {
+                    setDemand(prev => prev ? { ...prev, notificationsEnabled: newValue } : null);
+                    toast.success(newValue ? "Notificações ativadas" : "Demanda silenciada");
+                  })
+                  .catch(() => toast.error("Erro ao alterar notificações"));
+              }}
+            >
+              {demand.notificationsEnabled === false ? <BellOff className="h-5 w-5" /> : <Bell className="h-5 w-5" />}
+            </Button>
              {!isAgency && (demand.status === 'waiting_feedback' || demand.status === 'adjustments') && (
                 <div className="flex gap-2">
                   <Button 
