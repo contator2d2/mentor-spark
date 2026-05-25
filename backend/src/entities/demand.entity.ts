@@ -88,8 +88,11 @@ export class Demand {
    @Column({ type: 'jsonb', nullable: true })
    links?: string[];
  
-   @Column({ type: 'jsonb', nullable: true })
-   references?: { url: string; description?: string }[];
+    @Column({ type: 'jsonb', nullable: true })
+    references?: { url: string; description?: string }[];
+
+  @Column({ default: true })
+  notificationsEnabled: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
   deliveredAt?: Date;
