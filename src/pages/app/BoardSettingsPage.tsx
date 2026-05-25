@@ -221,6 +221,19 @@ export default function BoardSettingsPage() {
             <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-16 p-1" />
           </div>
         </div>
+        <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+          <div className="flex items-center gap-3">
+            {notificationsDisabled ? <BellOff className="h-5 w-5 text-rose-500" /> : <Bell className="h-5 w-5 text-primary" />}
+            <div>
+              <p className="text-sm font-medium">Notificações Automáticas</p>
+              <p className="text-xs text-muted-foreground">Desative se não quiser receber alertas de cards neste board.</p>
+            </div>
+          </div>
+          <Switch 
+            checked={!notificationsDisabled} 
+            onCheckedChange={(v) => setNotificationsDisabled(!v)} 
+          />
+        </div>
         {board.type && (
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="capitalize">{board.type}</Badge>
