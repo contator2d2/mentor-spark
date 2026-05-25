@@ -110,7 +110,7 @@ export default function BoardSettingsPage() {
   async function save() {
     setSaving(true);
     try {
-      await api(`/kanban/boards/${id}`, { method: "PATCH", body: { name, description, color } });
+      await api(`/kanban/boards/${id}`, { method: "PATCH", body: { name, description, color, notificationsDisabled } });
       toast.success("Configurações salvas");
       load();
     } catch (e: any) {
