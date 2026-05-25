@@ -45,6 +45,10 @@ export class TeamMember {
   @Column({ type: 'enum', enum: TeamStatus, default: TeamStatus.ACTIVE })
   status: TeamStatus;
 
+  /** IDs dos kanbans permitidos para este membro. Null = todos. */
+  @Column({ type: 'jsonb', nullable: true })
+  allowedKanbanIds?: string[];
+
   @CreateDateColumn()
   createdAt: Date;
 

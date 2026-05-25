@@ -44,7 +44,7 @@ export class TeamController {
 
   @Auth('mentor', 'super_admin')
   @Post()
-  async create(@TenantId() mentorId: string, @Body() dto: { name: string; email: string; phone?: string; role: TeamRole }) {
+  async create(@TenantId() mentorId: string, @Body() dto: { name: string; email: string; phone?: string; role: TeamRole; allowedKanbanIds?: string[] }) {
     if (!dto.name || !dto.email || !dto.role) throw new BadRequestException('name, email e role obrigatórios');
 
     const mentor = await this.users.findOne({ where: { id: mentorId } });
@@ -69,10 +69,12 @@ export class TeamController {
       status: UserStatus.ACTIVE,
       parentMentorId: mentorId,
       teamRole: dto.role,
+      allowedKanbanIds: dto.allowedKanbanIds,
     }));
 
     const member = await this.members.save(this.members.create({
       mentorId, userId: user.id, name: dto.name, email, phone: dto.phone, role: dto.role, status: TeamStatus.ACTIVE,
+      allowedKanbanIds: dto.allowedKanbanIds,
     }));
 
      // Email de boas vindas - resolve custom domain se houver
@@ -106,7 +108,7 @@ export class TeamController {
 
   @Auth('mentor', 'super_admin')
   @Patch(':id')
-  async update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: { role?: TeamRole; status?: TeamStatus; name?: string; phone?: string }) {
+  async update(@TenantId() mentorId: string, @Param('id') id: string, @Body() dto: { role?: TeamRole; status?: TeamStatus; name?: string; phone?: string; allowedKanbanIds?: string[] }) {
     const m = await this.members.findOne({ where: { id, mentorId } });
     if (!m) throw new BadRequestException('Membro não encontrado');
 
@@ -116,6 +118,7 @@ export class TeamController {
     if (dto.status) memberUpdate.status = dto.status;
     if (dto.name) memberUpdate.name = dto.name;
     if (dto.phone !== undefined) memberUpdate.phone = dto.phone;
+    if (dto.allowedKanbanIds !== undefined) memberUpdate.allowedKanbanIds = dto.allowedKanbanIds;
 
     if (Object.keys(memberUpdate).length > 0) {
       await this.members.update(id, memberUpdate);
@@ -126,6 +129,7 @@ export class TeamController {
     if (dto.role) userUpdate.teamRole = dto.role;
     if (dto.name) userUpdate.name = dto.name;
     if (dto.phone !== undefined) userUpdate.phone = dto.phone;
+    if (dto.allowedKanbanIds !== undefined) userUpdate.allowedKanbanIds = dto.allowedKanbanIds;
      if (dto.status === TeamStatus.SUSPENDED) userUpdate.status = UserStatus.SUSPENDED;
     if (dto.status === TeamStatus.ACTIVE) userUpdate.status = UserStatus.ACTIVE;
 
