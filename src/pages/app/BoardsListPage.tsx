@@ -86,7 +86,7 @@ function SortableBoardCard({
 export default function BoardsListPage() {
   const [boards, setBoards] = useState<Board[] | null>(null);
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState({ name: "", type: "custom" as const, useTemplate: "" as "" | "leads" | "tasks", color: "#6366f1", description: "" });
+  const [form, setForm] = useState({ name: "", type: "custom" as const, useTemplate: "" as "" | "leads" | "tasks" | "demands", color: "#6366f1", description: "" });
   const [saving, setSaving] = useState(false);
   const nav = useNavigate();
 
