@@ -210,14 +210,11 @@ export class DemandsService {
         this.lastNotificationMap.set(lockKey, now);
 
         const [agency, responsibles] = await Promise.all([
-          this.users.findOne({ where: { id: mentorId } }),
           this.users.findOne({ where: { id: demand.agencyId } }),
           demand.responsibleIds && demand.responsibleIds.length > 0 
             ? this.users.find({ where: { id: In(demand.responsibleIds) } })
             : (demand.responsibleId ? this.users.find({ where: { id: demand.responsibleId } }) : Promise.resolve([])),
         ]);
-
-        if (!mentor) return;
         
         // Define o alvo da notificação
         const targets = [agency, ...responsibles].filter(t => t && t.id);
