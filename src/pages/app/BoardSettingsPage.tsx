@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Loader2, Save, Trash2, Plus, Settings as SettingsIcon, GripVertical } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Loader2, Save, Trash2, Plus, Settings as SettingsIcon, GripVertical, BellOff, Bell } from "lucide-react";
 import { toast } from "sonner";
 import {
   DndContext,
@@ -31,6 +32,7 @@ interface Board {
   name: string;
   description?: string;
   color?: string;
+  notificationsDisabled: boolean;
   type?: string;
   isDefault?: boolean;
   columns: Column[];
@@ -85,6 +87,7 @@ export default function BoardSettingsPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState("#6366f1");
+  const [notificationsDisabled, setNotificationsDisabled] = useState(false);
   const [saving, setSaving] = useState(false);
   const [newCol, setNewCol] = useState({ name: "", color: "#6366f1" });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
@@ -97,6 +100,7 @@ export default function BoardSettingsPage() {
       setName(b.name || "");
       setDescription(b.description || "");
       setColor(b.color || "#6366f1");
+      setNotificationsDisabled(b.notificationsDisabled || false);
     } catch (e: any) {
       toast.error(e.message);
     }
@@ -106,7 +110,7 @@ export default function BoardSettingsPage() {
   async function save() {
     setSaving(true);
     try {
-      await api(`/kanban/boards/${id}`, { method: "PATCH", body: { name, description, color } });
+      await api(`/kanban/boards/${id}`, { method: "PATCH", body: { name, description, color, notificationsDisabled } });
       toast.success("Configurações salvas");
       load();
     } catch (e: any) {
@@ -216,6 +220,19 @@ export default function BoardSettingsPage() {
             ))}
             <Input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-8 w-16 p-1" />
           </div>
+        </div>
+        <div className="flex items-center justify-between p-3 border rounded-lg bg-muted/20">
+          <div className="flex items-center gap-3">
+            {notificationsDisabled ? <BellOff className="h-5 w-5 text-rose-500" /> : <Bell className="h-5 w-5 text-primary" />}
+            <div>
+              <p className="text-sm font-medium">Notificações Automáticas</p>
+              <p className="text-xs text-muted-foreground">Desative se não quiser receber alertas de cards neste board.</p>
+            </div>
+          </div>
+          <Switch 
+            checked={!notificationsDisabled} 
+            onCheckedChange={(v) => setNotificationsDisabled(!v)} 
+          />
         </div>
         {board.type && (
           <div className="flex items-center gap-2">

@@ -36,6 +36,10 @@ export class KanbanBoard {
   @Column({ nullable: true })
   color?: string;
 
+  /** Se true, desativa notificações automáticas para cards deste board */
+  @Column({ default: false })
+  notificationsDisabled: boolean;
+
   @CreateDateColumn()
   createdAt: Date;
 
