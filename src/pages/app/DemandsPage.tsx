@@ -336,6 +336,50 @@ export default function DemandsPage() {
           </table>
         </div>
       )}
+
+      <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configurações de Notificação</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Enviar notificações por:</Label>
+              <Select 
+                value={notificationSettings.notifyVia} 
+                onValueChange={(v: any) => setNotificationSettings({ ...notificationSettings, notifyVia: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="both">WhatsApp e E-mail</SelectItem>
+                  <SelectItem value="whatsapp">Apenas WhatsApp</SelectItem>
+                  <SelectItem value="email">Apenas E-mail</SelectItem>
+                  <SelectItem value="none">Nenhum (Desativar)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="reminder-minutes">Lembrete de prazos (minutos antes):</Label>
+              <Input 
+                id="reminder-minutes"
+                type="number" 
+                value={notificationSettings.reminderMinutes}
+                onChange={(e) => setNotificationSettings({ ...notificationSettings, reminderMinutes: parseInt(e.target.value) || 0 })}
+                placeholder="Ex: 60"
+              />
+              <p className="text-[10px] text-muted-foreground">Tempo padrão para alertas de demandas próximas do vencimento.</p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setSettingsOpen(false)}>Cancelar</Button>
+            <Button onClick={saveSettings} disabled={savingSettings}>
+              {savingSettings && <Loader2 className="h-4 w-4 animate-spin mr-2" />} Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
