@@ -32,6 +32,7 @@ interface Board {
   name: string;
   description?: string;
   color?: string;
+  notificationsDisabled: boolean;
   type?: string;
   isDefault?: boolean;
   columns: Column[];
