@@ -93,8 +93,43 @@ export default function DemandsPage() {
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [search, setSearch] = useState("");
   const navigate = useNavigate();
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [notificationSettings, setNotificationSettings] = useState({
+    notifyVia: "both" as "whatsapp" | "email" | "both" | "none",
+    reminderMinutes: 60,
+  });
 
-   const isAgency = user?.teamRole === "agency";
+  const loadSettings = () => {
+    if (user?.role === "mentor" || user?.role === "super_admin") {
+      setNotificationSettings({
+        notifyVia: user.demandNotificationSettings?.notifyVia || "both",
+        reminderMinutes: user.demandNotificationSettings?.reminderMinutes || 60,
+      });
+    }
+  };
+
+  useEffect(() => {
+    loadSettings();
+  }, [user]);
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    try {
+      await api("/me/brand", {
+        method: "PUT",
+        body: { demandNotificationSettings: notificationSettings },
+      });
+      toast.success("Configurações de notificação salvas!");
+      setSettingsOpen(false);
+    } catch (e: any) {
+      toast.error("Erro ao salvar configurações");
+    } finally {
+      setSavingSettings(false);
+    }
+  }
+
+  const isAgency = user?.teamRole === "agency";
  
   const load = () => api<Demand[]>("/demands").then(setDemands).finally(() => setLoading(false));
 
