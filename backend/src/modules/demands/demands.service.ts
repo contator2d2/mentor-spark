@@ -214,8 +214,12 @@ export class DemandsService {
         for (const target of targets) {
           if (!target) continue;
 
+          // Busca as configurações do mentor para decidir o canal
+          const settings = mentor.demandNotificationSettings || { notifyVia: 'both' };
+          const notifyVia = settings.notifyVia || 'both';
+
           // Email
-          if (target.email) {
+          if (target.email && (notifyVia === 'email' || notifyVia === 'both')) {
             const html = this.mail.generateStandardTemplate({
               brandName: mentor.brandName || mentor.name,
               brandLogoUrl: mentor.brandLogoUrl,
@@ -234,7 +238,7 @@ export class DemandsService {
           }
 
           // WhatsApp
-          if (target.phone) {
+          if (target.phone && (notifyVia === 'whatsapp' || notifyVia === 'both')) {
             let publicSuffix = '';
             if (demand.status === DemandStatus.WAITING_FEEDBACK) {
               const publicUrl = `${baseUrl}/demands/public/${demand.id}?token=${demand.id}`;
