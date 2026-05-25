@@ -40,16 +40,22 @@ export class TasksService {
     const due = new Date(task.dueDate).getTime();
     const now = Date.now();
     const sent = task.remindersSent || 0;
+    
+    // Se a tarefa já venceu, não agendamos mais lembretes automáticos
+    // (evita spam em tarefas esquecidas)
+    if (due < now && sent > 0) return null;
+
     if (sent === 0) {
       const t24 = due - 24 * 3600 * 1000;
-      return new Date(Math.max(now, t24));
+      // Se já passou das 24h, agendamos para daqui a 5 min para não disparar em loop
+      return new Date(Math.max(now + 5 * 60 * 1000, t24));
     }
     if (sent === 1) {
       const t1 = due - 60 * 60 * 1000;
-      return new Date(Math.max(now, t1));
+      return new Date(Math.max(now + 15 * 60 * 1000, t1));
     }
-    // Após 2 lembretes, só dispara no vencimento (uma vez)
-    if (sent === 2) return new Date(due);
+    // Após 2 lembretes, só dispara no vencimento exato (se for no futuro)
+    if (sent === 2 && due > now) return new Date(due);
     return null;
   }
 

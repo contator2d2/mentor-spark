@@ -11,8 +11,9 @@ import { AiService } from '../ai/ai.service';
 
 @Injectable()
 export class DemandsService {
-   private readonly logger = new Logger(DemandsService.name);
- 
+  private readonly logger = new Logger(DemandsService.name);
+  private lastNotificationMap = new Map<string, number>();
+  
   constructor(
     @InjectRepository(Demand) private repo: Repository<Demand>,
     @InjectRepository(DemandVersion) private versions: Repository<DemandVersion>,
@@ -180,66 +181,74 @@ export class DemandsService {
      return saved;
    }
  
-   private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
-     try {
+    private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
+      try {
+        // Anti-spam: Evita enviar exatamente a mesma notificação para o mesmo mentor/demanda em menos de 1 minuto
+        const lockKey = `${mentorId}:${demand.id}:${title}`;
+        const lastSent = this.lastNotificationMap.get(lockKey);
+        const now = Date.now();
+        if (lastSent && now - lastSent < 60000) {
+          this.logger.warn(`Notificação duplicada evitada para demanda ${demand.id}: ${title}`);
+          return;
+        }
+        this.lastNotificationMap.set(lockKey, now);
+
         const [mentor, agency, responsibles] = await Promise.all([
           this.users.findOne({ where: { id: mentorId } }),
           this.users.findOne({ where: { id: demand.agencyId } }),
           demand.responsibleIds && demand.responsibleIds.length > 0 
             ? this.users.find({ where: { id: In(demand.responsibleIds) } })
-            : this.users.findOne({ where: { id: demand.responsibleId } }).then(u => u ? [u] : []),
+            : (demand.responsibleId ? this.users.find({ where: { id: demand.responsibleId } }) : Promise.resolve([])),
         ]);
 
- 
-       if (!mentor) return;
-       
-        // Define o alvo da notificação (quem NÃO disparou a ação)
-        // Notifica tanto agência quanto todos os responsáveis se existirem e forem diferentes
+        if (!mentor) return;
+        
+        // Define o alvo da notificação
         const targets = [agency, ...responsibles].filter(t => t && t.id);
-       
-       const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
-       const demandUrl = mentor.customDomain 
-         ? `https://${mentor.customDomain}/app/demands/${demand.id}`
-         : `${baseUrl}/app/demands/${demand.id}`;
- 
-       for (const target of targets) {
-         if (!target) continue;
- 
-         // Email
-         if (target.email) {
-           const html = this.mail.generateStandardTemplate({
-             brandName: mentor.brandName || mentor.name,
-             brandLogoUrl: mentor.brandLogoUrl,
-             brandPrimaryColor: mentor.brandPrimaryColor,
-             firstName: target.name.split(' ')[0],
-             message: `${message}<br><br><b>Demanda:</b> ${demand.title}<br><b>Status:</b> ${demand.status}`,
-             email: target.email,
-             loginUrl: demandUrl,
-           });
- 
-           await this.mail.send({
-             to: target.email,
-             subject: `[${mentor.brandName || 'Mentor'}] ${title}`,
-             html,
-           }).catch(e => this.logger.error(`Erro email: ${e.message}`));
-         }
- 
-         // WhatsApp
-         if (target.phone) {
-         let publicSuffix = '';
-         if (demand.status === DemandStatus.WAITING_FEEDBACK) {
-           const publicUrl = `${baseUrl}/demands/public/${demand.id}?token=${demand.id}`;
-           publicSuffix = `\n\n📢 *Link para o Cliente:* ${publicUrl}`;
-         }
-         
-         const waMessage = `🔔 *${title}*\n\nOlá ${target.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\n🔗 *Acessar Painel:* ${demandUrl}${publicSuffix}\n\nEquipe ${mentor.brandName || mentor.name}`;
-           await this.whatsapp.sendText(mentorId, target.phone, waMessage).catch(e => this.logger.error(`Erro WhatsApp: ${e.message}`));
-         }
-       }
-     } catch (err) {
-       this.logger.error(`Erro geral notifyAgency: ${err.message}`);
-     }
-   }
+        
+        const baseUrl = process.env.FRONTEND_URL || 'https://app.gleego.com.br';
+        const demandUrl = mentor.customDomain 
+          ? `https://${mentor.customDomain}/app/demands/${demand.id}`
+          : `${baseUrl}/app/demands/${demand.id}`;
+
+        for (const target of targets) {
+          if (!target) continue;
+
+          // Email
+          if (target.email) {
+            const html = this.mail.generateStandardTemplate({
+              brandName: mentor.brandName || mentor.name,
+              brandLogoUrl: mentor.brandLogoUrl,
+              brandPrimaryColor: mentor.brandPrimaryColor,
+              firstName: target.name.split(' ')[0],
+              message: `${message}<br><br><b>Demanda:</b> ${demand.title}<br><b>Status:</b> ${demand.status}`,
+              email: target.email,
+              loginUrl: demandUrl,
+            });
+
+            await this.mail.send({
+              to: target.email,
+              subject: `[${mentor.brandName || 'Mentor'}] ${title}`,
+              html,
+            }).catch(e => this.logger.error(`Erro email: ${e.message}`));
+          }
+
+          // WhatsApp
+          if (target.phone) {
+            let publicSuffix = '';
+            if (demand.status === DemandStatus.WAITING_FEEDBACK) {
+              const publicUrl = `${baseUrl}/demands/public/${demand.id}?token=${demand.id}`;
+              publicSuffix = `\n\n📢 *Link para o Cliente:* ${publicUrl}`;
+            }
+            
+            const waMessage = `🔔 *${title}*\n\nOlá ${target.name.split(' ')[0]},\n\n${message}\n\n*Demanda:* ${demand.title}\n*Status:* ${demand.status.toUpperCase()}\n\n🔗 *Acessar Painel:* ${demandUrl}${publicSuffix}\n\nEquipe ${mentor.brandName || mentor.name}`;
+            await this.whatsapp.sendText(mentorId, target.phone, waMessage).catch(e => this.logger.error(`Erro WhatsApp: ${e.message}`));
+          }
+        }
+      } catch (err) {
+        this.logger.error(`Erro geral notifyAgency: ${err.message}`);
+      }
+    }
 
   async generateBriefing(mentorId: string, dto: { title: string; type: string; description?: string }) {
     const prompt = `Gerar um briefing detalhado para uma demanda de marketing do tipo "${dto.type}".
