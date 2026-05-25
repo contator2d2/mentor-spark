@@ -24,12 +24,14 @@ import {
    Image as ImageIcon,
    X as CloseIcon,
    Eye,
-    Plus,
-    CheckCircle2,
-     AlertCircle,
-     Link as LinkIcon,
-     Clock,
- } from "lucide-react";
+     Plus,
+     CheckCircle2,
+      AlertCircle,
+      Link as LinkIcon,
+      Clock,
+      Bell,
+      BellOff,
+  } from "lucide-react";
 
 const STATUS_META: Record<string, { label: string; tone: string; dot: string }> = {
   new:               { label: "Nova",               tone: "bg-slate-100 text-slate-700 border-slate-200",        dot: "bg-slate-400" },
