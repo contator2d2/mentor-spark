@@ -164,6 +164,11 @@ export default function DemandsPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {(user?.role === "mentor" || user?.role === "super_admin") && (
+            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="gap-2">
+              <Bell className="h-4 w-4" /> Notificações
+            </Button>
+          )}
           <div className="bg-muted p-1 rounded-lg flex items-center gap-1 mr-2">
              <Button 
                variant={view === "kanban" ? "secondary" : "ghost"} 
