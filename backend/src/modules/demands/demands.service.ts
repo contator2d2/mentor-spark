@@ -183,6 +183,10 @@ export class DemandsService {
  
     private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
       try {
+        if (demand.notificationsEnabled === false) {
+          this.logger.log(`Notificações desativadas para a demanda ${demand.id}`);
+          return;
+        }
         // Anti-spam: Evita enviar exatamente a mesma notificação para o mesmo mentor/demanda em menos de 1 minuto
         const lockKey = `${mentorId}:${demand.id}:${title}`;
         const lastSent = this.lastNotificationMap.get(lockKey);
