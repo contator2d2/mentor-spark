@@ -13,6 +13,7 @@ import {
   List as ListIcon,
   Search,
   Bell,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -92,6 +93,7 @@ export default function DemandsPage() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"kanban" | "list">("kanban");
   const [search, setSearch] = useState("");
+  const [showOverdueOnly, setShowOverdueOnly] = useState(false);
   const navigate = useNavigate();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [savingSettings, setSavingSettings] = useState(false);
@@ -149,10 +151,18 @@ export default function DemandsPage() {
     }
   }
 
-  const filtered = demands.filter(d => 
-    d.title.toLowerCase().includes(search.toLowerCase()) || 
-    d.type.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = demands.filter(d => {
+    const matchesSearch = d.title.toLowerCase().includes(search.toLowerCase()) || 
+      d.type.toLowerCase().includes(search.toLowerCase());
+    
+    if (showOverdueOnly) {
+      if (!d.definedDeadline) return false;
+      const isOverdue = new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved';
+      return matchesSearch && isOverdue;
+    }
+
+    return matchesSearch;
+  });
 
   if (loading) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
 
@@ -197,14 +207,26 @@ export default function DemandsPage() {
         </div>
       </div>
 
-      <div className="relative w-full max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input 
-          placeholder="Buscar demandas..." 
-          className="pl-9" 
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Buscar demandas..." 
+            className="pl-9" 
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+
+        <Button
+          variant={showOverdueOnly ? "destructive" : "outline"}
+          size="sm"
+          onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+          className="gap-2 shrink-0"
+        >
+          <AlertCircle className="h-4 w-4" />
+          {showOverdueOnly ? "Mostrando Atrasadas" : "Filtrar Atrasadas"}
+        </Button>
       </div>
 
       {view === "kanban" ? (
@@ -265,9 +287,14 @@ export default function DemandsPage() {
                         </div>
 
                         {d.definedDeadline && (
-                          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <div className={`flex items-center gap-1 text-[10px] font-medium ${
+                            new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved'
+                              ? 'text-rose-500' 
+                              : 'text-muted-foreground'
+                          }`}>
                             <CalIcon className="h-3 w-3" />
                             {new Date(d.definedDeadline).toLocaleDateString()}
+                            {new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved' && " (ATRASADA)"}
                           </div>
                         )}
 
