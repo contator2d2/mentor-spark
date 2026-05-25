@@ -86,6 +86,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
          parentMentorId: u.parentMentorId,
          teamRole: u.teamRole,
          mustChangePassword: u.mustChangePassword,
+         demandNotificationSettings: u.demandNotificationSettings,
          tenantBrand: u.tenantBrand,
        };
         // Se o usuário for staff (admin/editor/attendant), buscamos o mentor dono
