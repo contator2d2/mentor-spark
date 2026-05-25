@@ -189,6 +189,14 @@ export class TasksService {
 
   private async dispatchReminder(task: Task, reason: 'cron' | 'manual') {
     if (!task.remindWhatsapp) return { ok: false, error: 'reminder_disabled' };
+
+    // Busca configurações do mentor
+    const mentor = await this.users.findOne({ where: { id: task.mentorId } });
+    const settings = mentor?.demandNotificationSettings || { notifyVia: 'whatsapp', reminderMinutes: 60 };
+    
+    // Se as notificações globais estiverem desativadas, não envia
+    if (settings.notifyVia === 'none') return { ok: false, error: 'mentor_notifications_disabled' };
+
     const { phone } = await this.resolveRecipient(task);
     if (!phone) return { ok: false, error: 'no_phone' };
 
