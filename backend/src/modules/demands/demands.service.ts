@@ -278,8 +278,84 @@ export class DemandsService {
         }
       } catch (err) {
         this.logger.error(`Erro geral notifyAgency: ${err.message}`);
+    }
+  }
+
+  async processDeadlineNotifications() {
+    this.logger.log('Processando notificações de prazos...');
+    
+    // Busca demandas ativas com prazo definido
+    const activeDemands = await this.repo.find({
+      where: [
+        { status: DemandStatus.NEW },
+        { status: DemandStatus.ANALYSIS },
+        { status: DemandStatus.PLANNED },
+        { status: DemandStatus.PRODUCTION },
+        { status: DemandStatus.WAITING_FEEDBACK },
+        { status: DemandStatus.REVIEW },
+        { status: DemandStatus.ADJUSTMENTS },
+      ],
+      relations: ['agency', 'responsible'],
+    });
+
+    for (const demand of activeDemands) {
+      if (!demand.definedDeadline || demand.notificationsEnabled === false) continue;
+
+      const mentor = await this.users.findOne({ where: { id: demand.mentorId } });
+      if (!mentor) continue;
+
+      const settings = mentor.demandNotificationSettings || { 
+        notifyVia: 'both', 
+        reminderMinutes: 60, 
+        overdueReminderFrequencyHours: 24 
+      };
+
+      if (settings.notifyVia === 'none') continue;
+
+      const deadline = new Date(demand.definedDeadline).getTime();
+      const now = Date.now();
+      const diffMs = deadline - now;
+      const diffMinutes = Math.floor(diffMs / 60000);
+      
+      const lastSent = demand.lastReminderSentAt ? new Date(demand.lastReminderSentAt).getTime() : 0;
+      const hoursSinceLastSent = (now - lastSent) / 3600000;
+
+      // 1. Lembrete ANTES do vencimento
+      const reminderMinutes = settings.reminderMinutes || 60;
+      if (diffMinutes > 0 && diffMinutes <= reminderMinutes && lastSent < (deadline - (reminderMinutes * 60000))) {
+        // Envia lembrete de que vai vencer em breve
+        await this.notifyAgency(
+          demand.mentorId, 
+          demand, 
+          'Lembrete: Prazo Próximo', 
+          `A demanda "${demand.title}" vence em aproximadamente ${diffMinutes} minutos.`
+        );
+        await this.repo.update(demand.id, { lastReminderSentAt: new Date() });
+        continue;
+      }
+
+      // 2. Alerta de ATRASO (Depois do vencimento)
+      if (diffMinutes <= 0) {
+        const frequencyHours = settings.overdueReminderFrequencyHours || 24;
+        
+        // Se nunca enviou alerta de atraso OU já passou o tempo da frequência
+        if (lastSent < deadline || hoursSinceLastSent >= frequencyHours) {
+          const overdueMinutes = Math.abs(diffMinutes);
+          const overdueText = overdueMinutes > 60 
+            ? `${Math.floor(overdueMinutes/60)}h` 
+            : `${overdueMinutes}min`;
+
+          await this.notifyAgency(
+            demand.mentorId, 
+            demand, 
+            'ALERTA: Demanda Atrasada', 
+            `A demanda "${demand.title}" está atrasada há ${overdueText}.`
+          );
+          await this.repo.update(demand.id, { lastReminderSentAt: new Date() });
+        }
       }
     }
+  }
 
   async generateBriefing(mentorId: string, dto: { title: string; type: string; description?: string }) {
     const prompt = `Gerar um briefing detalhado para uma demanda de marketing do tipo "${dto.type}".
