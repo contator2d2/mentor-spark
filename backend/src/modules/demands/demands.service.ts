@@ -27,10 +27,19 @@ export class DemandsService {
    async list(mentorId: string, user?: any) {
      const where: any = { mentorId };
  
-     // Se for agência, filtra apenas as que ela é responsável
-     if (user?.role === 'mentor_team' && user?.teamRole === 'agency') {
-       where.agencyId = user.sub;
-     }
+    // Se for agência e não for admin, filtra apenas as que ela é responsável
+    if (user?.role === 'mentor_team' && user?.teamRole === 'agency') {
+       // O admin da equipe (teamRole: 'admin') deve ver tudo,
+       // então só filtramos por agencyId se não for admin.
+       // Nota: se o usuário tiver teamRole === 'admin', este bloco será pulado se tratarmos teamRole
+       // mas aqui o user?.teamRole === 'agency' é fixo para o perfil de agência.
+       // Se o administrador for um 'admin' em vez de 'agency', ele já vê tudo.
+       // Mas se ele for 'agency' e 'admin' ao mesmo tempo (o que não parece ser o caso pela estrutura),
+       // ou se quisermos que qualquer 'admin' veja tudo:
+       if (user?.teamRole !== 'admin') {
+         where.agencyId = user.sub;
+       }
+    }
  
      const demands = await this.repo.find({
        where,
