@@ -95,6 +95,9 @@ export class Demand {
   notificationsEnabled: boolean;
 
   @Column({ type: 'timestamptz', nullable: true })
+  lastReminderSentAt?: Date;
+
+  @Column({ type: 'timestamptz', nullable: true })
   deliveredAt?: Date;
 
   @CreateDateColumn()
