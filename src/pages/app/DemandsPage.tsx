@@ -390,7 +390,7 @@ export default function DemandsPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reminder-minutes">Lembrete de prazos (minutos antes):</Label>
+              <Label htmlFor="reminder-minutes">Lembrete ANTES do vencimento (minutos):</Label>
               <Input 
                 id="reminder-minutes"
                 type="number" 
@@ -398,10 +398,10 @@ export default function DemandsPage() {
                 onChange={(e) => setNotificationSettings({ ...notificationSettings, reminderMinutes: parseInt(e.target.value) || 0 })}
                 placeholder="Ex: 60"
               />
-              <p className="text-[10px] text-muted-foreground">Tempo padrão para alertas de demandas próximas do vencimento.</p>
+              <p className="text-[10px] text-muted-foreground">O sistema enviará um alerta este número de minutos antes do prazo acabar.</p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="overdue-hours">Frequência de alertas para tarefas atrasadas (horas):</Label>
+              <Label htmlFor="overdue-hours">Lembretes APÓS atraso (frequência em horas):</Label>
               <Input 
                 id="overdue-hours"
                 type="number" 
@@ -409,7 +409,7 @@ export default function DemandsPage() {
                 onChange={(e) => setNotificationSettings({ ...notificationSettings, overdueReminderFrequencyHours: parseInt(e.target.value) || 0 })}
                 placeholder="Ex: 24"
               />
-              <p className="text-[10px] text-muted-foreground">Intervalo entre notificações quando uma tarefa já passou do prazo.</p>
+              <p className="text-[10px] text-muted-foreground">Intervalo de reenvio caso a tarefa continue atrasada (ex: 24 para diário).</p>
             </div>
           </div>
           <DialogFooter>

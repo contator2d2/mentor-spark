@@ -8,6 +8,7 @@ import { DemandVersion } from '../../entities/demand-version.entity';
  import { User } from '../../entities/user.entity';
 import { DemandsController } from './demands.controller';
 import { DemandsService } from './demands.service';
+import { DemandsNotificationCron } from './demands-notification.cron';
 import { AiModule } from '../ai/ai.module';
 
 @Module({
@@ -17,7 +18,7 @@ import { AiModule } from '../ai/ai.module';
      IntegrationsModule,
   ],
   controllers: [DemandsController],
-   providers: [DemandsService, MailService],
+   providers: [DemandsService, DemandsNotificationCron, MailService],
   exports: [DemandsService],
 })
 export class DemandsModule {}
