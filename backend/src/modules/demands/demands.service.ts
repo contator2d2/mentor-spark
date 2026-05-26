@@ -208,11 +208,9 @@ export class DemandsService {
         return;
       }
         
-        // Anti-spam / Controle de Timer
-        const isOverdue = demand.definedDeadline && new Date(demand.definedDeadline).getTime() < Date.now();
-        const intervalMs = isOverdue 
-          ? (settings.overdueReminderFrequencyHours || 24) * 3600000 
-          : 60000; // 1 minuto para movimentações normais
+        // Anti-spam / Controle de Timer (1 minuto para evitar duplicatas de cliques rápidos)
+        const intervalMs = 60000; 
+
 
         const lockKey = `${mentorId}:${demand.id}:${title}`;
         const lastSent = this.lastNotificationMap.get(lockKey);
