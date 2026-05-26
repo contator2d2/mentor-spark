@@ -191,16 +191,22 @@ export class DemandsService {
    }
  
     private async notifyAgency(mentorId: string, demand: Demand, title: string, message: string) {
-      try {
-        if (demand.notificationsEnabled === false) {
-          this.logger.log(`Notificações desativadas para a demanda ${demand.id}`);
-          return;
-        }
+    try {
+      const mentor = await this.users.findOne({ where: { id: mentorId } });
+      if (!mentor) return;
 
-        const mentor = await this.users.findOne({ where: { id: mentorId } });
-        if (!mentor) return;
+      const settings = mentor.demandNotificationSettings || { notifyVia: 'both' };
 
-        const settings = mentor.demandNotificationSettings || { notifyVia: 'both' };
+      // Se as notificações globais estiverem desativadas ou via "none", não envia
+      if (settings.notifyVia === 'none') {
+        this.logger.log(`Notificações globais desativadas para o mentor ${mentorId}`);
+        return;
+      }
+
+      if (demand.notificationsEnabled === false) {
+        this.logger.log(`Notificações desativadas para a demanda ${demand.id}`);
+        return;
+      }
         
         // Anti-spam / Controle de Timer
         const isOverdue = demand.definedDeadline && new Date(demand.definedDeadline).getTime() < Date.now();
