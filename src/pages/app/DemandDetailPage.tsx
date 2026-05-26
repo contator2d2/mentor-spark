@@ -99,7 +99,7 @@ interface Demand {
   objective?: string;
   targetAudience?: string;
   definedDeadline?: string;
-  responsible?: { name: string };
+  responsible?: { id: string, name: string };
   responsibles?: { id: string, name: string }[];
   agency?: { name: string };
   briefing?: any;
