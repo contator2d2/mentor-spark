@@ -24,14 +24,22 @@ import {
    Image as ImageIcon,
    X as CloseIcon,
    Eye,
-     Plus,
-     CheckCircle2,
-      AlertCircle,
-      Link as LinkIcon,
-      Clock,
-      Bell,
-      BellOff,
+    Plus,
+    CheckCircle2,
+    AlertCircle,
+    Link as LinkIcon,
+    Clock,
+    Bell,
+    BellOff,
+    Pencil,
+    Users,
+    Check,
   } from "lucide-react";
+
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
 
 const STATUS_META: Record<string, { label: string; tone: string; dot: string }> = {
   new:               { label: "Nova",               tone: "bg-slate-100 text-slate-700 border-slate-200",        dot: "bg-slate-400" },
@@ -91,7 +99,7 @@ interface Demand {
   objective?: string;
   targetAudience?: string;
   definedDeadline?: string;
-  responsible?: { name: string };
+  responsible?: { id: string, name: string };
   responsibles?: { id: string, name: string }[];
   agency?: { name: string };
   briefing?: any;
@@ -113,11 +121,25 @@ interface Demand {
   const [demand, setDemand] = useState<Demand | null>(null);
   const [loading, setLoading] = useState(true);
   const [commentText, setCommentText] = useState("");
-   const [sending, setSending] = useState(false);
-   const [uploading, setUploading] = useState(false);
-   const [commentAttachments, setCommentAttachments] = useState<{ url: string; name: string; type: string }[]>([]);
-   const [previewImage, setPreviewImage] = useState<{ url: string; name?: string } | null>(null);
+  const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [commentAttachments, setCommentAttachments] = useState<{ url: string; name: string; type: string }[]>([]);
+  const [previewImage, setPreviewImage] = useState<{ url: string; name?: string } | null>(null);
   const [generating, setGenerating] = useState(false);
+
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [agencies, setAgencies] = useState<any[]>([]);
+  const [editForm, setEditForm] = useState({
+    title: "",
+    department: "",
+    type: "",
+    description: "",
+    objective: "",
+    priority: "",
+    definedDeadline: "",
+    responsibleIds: [] as string[],
+  });
+
 
    const isAgency = user?.teamRole === "agency";
    const normalizeUpload = (file: any) => ({
@@ -181,7 +203,38 @@ interface Demand {
 
   useEffect(() => {
     load();
+    api("/team").then(setAgencies).catch(() => {});
   }, [id]);
+
+  function openEditModal() {
+    if (!demand) return;
+    setEditForm({
+      title: demand.title,
+      department: demand.department || "Marketing",
+      type: demand.type,
+      description: demand.description || "",
+      objective: demand.objective || "",
+      priority: demand.priority,
+      definedDeadline: demand.definedDeadline ? demand.definedDeadline.split('T')[0] : "",
+      responsibleIds: demand.responsibles?.map(r => r.id) || (demand.responsible ? [demand.responsible.id] : []),
+    });
+    setEditModalOpen(true);
+  }
+
+  async function handleUpdateDemand() {
+    try {
+      setLoading(true);
+      await api(`/demands/${id}`, { method: "PATCH", body: editForm });
+      toast.success("Demanda atualizada com sucesso!");
+      setEditModalOpen(false);
+      load();
+    } catch (err) {
+      toast.error("Erro ao atualizar demanda");
+    } finally {
+      setLoading(false);
+    }
+  }
+
 
    async function addComment() {
      if (!commentText.trim() && commentAttachments.length === 0) return;
@@ -325,6 +378,18 @@ interface Demand {
              </div>
             </div>
           <div className="flex items-center gap-3 shrink-0">
+            {!isAgency && (
+              <Button
+                variant="ghost"
+                size="icon"
+                title="Editar demanda"
+                className="text-muted-foreground hover:text-primary"
+                onClick={openEditModal}
+              >
+                <Pencil className="h-5 w-5" />
+              </Button>
+            )}
+
             <Button
               variant="ghost"
               size="icon"
@@ -888,6 +953,156 @@ interface Demand {
             )}
           </DialogContent>
         </Dialog>
-     </div>
-   );
- }
+
+        <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Editar Demanda</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-title">Título da Demanda *</Label>
+                <Input 
+                  id="edit-title" 
+                  value={editForm.title}
+                  onChange={e => setEditForm({...editForm, title: e.target.value})}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Departamento / Área *</Label>
+                  <Select value={editForm.department} onValueChange={v => setEditForm({...editForm, department: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a área" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["Marketing", "Administrativo", "Financeiro", "Vendas", "Outros"].map(d => (
+                        <SelectItem key={d} value={d}>{d}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tipo de Material *</Label>
+                  <Select value={editForm.type} onValueChange={v => setEditForm({...editForm, type: v})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        "Post para Instagram", "Carrossel", "Vídeo / Reels", "Landing Page", 
+                        "Anúncio (Creative)", "Copywriting", "Apresentação PDF", "E-mail Marketing", 
+                        "Relatório de Vendas", "Planilha Financeira", "Contrato / Documento", "Outros"
+                      ].map(t => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Prioridade</Label>
+                  <Select value={editForm.priority} onValueChange={v => setEditForm({...editForm, priority: v})}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="low">Baixa</SelectItem>
+                      <SelectItem value="medium">Média</SelectItem>
+                      <SelectItem value="high">Alta</SelectItem>
+                      <SelectItem value="urgent">Urgente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Prazo</Label>
+                  <Input 
+                    type="date" 
+                    value={editForm.definedDeadline}
+                    onChange={e => setEditForm({...editForm, definedDeadline: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Atribuir Responsáveis</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-between h-auto py-2 min-h-10">
+                      <div className="flex flex-wrap gap-1">
+                        {editForm.responsibleIds.length === 0 && <span className="text-muted-foreground">Selecionar responsáveis...</span>}
+                        {editForm.responsibleIds.map(rid => {
+                          const agent = agencies.find(a => a.userId === rid || a.id === rid);
+                          return (
+                            <Badge key={rid} variant="secondary" className="mr-1">
+                              {agent?.name || "Usuário"}
+                            </Badge>
+                          );
+                        })}
+                      </div>
+                      <Users className="h-4 w-4 opacity-50 ml-2" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <div className="p-2 space-y-1">
+                      {agencies.map(a => (
+                        <div 
+                          key={a.id} 
+                          className="flex items-center space-x-2 p-2 hover:bg-muted rounded-md cursor-pointer"
+                          onClick={() => {
+                            const current = [...editForm.responsibleIds];
+                            const uid = a.userId || a.id;
+                            if (current.includes(uid)) {
+                              setEditForm({...editForm, responsibleIds: current.filter(id => id !== uid)});
+                            } else {
+                              setEditForm({...editForm, responsibleIds: [...current, uid]});
+                            }
+                          }}
+                        >
+                          <Checkbox 
+                            checked={editForm.responsibleIds.includes(a.userId || a.id)}
+                            onCheckedChange={() => {}}
+                          />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{a.name}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase">{a.role}</span>
+                          </div>
+                          {editForm.responsibleIds.includes(a.userId || a.id) && <Check className="h-4 w-4 ml-auto text-primary" />}
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Descrição / Contexto</Label>
+                <Textarea 
+                  rows={4}
+                  value={editForm.description}
+                  onChange={e => setEditForm({...editForm, description: e.target.value})}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Objetivo Principal</Label>
+                <Input 
+                  value={editForm.objective}
+                  onChange={e => setEditForm({...editForm, objective: e.target.value})}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditModalOpen(false)}>Cancelar</Button>
+              <Button onClick={handleUpdateDemand}>Salvar Alterações</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+
