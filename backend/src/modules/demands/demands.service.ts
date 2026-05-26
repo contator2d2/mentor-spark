@@ -27,10 +27,10 @@ export class DemandsService {
    async list(mentorId: string, user?: any) {
      const where: any = { mentorId };
  
-     // Se for agência, filtra apenas as que ela é responsável
-     if (user?.role === 'mentor_team' && user?.teamRole === 'agency') {
-       where.agencyId = user.sub;
-     }
+    // Se for agência e não for admin, filtra apenas as que ela é responsável
+    if (user?.role === 'mentor_team' && user?.teamRole === 'agency' && user?.admin !== true) {
+      where.agencyId = user.sub;
+    }
  
      const demands = await this.repo.find({
        where,
