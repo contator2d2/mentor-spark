@@ -28,7 +28,7 @@ export class DemandsService {
      const where: any = { mentorId };
  
     // Se for agência e não for admin, filtra apenas as que ela é responsável
-    if (user?.role === 'mentor_team' && user?.teamRole === 'agency' && user?.admin !== true) {
+    if (user?.role === 'mentor_team' && user?.teamRole === 'agency' && user?.teamRole !== 'admin') {
       where.agencyId = user.sub;
     }
  
