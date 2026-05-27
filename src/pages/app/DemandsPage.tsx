@@ -230,7 +230,7 @@ export default function DemandsPage() {
       </div>
 
       {view === "kanban" ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30">
           {STATUS_COLUMNS.map((col) => {
             const items = filtered.filter((d) => d.status === col.key);
             return (
@@ -336,8 +336,8 @@ export default function DemandsPage() {
           })}
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-          <table className="w-full text-sm">
+        <div className="rounded-xl border border-border bg-card overflow-x-auto">
+          <table className="w-full text-sm min-w-[800px]">
             <thead className="bg-muted/50 border-b border-border">
               <tr>
                 <th className="text-left p-4 font-medium">Demanda</th>
