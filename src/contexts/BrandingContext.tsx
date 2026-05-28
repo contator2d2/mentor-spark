@@ -5,8 +5,11 @@ export interface TenantBrand {
   id?: string;
   slug?: string;
   brandName?: string;
+  brandName?: string;
   brandLogoUrl?: string;
-  brandPrimaryColor?: string; // hex (#1e3a8a) ou HSL "222 47% 18%"
+  brandBannerUrl?: string;
+  brandMobileBannerUrl?: string;
+  brandPrimaryColor?: string; // hex (#1e3a8a) ou HSL \"222 47% 18%\"
   brandAccentColor?: string;
 }
 

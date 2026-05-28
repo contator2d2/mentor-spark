@@ -2,14 +2,15 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
  import {
-   Loader2,
-   ClipboardList,
-   BookOpen,
-   Calendar,
-   ChevronRight,
-   Sparkles,
-   TrendingUp,
- } from "lucide-react";
+    Loader2,
+    ClipboardList,
+    BookOpen,
+    Calendar,
+    ChevronRight,
+    Sparkles,
+    TrendingUp,
+    PlayCircle,
+  } from \"lucide-react\";
  import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
@@ -62,26 +63,41 @@ export default function MentoradoHome() {
    const orgScore = 74; // placeholder
 
   return (
-    <div className="space-y-6">
-       {/* Dashboard Executivo do Mentorado */}
-       <div className="grid md:grid-cols-12 gap-6">
-         {/* Coluna Principal */}
-         <div className="md:col-span-8 space-y-6">
-           <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-primary/15 via-primary/5 to-transparent border border-primary/10 p-6">
-             <div className="absolute -top-10 -right-10 h-32 w-32 bg-primary/20 rounded-full blur-3xl" />
-             <div className="relative">
-               <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-                 <Sparkles className="h-3 w-3" />
-                 Sua jornada
-               </div>
-               <h1 className="font-display text-3xl font-bold leading-tight">
-                 Olá, {user?.name?.split(" ")[0]} 👋
-               </h1>
-               <p className="text-sm text-muted-foreground mt-1">
-                 Você já concluiu <b>{executionScore}%</b> da sua meta este mês. Continue assim!
-               </p>
-             </div>
+    <div className=\"space-y-6\">
+       {/* Banner Superior Estilo Netflix */}
+       <div className=\"relative w-full rounded-2xl overflow-hidden aspect-[21/9] md:aspect-[3/1] bg-card border border-border group\">
+         <img 
+           src={brand?.brandBannerUrl || \"https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2000\"} 
+           className=\"absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105\"
+           alt=\"Banner\"
+         />
+         <div className=\"absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent\" />
+         <div className=\"absolute bottom-0 left-0 p-6 md:p-10 w-full max-w-2xl\">
+           <div className=\"inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 backdrop-blur-md text-primary-foreground text-[10px] font-bold uppercase tracking-wider mb-3 border border-white/10\">
+             <Sparkles className=\"h-3 w-3\" />
+             Recomendado para você
            </div>
+           <h1 className=\"font-display text-2xl md:text-5xl font-bold leading-tight text-white drop-shadow-lg\">
+             Olá, {user?.name?.split(\" \")[0]} 👋
+           </h1>
+           <p className=\"text-sm md:text-lg text-white/90 mt-2 line-clamp-2 drop-shadow-md\">
+             Continue sua jornada de evolução. Você já concluiu <b>{executionScore}%</b> da sua meta este mês.
+           </p>
+           <div className=\"mt-6 flex gap-3\">
+             <Button asChild className=\"shadow-lg\">
+               <Link to=\"/me/trails\">
+                 <PlayCircle className=\"h-4 w-4 mr-2\" /> Começar Trilha
+               </Link>
+             </Button>
+           </div>
+         </div>
+       </div>
+
+       {/* Dashboard Executivo do Mentorado */}
+       <div className=\"grid md:grid-cols-12 gap-6\">
+         {/* Coluna Principal */}
+         <div className=\"md:col-span-8 space-y-6\">
+
  
            {/* Radar de Evolução / Scores */}
            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
