@@ -36,21 +36,24 @@ export default function BrandingSettings() {
      brandName: initialData?.brandName || "",
      slug: initialData?.slug || "",
      brandLogoUrl: initialData?.brandLogoUrl || "",
+     brandBannerUrl: (initialData as any)?.brandBannerUrl || "",
+     brandMobileBannerUrl: (initialData as any)?.brandMobileBannerUrl || "",
      brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
      brandAccentColor: initialData?.brandAccentColor || "#d4a017",
      customDomain: (initialData as any)?.customDomain || "",
    });
- 
    useEffect(() => {
      const data = staffMentor || user;
      if (data) {
        setForm({
          brandName: data.brandName || "",
-         slug: data.slug || "",
-         brandLogoUrl: data.brandLogoUrl || "",
-         brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
-         brandAccentColor: data.brandAccentColor || "#d4a017",
-         customDomain: (data as any).customDomain || "",
+          slug: data.slug || "",
+          brandLogoUrl: data.brandLogoUrl || "",
+          brandBannerUrl: (data as any).brandBannerUrl || "",
+          brandMobileBannerUrl: (data as any).brandMobileBannerUrl || "",
+          brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
+          brandAccentColor: data.brandAccentColor || "#d4a017",
+          customDomain: (data as any).customDomain || "",
        });
      }
    }, [user, staffMentor]);
@@ -197,6 +200,28 @@ export default function BrandingSettings() {
               hint="PNG, JPG ou SVG • até 5MB"
               maxSizeMB={5}
               compact={!!form.brandLogoUrl}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Banner Desktop (Estilo Netflix)</Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandBannerUrl}
+              onChange={(m) => onChange({ brandBannerUrl: m?.url || "" })}
+              hint="Recomendado: 1920x600"
+              maxSizeMB={5}
+              compact={!!form.brandBannerUrl}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Banner Mobile</Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandMobileBannerUrl}
+              onChange={(m) => onChange({ brandMobileBannerUrl: m?.url || "" })}
+              hint="Recomendado: 800x800"
+              maxSizeMB={5}
+              compact={!!form.brandMobileBannerUrl}
             />
           </div>
           <div className="space-y-2">

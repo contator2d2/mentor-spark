@@ -78,7 +78,8 @@ import MentorBillingPage from "./pages/app/MentorBillingPage";
  import ProfilePage from "./pages/app/ProfilePage";
 import TrailEditorPage from "./pages/app/TrailEditorPage";
 import AccessGroupsPage from "./pages/app/AccessGroupsPage";
-import MentoradoTrailPlayer, { MentoradoTrailsList } from "./pages/me/MentoradoTrails";
+import MentoradoTrailPlayer from "./pages/me/MentoradoTrails";
+import MentoradoTrailsNetflix from "./pages/me/MentoradoTrailsNetflix";
 import CommunityPage from "./pages/app/CommunityPage";
 import AnalyticsPage from "./pages/app/AnalyticsPage";
 import AgendaPage from "./pages/app/AgendaPage";
@@ -270,7 +271,7 @@ const App = () => (
                 <Route path="tests" element={<MentoradoTests />} />
                 <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
-                <Route path="trails" element={<MentoradoTrailsList />} />
+                <Route path="trails" element={<MentoradoTrailsNetflix />} />
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
                 <Route path="community" element={<MentoradoCommunity />} />
                 <Route path="financeiro" element={<MentoradoFinanceiro />} />
