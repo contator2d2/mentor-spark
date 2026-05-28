@@ -1,10 +1,10 @@
-import { useEffect, useState } from \"react\";
-import { useNavigate } from \"react-router-dom\";
-import { api } from \"@/lib/api\";
-import { Card } from \"@/components/ui/card\";
-import { Badge } from \"@/components/ui/badge\";
-import { GraduationCap, Lock, Play, Clock, Sparkles, ChevronRight } from \"lucide-react\";
-import { useBranding } from \"@/contexts/BrandingContext\";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/api";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { GraduationCap, Lock, Play, Clock, ChevronRight } from "lucide-react";
+import { useBranding } from "@/contexts/BrandingContext";
 
 export default function MentoradoTrailsNetflix() {
   const navigate = useNavigate();
@@ -13,99 +13,98 @@ export default function MentoradoTrailsNetflix() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api<any[]>(\"/trails\")
+    api<any[]>("/trails")
       .then(setTrails)
       .catch(() => setTrails([]))
       .finally(() => setLoading(false));
   }, []);
 
-  // Categorias baseadas no tipo de conteúdo (pode ser mockado se não houver no banco)
   const categories = [
-    { title: \"Aulas Sugeridas\", items: trails.filter(t => !t.locked) },
-    { title: \"Bloqueios & Cadeados\", items: trails.filter(t => t.locked) },
-    { title: \"Novidades\", items: trails.slice(0, 3) }
+    { title: "Minhas Aulas", items: trails.filter(t => !t.locked) },
+    { title: "Bloqueios & Cadeados", items: trails.filter(t => t.locked) },
+    { title: "Explorar Trilhas", items: trails }
   ];
 
   if (loading) {
-    return <div className=\"flex items-center justify-center py-20\"><Clock className=\"animate-spin h-6 w-6 text-primary\" /></div>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Clock className="animate-spin h-6 w-6 text-primary" />
+      </div>
+    );
   }
 
   return (
-    <div className=\"space-y-10 pb-10\">
-      {/* Banner de Destaque */}
-      <div className=\"relative w-full rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/7] bg-card group\">
-        <img 
-          src={brand?.brandBannerUrl || \"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2000\"} 
-          className=\"absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105\"
-      {/* Banner de Destaque */}
-      <div className=\"relative w-full rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/7] bg-card group shadow-2xl\">
+    <div className="space-y-10 pb-10">
+      {/* Banner de Destaque Estilo Netflix */}
+      <div className="relative w-full rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/7] bg-card group shadow-2xl">
         <picture>
-          <source media=\"(max-width: 768px)\" srcSet={brand?.brandMobileBannerUrl || brand?.brandBannerUrl || \"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000\"} />
+          <source media="(max-width: 768px)" srcSet={brand?.brandMobileBannerUrl || brand?.brandBannerUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=1000"} />
           <img 
-            src={brand?.brandBannerUrl || \"https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2000\"} 
-            className=\"absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105\"
-            alt=\"Destaque\"
+            src={brand?.brandBannerUrl || "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=2000"} 
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            alt="Destaque"
           />
         </picture>
-          <h1 className=\"text-3xl md:text-5xl font-display font-bold text-white mb-2\">Continue Aprendendo</h1>
-          <p className=\"text-sm md:text-base text-white/80 max-w-lg mb-6\">Acesse suas trilhas e acelere sua evolução com conteúdos exclusivos preparados pelo seu mentor.</p>
-          <div className=\"flex gap-3\">
-            <button className=\"bg-white text-black px-6 py-2.5 rounded-md font-bold flex items-center gap-2 hover:bg-white/90 transition-colors shadow-lg\">
-              <Play className=\"h-4 w-4 fill-current\" /> Assistir agora
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+        <div className="absolute bottom-0 left-0 p-6 md:p-12 w-full">
+          <h1 className="text-3xl md:text-5xl font-display font-bold text-white mb-2 drop-shadow-lg">Sua Próxima Aula</h1>
+          <p className="text-sm md:text-base text-white/80 max-w-lg mb-6 drop-shadow-md">Acesse suas trilhas e acelere sua evolução com conteúdos exclusivos preparados pelo seu mentor.</p>
+          <div className="flex gap-3">
+            <button className="bg-white text-black px-6 py-2.5 rounded-md font-bold flex items-center gap-2 hover:bg-white/90 transition-colors shadow-lg">
+              <Play className="h-4 w-4 fill-current" /> Assistir agora
             </button>
           </div>
         </div>
       </div>
 
-      {/* Linhas de Categorias Estilo Netflix */}
+      {/* Linhas de Categorias */}
       {categories.map((cat, idx) => (
-        <section key={idx} className=\"space-y-4\">
-          <div className=\"flex items-center justify-between px-1\">
-            <h2 className=\"text-xl font-bold font-display flex items-center gap-2\">
+        <section key={idx} className="space-y-4">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-xl font-bold font-display flex items-center gap-2">
               {cat.title}
-              <ChevronRight className=\"h-4 w-4 text-muted-foreground\" />
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </h2>
           </div>
           
-          <div className=\"flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4\">
+          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 scroll-smooth">
             {cat.items.map((t) => (
               <div 
                 key={t.id}
                 onClick={() => !t.locked && navigate(`/me/trails/${t.id}`)}
-                className=\"relative flex-none w-[280px] md:w-[320px] aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:z-10 shadow-lg border border-border bg-card group\"
+                className="relative flex-none w-[280px] md:w-[320px] aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:z-10 shadow-lg border border-border bg-card group"
               >
                 {t.coverUrl ? (
-                  <img src={t.coverUrl} className=\"w-full h-full object-cover\" alt={t.title} />
+                  <img src={t.coverUrl} className="w-full h-full object-cover" alt={t.title} />
                 ) : (
-                  <div className=\"w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center\">
-                    <GraduationCap className=\"h-12 w-12 text-primary/40\" />
+                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
+                    <GraduationCap className="h-12 w-12 text-primary/40" />
                   </div>
                 )}
                 
-                {/* Overlay on Hover */}
-                <div className=\"absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4\">
-                   <h3 className=\"text-white font-bold text-sm\">{t.title}</h3>
-                   <p className=\"text-white/70 text-[10px] line-clamp-2 mt-1\">{t.description}</p>
-                   <div className=\"mt-3 flex items-center justify-between\">
-                      <div className=\"h-8 w-8 rounded-full bg-white flex items-center justify-center text-black\">
-                        {t.locked ? <Lock className=\"h-4 w-4\" /> : <Play className=\"h-4 w-4 fill-current ml-0.5\" />}
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                   <h3 className="text-white font-bold text-sm">{t.title}</h3>
+                   <p className="text-white/70 text-[10px] line-clamp-2 mt-1">{t.description}</p>
+                   <div className="mt-3 flex items-center justify-between">
+                      <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black">
+                        {t.locked ? <Lock className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
                       </div>
-                      {!t.locked && <Badge variant=\"secondary\" className=\"bg-primary text-white text-[9px]\">Próxima aula</Badge>}
+                      {!t.locked && <Badge variant="secondary" className="bg-primary text-white text-[9px]">Acessar</Badge>}
                    </div>
                 </div>
 
                 {t.locked && (
-                  <div className=\"absolute inset-0 bg-background/40 backdrop-blur-[1px] flex items-center justify-center\">
-                    <div className=\"h-10 w-10 rounded-full bg-background/90 border border-primary/40 flex items-center justify-center\">
-                      <Lock className=\"h-5 w-5 text-primary\" />
+                  <div className="absolute inset-0 bg-background/40 backdrop-blur-[1px] flex items-center justify-center">
+                    <div className="h-10 w-10 rounded-full bg-background/90 border border-primary/40 flex items-center justify-center">
+                      <Lock className="h-5 w-5 text-primary" />
                     </div>
                   </div>
                 )}
               </div>
             ))}
             {cat.items.length === 0 && (
-              <div className=\"w-full py-10 text-center text-muted-foreground text-sm border border-dashed rounded-lg\">
-                Nenhum item nesta categoria ainda.
+              <div className="w-[300px] flex-none py-10 text-center text-muted-foreground text-sm border border-dashed rounded-lg">
+                Nenhum item nesta categoria.
               </div>
             )}
           </div>
