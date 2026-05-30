@@ -145,7 +145,7 @@ export default function AdminCredentials() {
 
          <div className="space-y-4">
            <div>
-             <Label>Redirect URI Base (cole no Google Cloud)</Label>
+             <Label>Redirect URI de Fallback (cole no Google Cloud)</Label>
              <Input
                value={form.redirectUri}
                onChange={(e) => setForm({ ...form, redirectUri: e.target.value })}
@@ -153,7 +153,7 @@ export default function AdminCredentials() {
                className="font-mono text-xs"
              />
               <p className="text-xs text-muted-foreground mt-1">
-                Use o URI do domínio atual. Para múltiplos domínios, registre todos no Google Cloud — o backend usa o valor salvo aqui.
+                Este valor é usado como padrão. O sistema agora detecta automaticamente o domínio atual para suporte multi-domínio, mas todos os domínios usados devem estar autorizados no Google Cloud Console.
               </p>
            </div>
 

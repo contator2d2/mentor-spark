@@ -23,8 +23,8 @@ export class GoogleCalendarService {
     private settings: AppSettingsService,
   ) {}
 
-  private async getCreds() {
-    const [clientId, clientSecret, redirectUri] = await Promise.all([
+  private async getCreds(dynamicRedirectUri?: string) {
+    const [clientId, clientSecret, savedRedirectUri] = await Promise.all([
       this.settings.get('google.clientId'),
       this.settings.get('google.clientSecret'),
       this.settings.get('google.redirectUri'),
@@ -34,24 +34,46 @@ export class GoogleCalendarService {
         'Google OAuth não configurado. Super admin deve configurar em Admin → Credenciais Google.',
       );
     }
-    const normalizedSavedRedirect = redirectUri?.trim().replace(/\/$/, '') || '';
-    const apiBase = (process.env.PUBLIC_API_URL || '').trim().replace(/\/$/, '');
-    // Prioridade: 1) valor salvo no admin, 2) PUBLIC_API_URL env, 3) localhost (dev only)
-    const finalRedirect =
-      normalizedSavedRedirect ||
-      (apiBase
-        ? `${apiBase}/api/integrations/google/callback`
-        : 'http://localhost:3001/api/integrations/google/callback');
-    if (!normalizedSavedRedirect) {
-      this.logger.warn(
-        `google.redirectUri não configurado em app_settings — usando fallback: ${finalRedirect}`,
-      );
+
+    // Prioridade para o redirectUri:
+    // 1. O que veio na request (dinâmico)
+    // 2. O que está salvo no banco (admin credentials)
+    // 3. O que está no env (PUBLIC_API_URL)
+    // 4. Localhost fallback
+    
+    let finalRedirect = dynamicRedirectUri;
+
+    if (!finalRedirect) {
+      const normalizedSavedRedirect = savedRedirectUri?.trim().replace(/\/$/, '') || '';
+      const apiBase = (process.env.PUBLIC_API_URL || '').trim().replace(/\/$/, '');
+      
+      finalRedirect =
+        normalizedSavedRedirect ||
+        (apiBase
+          ? `${apiBase}/api/integrations/google/callback`
+          : 'http://localhost:3001/api/integrations/google/callback');
+          
+      if (!normalizedSavedRedirect && !dynamicRedirectUri) {
+        this.logger.warn(
+          `google.redirectUri não configurado em app_settings — usando fallback: ${finalRedirect}`,
+        );
+      }
     }
+
     return { clientId, clientSecret, redirectUri: finalRedirect };
   }
 
-  async getAuthUrl(mentorId: string): Promise<string> {
-    const { clientId, redirectUri } = await this.getCreds();
+  async getAuthUrl(mentorId: string, customRedirectUri?: string, frontendUrl?: string): Promise<string> {
+    const { clientId, redirectUri } = await this.getCreds(customRedirectUri);
+    
+    // Codifica o estado para recuperar o mentorId, o redirectUri usado e o frontendUrl original
+    const stateObj = {
+      mentorId,
+      redirectUri,
+      frontendUrl: frontendUrl || '',
+    };
+    const state = Buffer.from(JSON.stringify(stateObj)).toString('base64');
+
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: redirectUri,
@@ -59,13 +81,23 @@ export class GoogleCalendarService {
       access_type: 'offline',
       prompt: 'consent',
       scope: SCOPES.join(' '),
-      state: mentorId, // simples; idealmente assinado
+      state,
     });
     return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   }
 
   async handleCallback(code: string, state: string) {
-    const { clientId, clientSecret, redirectUri } = await this.getCreds();
+    let stateData: { mentorId: string; redirectUri: string; frontendUrl?: string };
+    try {
+      stateData = JSON.parse(Buffer.from(state, 'base64').toString('utf-8'));
+    } catch (e) {
+      // Fallback para quando o state era apenas o mentorId (legado)
+      stateData = { mentorId: state, redirectUri: '', frontendUrl: '' };
+    }
+
+    const { mentorId, redirectUri, frontendUrl } = stateData;
+    const { clientId, clientSecret, redirectUri: finalRedirect } = await this.getCreds(redirectUri);
+
     const r = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -73,7 +105,7 @@ export class GoogleCalendarService {
         code,
         client_id: clientId,
         client_secret: clientSecret,
-        redirect_uri: redirectUri,
+        redirect_uri: finalRedirect,
         grant_type: 'authorization_code',
       }),
     });
@@ -87,7 +119,9 @@ export class GoogleCalendarService {
       refresh_token: data.refresh_token,
       expiry_date: Date.now() + (data.expires_in || 3600) * 1000,
     };
-    await this.users.update(state, { googleTokens: tokens } as any);
+    await this.users.update(mentorId, { googleTokens: tokens } as any);
+    
+    return { mentorId, frontendUrl };
   }
 
   async disconnect(mentorId: string) {
