@@ -57,7 +57,7 @@ export default function AdminCredentials() {
         body: {
           clientId: form.clientId.trim(),
           clientSecret: form.clientSecret.trim(),
-          redirectUri: (form.redirectUri || suggestedRedirect).trim(),
+          redirectUri: form.redirectUri.trim(),
         },
       });
       toast.success("Credenciais salvas");
