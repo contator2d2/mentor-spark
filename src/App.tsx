@@ -14,6 +14,8 @@ import Signup from "./pages/Signup";
 import CapturePage from "./pages/CapturePage";
 import TestPlayer from "./pages/TestPlayer";
 import NotFound from "./pages/NotFound";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfService from "./pages/TermsOfService";
 
 import AppLayout from "./components/layouts/AppLayout";
 import MentoradoLayout from "./components/layouts/MentoradoLayout";
@@ -162,6 +164,8 @@ const App = () => (
               <Route path="/admin" element={<AdminRedirect />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
+              <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/terms" element={<TermsOfService />} />
               <Route path="/c/:slug" element={<CapturePage />} />
               <Route path="/c/:slug/test/:testId" element={<TestPlayer />} />
               <Route path="/onboard/:token" element={<OnboardingPublicPage />} />
