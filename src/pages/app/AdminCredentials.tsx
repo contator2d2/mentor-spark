@@ -145,11 +145,20 @@ export default function AdminCredentials() {
            <div>
              <Label>Redirect URI Base (cole no Google Cloud)</Label>
              <Input
-               value={form.redirectUri || suggestedRedirect}
+               value={form.redirectUri}
                onChange={(e) => setForm({ ...form, redirectUri: e.target.value })}
                placeholder={suggestedRedirect}
                className="font-mono text-xs"
              />
+             {form.redirectUri && (
+               <button
+                 type="button"
+                 onClick={() => setForm({ ...form, redirectUri: "" })}
+                 className="text-xs text-primary mt-1 hover:underline"
+               >
+                 Limpar (usar detecção automática por domínio)
+               </button>
+             )}
            </div>
 
            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-sm">
