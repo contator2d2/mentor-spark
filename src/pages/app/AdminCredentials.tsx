@@ -52,12 +52,17 @@ export default function AdminCredentials() {
   async function save() {
     setSaving(true);
     try {
+      const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+      const fallbackRedirect = isLocalDev
+        ? `http://localhost:3001/api/integrations/google/callback`
+        : `${window.location.origin}/api/integrations/google/callback`;
+      const redirectUri = form.redirectUri.trim() || fallbackRedirect;
       await api("/admin/app-settings/google", {
         method: "POST",
         body: {
           clientId: form.clientId.trim(),
           clientSecret: form.clientSecret.trim(),
-          redirectUri: form.redirectUri.trim(),
+          redirectUri,
         },
       });
       toast.success("Credenciais salvas");
@@ -147,15 +152,9 @@ export default function AdminCredentials() {
                placeholder={suggestedRedirect}
                className="font-mono text-xs"
              />
-             {form.redirectUri && (
-               <button
-                 type="button"
-                 onClick={() => setForm({ ...form, redirectUri: "" })}
-                 className="text-xs text-primary mt-1 hover:underline"
-               >
-                 Limpar (usar detecção automática por domínio)
-               </button>
-             )}
+              <p className="text-xs text-muted-foreground mt-1">
+                Use o URI do domínio atual. Para múltiplos domínios, registre todos no Google Cloud — o backend usa o valor salvo aqui.
+              </p>
            </div>
 
            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-sm">
