@@ -52,12 +52,17 @@ export default function AdminCredentials() {
   async function save() {
     setSaving(true);
     try {
+      const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
+      const fallbackRedirect = isLocalDev
+        ? `http://localhost:3001/api/integrations/google/callback`
+        : `${window.location.origin}/api/integrations/google/callback`;
+      const redirectUri = form.redirectUri.trim() || fallbackRedirect;
       await api("/admin/app-settings/google", {
         method: "POST",
         body: {
           clientId: form.clientId.trim(),
           clientSecret: form.clientSecret.trim(),
-          redirectUri: form.redirectUri.trim(),
+          redirectUri,
         },
       });
       toast.success("Credenciais salvas");
