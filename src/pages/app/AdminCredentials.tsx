@@ -88,10 +88,7 @@ export default function AdminCredentials() {
 
   // Em produção, o backend responde no mesmo domínio atrás de /api.
   // Em dev local, o NestJS roda em :3001 com prefixo /api.
-  const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
-  const suggestedRedirect = isLocalDev
-    ? `http://localhost:3001/api/integrations/google/callback`
-    : `${window.location.origin}/api/integrations/google/callback`;
+  const suggestedRedirect = `${window.location.origin}/api/integrations/google/callback`;
 
   return (
     <div className="space-y-6 max-w-3xl">
