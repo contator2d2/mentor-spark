@@ -180,11 +180,15 @@ export default function IntegrationsPage() {
 
   async function googleConnect() {
     try {
-      // Passamos o origin atual para que o backend saiba para onde redirecionar de volta.
-      // O redirect_uri configurado no Google Cloud DEVE permitir este domínio.
+      // Para suporte multi-domínio, enviamos o origin atual.
+      // O redirectUri será o callback via proxy do domínio atual.
+      // O frontendUrl será o domínio para o qual o backend redirecionará após o sucesso.
       const r = await api<{ url: string }>("/integrations/google/connect", { 
         method: "POST",
-        body: { origin: window.location.origin }
+        body: { 
+          redirectUri: `${window.location.origin}/api/integrations/google/callback`,
+          frontendUrl: window.location.origin
+        }
       });
       window.location.href = r.url;
     } catch (e: any) { toast.error(e.message); }
