@@ -159,15 +159,26 @@ export default function AdminCredentials() {
            </div>
 
            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-sm">
-             <p className="font-semibold text-blue-400">🌐 Importante para Domínios Customizados:</p>
+             <p className="font-semibold text-blue-400">🌐 URI de Redirecionamento para o Google:</p>
              <p className="text-muted-foreground mt-1">
-               Para que o login do Google funcione em domínios como <b>app.alemdolucro.org</b>, você deve adicionar o URI de redirecionamento de cada domínio no console do Google Cloud:
+               Copie e cole este endereço no campo <b>Authorized redirect URIs</b> do seu projeto no Google Cloud Console:
              </p>
-             <code className="block bg-black/30 p-2 mt-2 rounded font-mono text-[10px] break-all">
-               https://app.alemdolucro.org/api/integrations/google/callback
-             </code>
+             <div className="flex items-center gap-2 mt-2">
+               <code className="flex-1 bg-black/30 p-2 rounded font-mono text-[10px] break-all">
+                 {suggestedRedirect}
+               </code>
+               <Button 
+                 size="sm" variant="outline" className="h-8 text-[10px]"
+                 onClick={() => {
+                   navigator.clipboard.writeText(suggestedRedirect);
+                   toast.success("Copiado!");
+                 }}
+               >
+                 Copiar
+               </Button>
+             </div>
              <p className="text-xs text-muted-foreground mt-2 italic">
-               * Substitua o domínio pelo domínio real do mentor. O Google exige que cada domínio que inicia o OAuth esteja na lista de URIs permitidos.
+               * Se você usa múltiplos domínios (ex: localhost e um domínio real), você deve adicionar <b>todos</b> eles na lista do Google.
              </p>
            </div>
          </div>
