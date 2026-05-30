@@ -88,10 +88,7 @@ export default function AdminCredentials() {
 
   // Em produção, o backend responde no mesmo domínio atrás de /api.
   // Em dev local, o NestJS roda em :3001 com prefixo /api.
-  const isLocalDev = /^(localhost|127\.0\.0\.1)/.test(window.location.hostname);
-  const suggestedRedirect = isLocalDev
-    ? `http://localhost:3001/api/integrations/google/callback`
-    : `${window.location.origin}/api/integrations/google/callback`;
+  const suggestedRedirect = `${window.location.origin}/api/integrations/google/callback`;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -135,7 +132,7 @@ export default function AdminCredentials() {
           <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
             <li>Acesse Google Cloud Console → APIs & Services → Credentials</li>
             <li>Crie um <b>OAuth 2.0 Client ID</b> tipo "Web application"</li>
-            <li>Em <b>Authorized redirect URIs</b> adicione exatamente o URI abaixo</li>
+            <li>Em <b>Authorized redirect URIs</b> adicione exatamente o URI abaixo (adicione um para cada domínio que você usa)</li>
             <li>Habilite a <b>Google Calendar API</b> em "Library"</li>
             <li>Cole o Client ID e Client Secret aqui</li>
           </ol>
@@ -162,15 +159,26 @@ export default function AdminCredentials() {
            </div>
 
            <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 text-sm">
-             <p className="font-semibold text-blue-400">🌐 Importante para Domínios Customizados:</p>
+             <p className="font-semibold text-blue-400">🌐 URI de Redirecionamento para o Google:</p>
              <p className="text-muted-foreground mt-1">
-               Para que o login do Google funcione em domínios como <b>app.alemdolucro.org</b>, você deve adicionar o URI de redirecionamento de cada domínio no console do Google Cloud:
+               Copie e cole este endereço no campo <b>Authorized redirect URIs</b> do seu projeto no Google Cloud Console:
              </p>
-             <code className="block bg-black/30 p-2 mt-2 rounded font-mono text-[10px] break-all">
-               https://app.alemdolucro.org/api/integrations/google/callback
-             </code>
+             <div className="flex items-center gap-2 mt-2">
+               <code className="flex-1 bg-black/30 p-2 rounded font-mono text-[10px] break-all">
+                 {suggestedRedirect}
+               </code>
+               <Button 
+                 size="sm" variant="outline" className="h-8 text-[10px]"
+                 onClick={() => {
+                   navigator.clipboard.writeText(suggestedRedirect);
+                   toast.success("Copiado!");
+                 }}
+               >
+                 Copiar
+               </Button>
+             </div>
              <p className="text-xs text-muted-foreground mt-2 italic">
-               * Substitua o domínio pelo domínio real do mentor. O Google exige que cada domínio que inicia o OAuth esteja na lista de URIs permitidos.
+               * Se você usa múltiplos domínios (ex: localhost e um domínio real), você deve adicionar <b>todos</b> eles na lista do Google.
              </p>
            </div>
          </div>
