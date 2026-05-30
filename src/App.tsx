@@ -71,6 +71,7 @@ import QuizPlayerPage from "./pages/QuizPlayerPage";
 import QuizzesPage from "./pages/app/QuizzesPage";
 import AutomationsPage from "./pages/app/AutomationsPage";
 import AdminCredentials from "./pages/app/AdminCredentials";
+import GoogleCallbackPage from "./pages/app/GoogleCallbackPage";
 import AdminAiUsage from "./pages/app/AdminAiUsage";
 import SchedulingPage from "./pages/app/SchedulingPage";
 import SchedulingBookingsPage from "./pages/app/SchedulingBookingsPage";
@@ -166,6 +167,7 @@ const App = () => (
               <Route path="/signup" element={<Signup />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/terms" element={<TermsOfService />} />
+              <Route path="/api/integrations/google/callback" element={<GoogleCallbackPage />} />
               <Route path="/c/:slug" element={<CapturePage />} />
               <Route path="/c/:slug/test/:testId" element={<TestPlayer />} />
               <Route path="/onboard/:token" element={<OnboardingPublicPage />} />
