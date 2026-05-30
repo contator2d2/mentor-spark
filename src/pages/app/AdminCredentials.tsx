@@ -132,7 +132,7 @@ export default function AdminCredentials() {
           <ol className="list-decimal pl-5 space-y-1 text-muted-foreground">
             <li>Acesse Google Cloud Console → APIs & Services → Credentials</li>
             <li>Crie um <b>OAuth 2.0 Client ID</b> tipo "Web application"</li>
-            <li>Em <b>Authorized redirect URIs</b> adicione exatamente o URI abaixo</li>
+            <li>Em <b>Authorized redirect URIs</b> adicione exatamente o URI abaixo (adicione um para cada domínio que você usa)</li>
             <li>Habilite a <b>Google Calendar API</b> em "Library"</li>
             <li>Cole o Client ID e Client Secret aqui</li>
           </ol>
