@@ -35,6 +35,8 @@ export class UsersController {
               id: mentor.id,
               brandName: mentor.brandName || mentor.name,
               brandLogoUrl: mentor.brandLogoUrl,
+              brandBannerUrl: mentor.brandBannerUrl,
+              brandMobileBannerUrl: mentor.brandMobileBannerUrl,
               brandPrimaryColor: mentor.brandPrimaryColor,
               brandAccentColor: mentor.brandAccentColor,
               slug: mentor.slug,
