@@ -109,18 +109,19 @@ function HomeRedirect() {
     }
   
     // O domínio é customizado se não for o domínio principal ou localhost
-    const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1"];
+    const mainDomains = ["mentor.gleego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1", "mentor.glego.com.br"];
     const currentHost = window.location.hostname.toLowerCase();
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
-    if (isCustomDomain && brandLoading) return null;
- 
     if (!user) {
       if (isCustomDomain && !isLoginPage) {
-        if (brand?.slug && brand.slug !== "") return <CapturePage />;
-        return <Login />;
+        // Se estamos num domínio customizado, SEMPRE mostramos a CapturePage (Portal do Aluno)
+        // Mesmo que o brand ainda não tenha carregado o slug, a CapturePage tentará resolver.
+        return <CapturePage />;
       }
+      // Se estamos no domínio principal ou em /login /admin, mostramos a Landing ou Login normal
+      if (isLoginPage) return <Login />;
       return <Landing />;
     }
   
