@@ -71,6 +71,8 @@ export class PublicController {
        name: m.name,
        brandName: m.brandName || m.name,
        brandLogoUrl: m.brandLogoUrl,
+       brandBannerUrl: m.brandBannerUrl,
+       brandMobileBannerUrl: m.brandMobileBannerUrl,
        brandPrimaryColor: m.brandPrimaryColor,
        brandAccentColor: m.brandAccentColor,
        slug: m.slug,
