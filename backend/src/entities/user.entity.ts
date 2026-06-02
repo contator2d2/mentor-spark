@@ -51,6 +51,12 @@ export class User {
   @Column({ nullable: true })
   brandLogoUrl?: string;
 
+  @Column({ nullable: true })
+  brandBannerUrl?: string;
+
+  @Column({ nullable: true })
+  brandMobileBannerUrl?: string;
+
   /** Cor primária HSL ou hex usada no white-label (ex: '222 47% 18%' ou '#1e3a8a') */
   @Column({ nullable: true })
   brandPrimaryColor?: string;

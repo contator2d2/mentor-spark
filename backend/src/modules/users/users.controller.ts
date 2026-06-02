@@ -1,4 +1,4 @@
- import { Body, Controller, Get, Put, Post, Patch } from '@nestjs/common';
+ import { Body, Controller, Get, Put, Post, Patch, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
@@ -35,6 +35,8 @@ export class UsersController {
               id: mentor.id,
               brandName: mentor.brandName || mentor.name,
               brandLogoUrl: mentor.brandLogoUrl,
+              brandBannerUrl: mentor.brandBannerUrl,
+              brandMobileBannerUrl: mentor.brandMobileBannerUrl,
               brandPrimaryColor: mentor.brandPrimaryColor,
               brandAccentColor: mentor.brandAccentColor,
               slug: mentor.slug,
@@ -66,6 +68,8 @@ export class UsersController {
     dto: {
       brandName?: string;
       brandLogoUrl?: string;
+      brandBannerUrl?: string;
+      brandMobileBannerUrl?: string;
       brandPrimaryColor?: string;
       brandAccentColor?: string;
       customDomain?: string;
@@ -76,9 +80,17 @@ export class UsersController {
       };
     },
   ) {
-    const patch: any = { ...dto };
-    if (patch.customDomain) {
-      patch.customDomain = patch.customDomain
+    const patch: any = {};
+    if (dto.brandName !== undefined) patch.brandName = dto.brandName;
+    if (dto.brandLogoUrl !== undefined) patch.brandLogoUrl = dto.brandLogoUrl;
+    if (dto.brandBannerUrl !== undefined) patch.brandBannerUrl = dto.brandBannerUrl;
+    if (dto.brandMobileBannerUrl !== undefined) patch.brandMobileBannerUrl = dto.brandMobileBannerUrl;
+    if (dto.brandPrimaryColor !== undefined) patch.brandPrimaryColor = dto.brandPrimaryColor;
+    if (dto.brandAccentColor !== undefined) patch.brandAccentColor = dto.brandAccentColor;
+    if (dto.demandNotificationSettings !== undefined) patch.demandNotificationSettings = dto.demandNotificationSettings;
+
+    if (dto.customDomain) {
+      const normalizedDomain = dto.customDomain
         .toLowerCase()
         .trim()
         .replace(/^https?:\/\//, '')
@@ -86,15 +98,18 @@ export class UsersController {
 
       // Verifica se o domínio já está em uso por outro mentor
       const existing = await this.users.findOne({
-        where: { customDomain: patch.customDomain },
+        where: { customDomain: normalizedDomain },
       });
       if (existing && existing.id !== u.sub) {
         throw new BadRequestException('Este domínio customizado já está sendo utilizado por outro mentor.');
       }
+      patch.customDomain = normalizedDomain;
+    } else if (dto.customDomain === '') {
+      patch.customDomain = null;
     }
 
-    if (patch.slug) {
-      patch.slug = patch.slug
+    if (dto.slug) {
+      const normalizedSlug = dto.slug
         .toLowerCase()
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
@@ -104,18 +119,20 @@ export class UsersController {
 
       // Verifica se o slug já está em uso por outro mentor
       const existing = await this.users.findOne({
-        where: { slug: patch.slug },
+        where: { slug: normalizedSlug },
       });
       if (existing && existing.id !== u.sub) {
         throw new BadRequestException('Este slug já está sendo utilizado por outro mentor.');
       }
+      patch.slug = normalizedSlug;
     }
 
     try {
-      await this.users.update(u.sub, patch);
+      if (Object.keys(patch).length > 0) {
+        await this.users.update(u.sub, patch);
+      }
     } catch (e) {
       if (e.code === '23505') {
-        // PostgreSQL unique violation error code
         throw new BadRequestException('Domínio ou Slug já em uso.');
       }
       throw e;
