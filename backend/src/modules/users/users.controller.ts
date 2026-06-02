@@ -1,4 +1,4 @@
- import { Body, Controller, Get, Put, Post, Patch } from '@nestjs/common';
+ import { Body, Controller, Get, Put, Post, Patch, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../entities/user.entity';
