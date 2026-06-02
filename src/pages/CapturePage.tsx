@@ -124,7 +124,15 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
       </div>
     );
   if (!mentor)
-    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Página não disponível.</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold mb-2">Portal não disponível</h2>
+        <p className="text-muted-foreground mb-6">Não conseguimos localizar as configurações para este endereço.</p>
+        <Button onClick={() => navigate("/login")}>
+          Ir para o Login Geral
+        </Button>
+      </div>
+    );
 
   if (done)
     return (
