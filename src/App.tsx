@@ -112,11 +112,12 @@ function HomeRedirect() {
     const mainDomains = ["mentor.glego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1"];
     const currentHost = window.location.hostname.toLowerCase();
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
+    const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
     if (isCustomDomain && brandLoading) return null;
  
     if (!user) {
-      if (isCustomDomain) {
+      if (isCustomDomain && !isLoginPage) {
         if (brand?.slug && brand.slug !== "") return <CapturePage />;
         return <Login />;
       }
