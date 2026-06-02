@@ -83,7 +83,16 @@ export class UsersController {
         .trim()
         .replace(/^https?:\/\//, '')
         .replace(/\/$/, '');
+
+      // Verifica se o domínio já está em uso por outro mentor
+      const existing = await this.users.findOne({
+        where: { customDomain: patch.customDomain },
+      });
+      if (existing && existing.id !== u.sub) {
+        throw new BadRequestException('Este domínio customizado já está sendo utilizado por outro mentor.');
+      }
     }
+
     if (patch.slug) {
       patch.slug = patch.slug
         .toLowerCase()
@@ -92,8 +101,25 @@ export class UsersController {
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '')
         .slice(0, 60);
+
+      // Verifica se o slug já está em uso por outro mentor
+      const existing = await this.users.findOne({
+        where: { slug: patch.slug },
+      });
+      if (existing && existing.id !== u.sub) {
+        throw new BadRequestException('Este slug já está sendo utilizado por outro mentor.');
+      }
     }
-    await this.users.update(u.sub, patch);
+
+    try {
+      await this.users.update(u.sub, patch);
+    } catch (e) {
+      if (e.code === '23505') {
+        // PostgreSQL unique violation error code
+        throw new BadRequestException('Domínio ou Slug já em uso.');
+      }
+      throw e;
+    }
     return this.users.findOne({ where: { id: u.sub } });
   }
 
