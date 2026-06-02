@@ -54,6 +54,8 @@ export class PublicController {
       slug: mentor.slug,
       brandName: mentor.brandName || mentor.name,
       brandLogoUrl: mentor.brandLogoUrl,
+      brandBannerUrl: mentor.brandBannerUrl,
+      brandMobileBannerUrl: mentor.brandMobileBannerUrl,
       brandPrimaryColor: mentor.brandPrimaryColor,
       brandAccentColor: mentor.brandAccentColor,
     };
