@@ -1,5 +1,5 @@
  import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
- import { api } from "@/lib/api";
+ import { api, API_BASE } from "@/lib/api";
 
 export interface TenantBrand {
   id?: string;
