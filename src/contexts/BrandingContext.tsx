@@ -98,18 +98,28 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
      setLoading(true);
      try {
        const host = forceHost || window.location.host;
-         const data = await api<TenantBrand | null>(
-           `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
-           { auth: false }
-         );
-         if (data && (data.brandName || data.slug)) {
-           setBrand(data);
-         }
-       } catch {
-         // sem tenant por host — segue default
-       } finally {
-         setLoading(false);
-       }
+          let data = await api<TenantBrand | null>(
+            `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
+            { auth: false }
+          );
+
+          // Fallback manual se não resolveu pelo host principal (ex: tentando tirar o app.)
+          if (!data && (host.startsWith('app.') || host.startsWith('portal.'))) {
+            const fallbackHost = host.replace(/^(app|portal)\./, '');
+            data = await api<TenantBrand | null>(
+              `/public/tenant-by-host?host=${encodeURIComponent(fallbackHost)}`,
+              { auth: false }
+            );
+          }
+
+          if (data && (data.brandName || data.slug)) {
+            setBrand(data);
+          }
+        } catch {
+          // sem tenant por host — segue default
+        } finally {
+          setLoading(false);
+        }
      },
      [setBrand]
    );
