@@ -37,6 +37,17 @@ export class PublicController {
       ] 
     });
 
+    // Fallback para subdomínios comuns se não achou match exato
+    if (!mentor && (h.startsWith('app.') || h.startsWith('portal.'))) {
+      const rootDomain = h.replace(/^(app|portal)\./, '');
+      mentor = await this.users.findOne({ 
+        where: [
+          { customDomain: rootDomain, status: UserStatus.ACTIVE },
+          { customDomain: 'www.' + rootDomain, status: UserStatus.ACTIVE }
+        ] 
+      });
+    }
+
     // 2) Subdomínio (primeiro segmento) — ignora www e o app principal
     if (!mentor) {
       const parts = h.split('.');
