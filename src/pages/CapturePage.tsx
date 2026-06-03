@@ -129,9 +129,10 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
         <div className="h-16 w-16 mx-auto mb-6 rounded-2xl bg-muted flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
-        <h2 className="text-xl font-bold mb-2">Portal em carregamento...</h2>
-        <p className="text-muted-foreground mb-6">
-          Estamos localizando as configurações da sua mentoria. Se o erro persistir, verifique se o domínio está configurado corretamente no painel.
+        <h2 className="text-xl font-bold mb-2">Portal em carregamento ou não disponível</h2>
+        <p className="text-muted-foreground mb-6 max-w-sm">
+          Estamos localizando as configurações da sua mentoria para o endereço <strong>{window.location.hostname}</strong>. 
+          Certifique-se de que o domínio foi configurado corretamente nas configurações de Branding do seu painel.
         </p>
         <div className="flex gap-3">
           <Button variant="outline" onClick={() => window.location.reload()}>
