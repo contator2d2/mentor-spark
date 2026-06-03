@@ -13,7 +13,7 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
 
  export default function CapturePage() {
    const { slug: slugParam } = useParams();
-   const { brand, setBrand } = useBranding();
+   const { brand, setBrand, loading: brandLoading } = useBranding();
    
    // O slug pode vir da URL (:slug) ou do BrandingContext (detectado pelo host)
    const slug = slugParam || brand?.slug;
