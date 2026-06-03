@@ -97,32 +97,37 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
    const refreshFromHost = useCallback(async (forceHost?: string) => {
      setLoading(true);
      try {
-       const host = forceHost || window.location.host;
-          let data = await api<TenantBrand | null>(
-            `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
-            { auth: false }
-          );
+       const host = (forceHost || window.location.hostname).toLowerCase();
+       
+       // Tenta primeiro o host exato
+       let data = await api<TenantBrand | null>(
+         `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
+         { auth: false }
+       );
 
-          // Fallback manual se não resolveu pelo host principal (ex: tentando tirar o app.)
-          if (!data && (host.startsWith('app.') || host.startsWith('portal.'))) {
-            const fallbackHost = host.replace(/^(app|portal)\./, '');
-            data = await api<TenantBrand | null>(
-              `/public/tenant-by-host?host=${encodeURIComponent(fallbackHost)}`,
-              { auth: false }
-            );
-          }
+       // Se não encontrou e tem prefixo comum, tenta sem o prefixo
+       if (!data && (host.startsWith('app.') || host.startsWith('portal.'))) {
+         const fallbackHost = host.replace(/^(app|portal)\./, '');
+         data = await api<TenantBrand | null>(
+           `/public/tenant-by-host?host=${encodeURIComponent(fallbackHost)}`,
+           { auth: false }
+         );
+       }
 
-          if (data && (data.brandName || data.slug)) {
-            setBrand(data);
-          }
-        } catch {
-          // sem tenant por host — segue default
-        } finally {
-          setLoading(false);
-        }
-     },
-     [setBrand]
-   );
+       if (data && (data.brandName || data.slug)) {
+         setBrand(data);
+       } else {
+         // Se chegamos aqui e não temos dados, garantimos que o brand resete para o default
+         // mas mantemos o loading false para o app prosseguir
+         setBrand(null);
+       }
+     } catch (err) {
+       console.error("Erro ao carregar branding do host:", err);
+       setBrand(null);
+     } finally {
+       setLoading(false);
+     }
+   }, [setBrand]);
 
   // Bootstrap: tenta resolver tenant por host antes de qualquer login
   useEffect(() => {
