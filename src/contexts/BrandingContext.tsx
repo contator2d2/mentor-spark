@@ -98,7 +98,6 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
      setLoading(true);
      try {
        const host = (forceHost || window.location.hostname).toLowerCase();
-       console.log("Resolvendo branding para o host:", host);
        
        // Tenta primeiro o host exato
        let data = await api<TenantBrand | null>(
