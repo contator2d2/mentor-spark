@@ -192,12 +192,15 @@ export default function BrandingSettings() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Nome da plataforma</Label>
+            <Label>Nome da plataforma (Título)</Label>
             <Input
               value={form.brandName}
               onChange={(e) => onChange({ brandName: e.target.value })}
-              placeholder="Ex: Mentoria João Silva"
+              placeholder="Deixe vazio para mostrar apenas a logo"
             />
+            <p className="text-[10px] text-muted-foreground italic">
+              Se você deixar este campo vazio, apenas a sua logo será exibida no cabeçalho.
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Logotipo (Claro/Padrão)</Label>

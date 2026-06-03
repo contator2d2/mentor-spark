@@ -74,14 +74,16 @@ export default function MentoradoLayout() {
                   {displayName.charAt(0)}
                 </div>
               )}
-              <div className="min-w-0 text-left">
-                <div className="font-display text-sm text-white truncate leading-tight">
-                  {displayName}
+              {brand?.brandName && (
+                <div className="min-w-0 text-left">
+                  <div className="font-display text-sm text-white truncate leading-tight">
+                    {displayName}
+                  </div>
+                  <div className="text-[11px] text-sidebar-foreground/60 truncate leading-tight">
+                    Olá, {user?.name?.split(" ")[0] || "mentorado"}
+                  </div>
                 </div>
-                <div className="text-[11px] text-sidebar-foreground/60 truncate leading-tight">
-                  Olá, {user?.name?.split(" ")[0] || "mentorado"}
-                </div>
-              </div>
+              )}
             </button>
 
             <div className="flex items-center gap-1 shrink-0">
