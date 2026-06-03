@@ -122,10 +122,12 @@ export default function AppLayout() {
         {brand?.brandLogoUrl ? (
           <img src={brand.brandLogoUrl} alt={displayName} className="h-9 w-9 rounded object-contain bg-white/5 p-1" />
         ) : null}
-        <div className="min-w-0">
-          <div className="font-display text-lg text-white tracking-tight truncate">{displayName}</div>
-          <div className="text-xs text-sidebar-foreground/60 mt-0.5">Mentoria Inteligente</div>
-        </div>
+        {brand?.brandName && (
+          <div className="min-w-0">
+            <div className="font-display text-lg text-white tracking-tight truncate">{displayName}</div>
+            <div className="text-xs text-sidebar-foreground/60 mt-0.5">Mentoria Inteligente</div>
+          </div>
+        )}
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -204,7 +206,7 @@ export default function AppLayout() {
                     {displayName.charAt(0)}
                   </div>
                 )}
-                <div className="font-display text-base text-white truncate">{displayName}</div>
+                {brand?.brandName && <div className="font-display text-base text-white truncate">{displayName}</div>}
               </button>
 
               <Button
