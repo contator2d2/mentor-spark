@@ -1,5 +1,5 @@
  import { createContext, useContext, useEffect, useState, ReactNode, useCallback, useRef } from "react";
- import { api } from "@/lib/api";
+ import { api, API_BASE } from "@/lib/api";
 
 export interface TenantBrand {
   id?: string;
@@ -99,20 +99,36 @@ export function BrandingProvider({ children }: { children: ReactNode }) {
      try {
        const host = (forceHost || window.location.hostname).toLowerCase();
        
-       // Tenta primeiro o host exato
-       let data = await api<TenantBrand | null>(
-         `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
-         { auth: false }
-       );
+        // Tenta primeiro o host exato
+        const res = await fetch(`${API_BASE}/public/tenant-by-host?host=${encodeURIComponent(host)}`);
+        
+        let data: TenantBrand | null = null;
+        if (res.ok) {
+          const text = await res.text();
+          if (text) {
+            try {
+              data = JSON.parse(text);
+            } catch (e) {
+              console.error("Falha ao parsear branding:", e);
+            }
+          }
+        }
 
-       // Se não encontrou e tem prefixo comum, tenta sem o prefixo
-       if (!data && (host.startsWith('app.') || host.startsWith('portal.'))) {
-         const fallbackHost = host.replace(/^(app|portal)\./, '');
-         data = await api<TenantBrand | null>(
-           `/public/tenant-by-host?host=${encodeURIComponent(fallbackHost)}`,
-           { auth: false }
-         );
-       }
+        // Se não encontrou e tem prefixo comum, tenta sem o prefixo
+        if (!data && (host.startsWith('app.') || host.startsWith('portal.'))) {
+          const fallbackHost = host.replace(/^(app|portal)\./, '');
+          const resFallback = await fetch(`${API_BASE}/public/tenant-by-host?host=${encodeURIComponent(fallbackHost)}`);
+          if (resFallback.ok) {
+            const text = await resFallback.text();
+            if (text) {
+              try {
+                data = JSON.parse(text);
+              } catch (e) {
+                console.error("Falha ao parsear branding fallback:", e);
+              }
+            }
+          }
+        }
 
        if (data && (data.brandName || data.slug)) {
          setBrand(data);
