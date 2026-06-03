@@ -29,21 +29,23 @@ export class PublicController {
     if (!host) return null;
     const h = host.toLowerCase().split(':')[0].replace(/^www\./, '');
 
-    // 1) Domínio customizado
+    // 1) Domínio customizado ou Slug exato
     let mentor = await this.users.findOne({ 
       where: [
         { customDomain: h, status: UserStatus.ACTIVE },
-        { customDomain: 'www.' + h, status: UserStatus.ACTIVE }
+        { customDomain: 'www.' + h, status: UserStatus.ACTIVE },
+        { slug: h, status: UserStatus.ACTIVE }
       ] 
     });
 
-    // Fallback para subdomínios comuns se não achou match exato
+    // Fallback para subdomínios comuns (app., portal.) se não achou match exato
     if (!mentor && (h.startsWith('app.') || h.startsWith('portal.'))) {
       const rootDomain = h.replace(/^(app|portal)\./, '');
       mentor = await this.users.findOne({ 
         where: [
           { customDomain: rootDomain, status: UserStatus.ACTIVE },
-          { customDomain: 'www.' + rootDomain, status: UserStatus.ACTIVE }
+          { customDomain: 'www.' + rootDomain, status: UserStatus.ACTIVE },
+          { slug: rootDomain, status: UserStatus.ACTIVE }
         ] 
       });
     }
