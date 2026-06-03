@@ -117,10 +117,12 @@ function HomeRedirect() {
       "127.0.0.1", 
       "mentor.glego.com.br",
       "blaster-mentorflor-backend.isyhhh.easypanel.host",
-      "blaster-mentorflor.isyhhh.easypanel.host"
+      "blaster-mentorflor.isyhhh.easypanel.host",
+      "mentor-flow.gleego.com.br"
     ];
     const currentHost = window.location.hostname.toLowerCase();
-    const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
+    // Um domínio é customizado se não estiver na lista de domínios principais E não for um subdomínio de gleego.com.br
+    const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d)) && !currentHost.endsWith("gleego.com.br");
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
     if (!user) {
