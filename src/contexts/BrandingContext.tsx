@@ -10,6 +10,10 @@ export interface TenantBrand {
   brandMobileBannerUrl?: string;
   brandPrimaryColor?: string; // hex (#1e3a8a) ou HSL "222 47% 18%"
   brandAccentColor?: string;
+  brandTheme?: "light" | "dark" | "system";
+  brandHighlightTheme?: string;
+  brandDarkBannerUrl?: string;
+  brandDarkLogoUrl?: string;
 }
 
 interface BrandingContextValue {

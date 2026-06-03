@@ -69,6 +69,22 @@ export class User {
   @Column({ unique: true, nullable: true })
   customDomain?: string;
 
+  /** Preferência de tema do mentor ('light', 'dark', 'system') */
+  @Column({ default: 'system' })
+  brandTheme: string;
+
+  /** Tema visual de destaque (ex: 'premium', 'neon', 'classic') */
+  @Column({ default: 'classic' })
+  brandHighlightTheme: string;
+
+  /** Banner específico para modo escuro */
+  @Column({ nullable: true })
+  brandDarkBannerUrl?: string;
+
+  /** Logo específico para modo escuro */
+  @Column({ nullable: true })
+  brandDarkLogoUrl?: string;
+
   /** Onboarding concluído (mentor já configurou branding mínimo) */
   @Column({ default: false })
   onboardingCompleted: boolean;

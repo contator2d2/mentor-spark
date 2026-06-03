@@ -20,6 +20,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove("light", "dark");
+    
+    // Se o tema for escuro, podemos aplicar classes de destaque
     root.classList.add(theme);
     root.style.colorScheme = theme;
     localStorage.setItem("mf-theme", theme);

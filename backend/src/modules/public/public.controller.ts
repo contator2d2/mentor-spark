@@ -82,6 +82,10 @@ export class PublicController {
       brandMobileBannerUrl: mentor.brandMobileBannerUrl,
       brandPrimaryColor: mentor.brandPrimaryColor,
       brandAccentColor: mentor.brandAccentColor,
+      brandTheme: mentor.brandTheme,
+      brandHighlightTheme: mentor.brandHighlightTheme,
+      brandDarkBannerUrl: mentor.brandDarkBannerUrl,
+      brandDarkLogoUrl: mentor.brandDarkLogoUrl,
     };
   }
 

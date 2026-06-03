@@ -38,9 +38,13 @@ export default function BrandingSettings() {
      brandLogoUrl: initialData?.brandLogoUrl || "",
      brandBannerUrl: (initialData as any)?.brandBannerUrl || "",
      brandMobileBannerUrl: (initialData as any)?.brandMobileBannerUrl || "",
-     brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
-     brandAccentColor: initialData?.brandAccentColor || "#d4a017",
-     customDomain: (initialData as any)?.customDomain || "",
+      brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
+      brandAccentColor: initialData?.brandAccentColor || "#d4a017",
+      brandTheme: (initialData as any)?.brandTheme || "system",
+      brandHighlightTheme: (initialData as any)?.brandHighlightTheme || "classic",
+      brandDarkBannerUrl: (initialData as any)?.brandDarkBannerUrl || "",
+      brandDarkLogoUrl: (initialData as any)?.brandDarkLogoUrl || "",
+      customDomain: (initialData as any)?.customDomain || "",
    });
    useEffect(() => {
      const data = staffMentor || user;
@@ -50,10 +54,14 @@ export default function BrandingSettings() {
           slug: data.slug || "",
           brandLogoUrl: data.brandLogoUrl || "",
           brandBannerUrl: (data as any).brandBannerUrl || "",
-          brandMobileBannerUrl: (data as any).brandMobileBannerUrl || "",
-          brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
-          brandAccentColor: data.brandAccentColor || "#d4a017",
-          customDomain: (data as any).customDomain || "",
+           brandMobileBannerUrl: (data as any).brandMobileBannerUrl || "",
+           brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
+           brandAccentColor: data.brandAccentColor || "#d4a017",
+           brandTheme: (data as any).brandTheme || "system",
+           brandHighlightTheme: (data as any).brandHighlightTheme || "classic",
+           brandDarkBannerUrl: (data as any).brandDarkBannerUrl || "",
+           brandDarkLogoUrl: (data as any).brandDarkLogoUrl || "",
+           customDomain: (data as any).customDomain || "",
        });
      }
    }, [user, staffMentor]);
