@@ -64,6 +64,14 @@ function applyBrandToCss(brand: TenantBrand | null) {
   const root = document.documentElement;
   const primary = normalizeColor(brand?.brandPrimaryColor || undefined);
   const accent = normalizeColor(brand?.brandAccentColor || undefined);
+  
+  // Limpar classes de tema anteriores
+  root.classList.remove("theme-premium", "theme-neon", "theme-impact", "theme-classic");
+  
+  if (brand?.brandHighlightTheme) {
+    root.classList.add(`theme-${brand.brandHighlightTheme}`);
+  }
+
   if (primary) {
     root.style.setProperty("--primary", primary);
     root.style.setProperty("--ring", primary);

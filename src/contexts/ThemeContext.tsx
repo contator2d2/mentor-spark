@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { useBranding } from "./BrandingContext";
 
 type Theme = "light" | "dark";
 interface ThemeCtx {
@@ -10,12 +11,26 @@ interface ThemeCtx {
 const Ctx = createContext<ThemeCtx | null>(null);
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { brand } = useBranding();
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window === "undefined") return "light";
+    
+    // Prioridade 1: Configuração do Mentor (Whitelabel)
+    if (brand?.brandTheme && brand.brandTheme !== "system") {
+      return brand.brandTheme as Theme;
+    }
+
     const saved = localStorage.getItem("mf-theme") as Theme | null;
     if (saved === "light" || saved === "dark") return saved;
     return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
+
+  // Atualiza tema se o mentor mudar a configuração global
+  useEffect(() => {
+    if (brand?.brandTheme && brand.brandTheme !== "system") {
+      setThemeState(brand.brandTheme as Theme);
+    }
+  }, [brand?.brandTheme]);
 
   useEffect(() => {
     const root = document.documentElement;
