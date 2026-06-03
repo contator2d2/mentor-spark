@@ -14,10 +14,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MentoradoHome() {
   const { user } = useAuth();
   const { brand } = useBranding();
+  const { theme } = useTheme();
   const [tests, setTests] = useState<any[]>([]);
   const [pendingTests, setPendingTests] = useState<any[]>([]);
   const [contents, setContents] = useState<any[]>([]);
@@ -64,9 +66,10 @@ export default function MentoradoHome() {
       {/* Banner Superior Estilo Netflix */}
       <div className="relative w-full rounded-2xl overflow-hidden aspect-[21/9] md:aspect-[3/1] bg-card border border-border group">
         <picture>
-          <source media="(max-width: 768px)" srcSet={brand?.brandMobileBannerUrl || brand?.brandBannerUrl || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000"} />
+          <source media="(max-width: 768px)" srcSet={brand?.brandMobileBannerUrl || (theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000"} />
           <img 
-            src={brand?.brandBannerUrl || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2000"} 
+            src={(theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2000"} 
+
             className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
             alt="Banner"
           />
