@@ -256,3 +256,59 @@
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+
+/* ========== THEME HIGHLIGHTS (MODO ESCURO) ========== */
+
+/* PREMIUM: Tons dourados e sombras profundas */
+.dark.theme-premium {
+  --primary: 45 100% 50%; /* Dourado */
+  --primary-glow: 45 100% 70%;
+  --accent: 45 100% 60%;
+  --shadow-glow: 0 0 40px hsl(45 100% 50% / 0.3);
+}
+.dark.theme-premium .text-gradient {
+  background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* NEON: Cores ultra vibrantes e muitos efeitos de brilho */
+.dark.theme-neon {
+  --primary: 290 100% 60%; /* Roxo Neon */
+  --primary-glow: 290 100% 80%;
+  --secondary: 180 100% 50%; /* Cyan Neon */
+  --accent: 330 100% 60%; /* Rosa Neon */
+  --shadow-glow: 0 0 50px hsl(290 100% 60% / 0.5);
+}
+.dark.theme-neon .glass-card {
+  border: 1px solid hsl(var(--primary) / 0.4);
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.1);
+}
+
+/* IMPACT: Alto contraste e elementos sólidos */
+.dark.theme-impact {
+  --primary: 0 100% 50%; /* Vermelho Vibrante */
+  --background: 0 0% 0%; /* Preto Puro */
+  --card: 0 0% 5%;
+  --border: 0 0% 20%;
+  --muted-foreground: 0 0% 70%;
+}
+.dark.theme-impact body {
+  background-image: none;
+  background-color: black;
+}
+
+/* Correção de legibilidade em banners/cards escuros */
+.dark .text-black, .dark .text-slate-900 {
+  color: white !important;
+}
+
+.dark .bg-white {
+  background-color: hsl(var(--card)) !important;
+  color: white !important;
+}
+
+.dark .border-black {
+  border-color: hsl(var(--border)) !important;
+}

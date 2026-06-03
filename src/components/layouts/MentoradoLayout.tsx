@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
@@ -30,7 +31,9 @@ export default function MentoradoLayout() {
   const [notifications, setNotifications] = useState<any[]>([]);
   const [unread, setUnread] = useState(0);
 
+  const { theme } = useTheme();
   const displayName = brand?.brandName || "Mentoria";
+  const logoUrl = theme === "dark" ? (brand?.brandDarkLogoUrl || brand?.brandLogoUrl) : brand?.brandLogoUrl;
 
   useEffect(() => {
     api<any[]>("/notifications")
@@ -60,9 +63,9 @@ export default function MentoradoLayout() {
               onClick={() => navigate("/me")}
               className="flex items-center gap-2.5 min-w-0 flex-1"
             >
-              {brand?.brandLogoUrl ? (
+              {logoUrl ? (
                 <img
-                  src={brand.brandLogoUrl}
+                  src={logoUrl}
                   alt={displayName}
                   className="h-9 w-9 rounded-lg object-contain bg-white/10 p-1 shrink-0"
                 />

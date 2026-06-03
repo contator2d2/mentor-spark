@@ -38,9 +38,13 @@ export default function BrandingSettings() {
      brandLogoUrl: initialData?.brandLogoUrl || "",
      brandBannerUrl: (initialData as any)?.brandBannerUrl || "",
      brandMobileBannerUrl: (initialData as any)?.brandMobileBannerUrl || "",
-     brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
-     brandAccentColor: initialData?.brandAccentColor || "#d4a017",
-     customDomain: (initialData as any)?.customDomain || "",
+      brandPrimaryColor: initialData?.brandPrimaryColor || "#1e3a8a",
+      brandAccentColor: initialData?.brandAccentColor || "#d4a017",
+      brandTheme: (initialData as any)?.brandTheme || "system",
+      brandHighlightTheme: (initialData as any)?.brandHighlightTheme || "classic",
+      brandDarkBannerUrl: (initialData as any)?.brandDarkBannerUrl || "",
+      brandDarkLogoUrl: (initialData as any)?.brandDarkLogoUrl || "",
+      customDomain: (initialData as any)?.customDomain || "",
    });
    useEffect(() => {
      const data = staffMentor || user;
@@ -50,10 +54,14 @@ export default function BrandingSettings() {
           slug: data.slug || "",
           brandLogoUrl: data.brandLogoUrl || "",
           brandBannerUrl: (data as any).brandBannerUrl || "",
-          brandMobileBannerUrl: (data as any).brandMobileBannerUrl || "",
-          brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
-          brandAccentColor: data.brandAccentColor || "#d4a017",
-          customDomain: (data as any).customDomain || "",
+           brandMobileBannerUrl: (data as any).brandMobileBannerUrl || "",
+           brandPrimaryColor: data.brandPrimaryColor || "#1e3a8a",
+           brandAccentColor: data.brandAccentColor || "#d4a017",
+           brandTheme: (data as any).brandTheme || "system",
+           brandHighlightTheme: (data as any).brandHighlightTheme || "classic",
+           brandDarkBannerUrl: (data as any).brandDarkBannerUrl || "",
+           brandDarkLogoUrl: (data as any).brandDarkLogoUrl || "",
+           customDomain: (data as any).customDomain || "",
        });
      }
    }, [user, staffMentor]);
@@ -192,25 +200,47 @@ export default function BrandingSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Logotipo</Label>
+            <Label>Logotipo (Claro/Padrão)</Label>
             <MediaUpload
               accept={["image"]}
               value={form.brandLogoUrl}
               onChange={(m) => onChange({ brandLogoUrl: m?.url || "" })}
-              hint="PNG, JPG ou SVG • até 5MB"
+              hint="PNG, JPG ou SVG • para fundo escuro"
               maxSizeMB={5}
               compact={!!form.brandLogoUrl}
             />
           </div>
           <div className="space-y-2">
-            <Label>Banner Desktop (Estilo Netflix)</Label>
+            <Label>Logotipo (Escuro)</Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandDarkLogoUrl}
+              onChange={(m) => onChange({ brandDarkLogoUrl: m?.url || "" })}
+              hint="Opcional • Usado quando o sistema está em modo escuro"
+              maxSizeMB={5}
+              compact={!!form.brandDarkLogoUrl}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Banner Desktop (Claro/Padrão)</Label>
             <MediaUpload
               accept={["image"]}
               value={form.brandBannerUrl}
               onChange={(m) => onChange({ brandBannerUrl: m?.url || "" })}
-              hint="Recomendado: 1920x600"
+              hint="Estilo Netflix • Recomendado: 1920x600"
               maxSizeMB={5}
               compact={!!form.brandBannerUrl}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Banner Desktop (Escuro)</Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandDarkBannerUrl}
+              onChange={(m) => onChange({ brandDarkBannerUrl: m?.url || "" })}
+              hint="Opcional • Substitui o banner no modo escuro"
+              maxSizeMB={5}
+              compact={!!form.brandDarkBannerUrl}
             />
           </div>
           <div className="space-y-2">
@@ -253,6 +283,31 @@ export default function BrandingSettings() {
                 onChange={(e) => onChange({ brandAccentColor: e.target.value })}
               />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Tema do Sistema</Label>
+            <select
+              value={form.brandTheme}
+              onChange={(e) => onChange({ brandTheme: e.target.value as any })}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="system">Preferência do Usuário (Sistema)</option>
+              <option value="light">Sempre Claro</option>
+              <option value="dark">Sempre Escuro</option>
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label>Estilo de Destaque (Modo Escuro)</Label>
+            <select
+              value={form.brandHighlightTheme}
+              onChange={(e) => onChange({ brandHighlightTheme: e.target.value })}
+              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <option value="classic">Clássico (Sóbrio)</option>
+              <option value="premium">Premium (Dourado/Glow)</option>
+              <option value="neon">Vibrante (Neon/Futurista)</option>
+              <option value="impact">Impacto (Contrastante)</option>
+            </select>
           </div>
         </div>
       </section>
