@@ -109,7 +109,16 @@ function HomeRedirect() {
     }
   
     // O domínio é customizado se não for o domínio principal ou localhost
-    const mainDomains = ["mentor.gleego.com.br", "gleego.com.br", "lawer.gleego.com.br", "localhost", "127.0.0.1", "mentor.glego.com.br"];
+    const mainDomains = [
+      "mentor.gleego.com.br", 
+      "gleego.com.br", 
+      "lawer.gleego.com.br", 
+      "localhost", 
+      "127.0.0.1", 
+      "mentor.glego.com.br",
+      "blaster-mentorflor-backend.isyhhh.easypanel.host",
+      "blaster-mentorflor.isyhhh.easypanel.host"
+    ];
     const currentHost = window.location.hostname.toLowerCase();
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d));
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
