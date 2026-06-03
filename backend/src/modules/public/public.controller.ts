@@ -70,7 +70,9 @@ export class PublicController {
       }
     }
 
-    if (!mentor) return null;
+    if (!mentor) {
+      return null;
+    }
     return {
       id: mentor.id,
       slug: mentor.slug,
