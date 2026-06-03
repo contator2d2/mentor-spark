@@ -48,14 +48,23 @@ export class PublicController {
       });
     }
 
-    // 2) Subdomínio (primeiro segmento) — ignora www e o app principal
+    // 2) Subdomínio ou Slug (tenta extrair o slug se não achou por domínio customizado)
     if (!mentor) {
       const parts = h.split('.');
-      const baseDomain = (process.env.APP_BASE_DOMAIN || '').toLowerCase();
       const sub = parts[0];
-      const ignore = new Set(['www', 'app', 'mentor', 'localhost', '']);
-      if (parts.length >= 3 && !ignore.has(sub) && (!baseDomain || h.endsWith(baseDomain))) {
+      const ignore = new Set(['www', 'app', 'portal', 'mentor', 'localhost', '']);
+      
+      // Se tiver mais de 2 partes e a primeira for um slug válido (não ignorado)
+      if (parts.length >= 2 && !ignore.has(sub)) {
         mentor = await this.users.findOne({ where: { slug: sub, status: UserStatus.ACTIVE } });
+      }
+      
+      // Se ainda não achou e tem 3+ partes (ex: app.slug.com.br), tenta a segunda parte
+      if (!mentor && parts.length >= 3 && ignore.has(sub)) {
+        const potentialSlug = parts[1];
+        if (!ignore.has(potentialSlug)) {
+          mentor = await this.users.findOne({ where: { slug: potentialSlug, status: UserStatus.ACTIVE } });
+        }
       }
     }
 
