@@ -42,29 +42,36 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
 
-   useEffect(() => {
-     if (!slug) {
-       // Se não tem slug nem no param nem no brand, pode estar carregando ou não ser um tenant
-       if (brand?.brandName === "Mentor Glee-go") setLoading(false);
-       return;
-     }
- 
-     api(`/public/mentor/${slug}`, { auth: false })
-       .then((m: any) => {
-         setMentor(m);
-         setBrand({
-           brandName: m.brandName,
-           brandLogoUrl: m.brandLogoUrl,
-           brandPrimaryColor: m.brandPrimaryColor,
-           brandAccentColor: m.brandAccentColor,
-           slug: m.slug,
-         });
-       })
-       .catch(() => {
-         if (slugParam) toast.error("Mentor não encontrado");
-       })
-       .finally(() => setLoading(false));
-   }, [slug, slugParam, setBrand, brand?.brandName]);
+    useEffect(() => {
+      // Se estamos carregando o branding global (pelo host), esperamos
+      if (brandLoading) return;
+
+      if (!slug) {
+        // Se após carregar o branding global ainda não temos slug, 
+        // e não há slug na URL, então realmente não encontramos o mentor.
+        setLoading(false);
+        return;
+      }
+  
+      // Se temos um slug (seja da URL ou detectado pelo host), buscamos os detalhes do mentor
+      setLoading(true);
+      api(`/public/mentor/${slug}`, { auth: false })
+        .then((m: any) => {
+          setMentor(m);
+          // Atualiza o branding com os dados completos do mentor
+          setBrand({
+            brandName: m.brandName,
+            brandLogoUrl: m.brandLogoUrl,
+            brandPrimaryColor: m.brandPrimaryColor,
+            brandAccentColor: m.brandAccentColor,
+            slug: m.slug,
+          });
+        })
+        .catch(() => {
+          if (slugParam) toast.error("Mentor não encontrado");
+        })
+        .finally(() => setLoading(false));
+    }, [slug, slugParam, setBrand, brandLoading]);
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault();
