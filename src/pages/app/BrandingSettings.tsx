@@ -116,6 +116,10 @@ export default function BrandingSettings() {
        }
        await authRefresh();
       toast.success("Branding salvo!");
+      if (payload.customDomain) {
+        // Re-verifica o domínio para atualizar o status visual
+        setTimeout(() => { checkDomain(); }, 300);
+      }
     } catch (e: any) {
       toast.error(e.message || "Erro ao salvar");
     } finally {
