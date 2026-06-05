@@ -72,6 +72,10 @@ export class UsersController {
       brandMobileBannerUrl?: string;
       brandPrimaryColor?: string;
       brandAccentColor?: string;
+      brandTheme?: string;
+      brandHighlightTheme?: string;
+      brandDarkBannerUrl?: string;
+      brandDarkLogoUrl?: string;
       customDomain?: string;
       slug?: string;
       demandNotificationSettings?: {
@@ -87,6 +91,10 @@ export class UsersController {
     if (dto.brandMobileBannerUrl !== undefined) patch.brandMobileBannerUrl = dto.brandMobileBannerUrl;
     if (dto.brandPrimaryColor !== undefined) patch.brandPrimaryColor = dto.brandPrimaryColor;
     if (dto.brandAccentColor !== undefined) patch.brandAccentColor = dto.brandAccentColor;
+    if (dto.brandTheme !== undefined) patch.brandTheme = dto.brandTheme;
+    if (dto.brandHighlightTheme !== undefined) patch.brandHighlightTheme = dto.brandHighlightTheme;
+    if (dto.brandDarkBannerUrl !== undefined) patch.brandDarkBannerUrl = dto.brandDarkBannerUrl;
+    if (dto.brandDarkLogoUrl !== undefined) patch.brandDarkLogoUrl = dto.brandDarkLogoUrl;
     if (dto.demandNotificationSettings !== undefined) patch.demandNotificationSettings = dto.demandNotificationSettings;
 
     if (dto.customDomain) {
