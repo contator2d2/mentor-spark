@@ -52,6 +52,12 @@ export class TestsController {
     return this.tests.listResponses(mentorId, leadId);
   }
 
+  @Auth('prospect', 'mentorado')
+  @Get('responses/me')
+  myResponses(@CurrentUser() user: any) {
+    return this.tests.listResponsesForUser(user.sub);
+  }
+
   @Auth('mentor', 'super_admin', 'prospect', 'mentorado')
   @Get('responses/:id')
   response(@TenantId() mentorId: string, @Param('id') id: string) {
