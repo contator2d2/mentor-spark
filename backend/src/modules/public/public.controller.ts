@@ -102,18 +102,20 @@ export class PublicController {
       if (!mentor) {
         const slugTokens = this.slugCandidatesFromHost(h);
         if (slugTokens.length) {
+          const compactExpr = (field: string) => `LOWER(REGEXP_REPLACE(COALESCE(${field}, ''), '[^a-z0-9]', '', 'g'))`;
+          const tokenClauses = slugTokens
+            .map((_, i) => {
+              const token = `:slugToken${i}`;
+              return `(${compactExpr('u.slug')} LIKE ${token} OR ${compactExpr('u."brandName"')} LIKE ${token} OR ${compactExpr('u.name')} LIKE ${token})`;
+            })
+            .join(' OR ');
+          const tokenParams = Object.fromEntries(slugTokens.map((token, i) => [`slugToken${i}`, `%${token}%`]));
+
           mentor = await this.users
             .createQueryBuilder('u')
             .where('u.status = :status', { status: UserStatus.ACTIVE })
             .andWhere('u.role = :role', { role: 'mentor' })
-            .andWhere(
-              `(
-                LOWER(REGEXP_REPLACE(COALESCE(u.slug, ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
-                OR LOWER(REGEXP_REPLACE(COALESCE(u."brandName", ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
-                OR LOWER(REGEXP_REPLACE(COALESCE(u.name, ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
-              )`,
-              { slugTokens },
-            )
+            .andWhere(`(${tokenClauses})`, tokenParams)
             .getOne();
         }
       }
