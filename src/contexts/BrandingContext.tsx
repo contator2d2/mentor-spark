@@ -60,6 +60,14 @@ function normalizeColor(c?: string): string | null {
   return null;
 }
 
+/** Dado "h s% l%", retorna foreground contrastante ("0 0% 100%" ou "0 0% 10%") */
+function contrastForeground(hsl: string): string {
+  const m = hsl.match(/^(\d+)\s+(\d+)%\s+(\d+)%/);
+  if (!m) return "0 0% 100%";
+  const l = Number(m[3]);
+  return l < 60 ? "0 0% 100%" : "240 10% 10%";
+}
+
 function applyBrandToCss(brand: TenantBrand | null) {
   const root = document.documentElement;
   const primary = normalizeColor(brand?.brandPrimaryColor || undefined);
@@ -76,17 +84,27 @@ function applyBrandToCss(brand: TenantBrand | null) {
     root.style.setProperty("--primary", primary);
     root.style.setProperty("--ring", primary);
     root.style.setProperty("--sidebar-background", primary);
+    const pf = contrastForeground(primary);
+    root.style.setProperty("--primary-foreground", pf);
+    root.style.setProperty("--sidebar-foreground", pf);
+    root.style.setProperty("--sidebar-primary-foreground", pf);
   } else {
     root.style.removeProperty("--primary");
     root.style.removeProperty("--ring");
     root.style.removeProperty("--sidebar-background");
+    root.style.removeProperty("--primary-foreground");
+    root.style.removeProperty("--sidebar-foreground");
+    root.style.removeProperty("--sidebar-primary-foreground");
   }
   if (accent) {
     root.style.setProperty("--accent", accent);
     root.style.setProperty("--sidebar-primary", accent);
+    const af = contrastForeground(accent);
+    root.style.setProperty("--accent-foreground", af);
   } else {
     root.style.removeProperty("--accent");
     root.style.removeProperty("--sidebar-primary");
+    root.style.removeProperty("--accent-foreground");
   }
   if (brand?.brandName) document.title = brand.brandName;
 }
