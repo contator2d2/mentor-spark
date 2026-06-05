@@ -13,8 +13,14 @@ export interface SessionUser {
   slug?: string;
   brandName?: string;
   brandLogoUrl?: string;
+  brandBannerUrl?: string;
+  brandMobileBannerUrl?: string;
   brandPrimaryColor?: string;
   brandAccentColor?: string;
+  brandTheme?: "light" | "dark" | "system";
+  brandHighlightTheme?: string;
+  brandDarkBannerUrl?: string;
+  brandDarkLogoUrl?: string;
   onboardingCompleted?: boolean;
   mentorId?: string;
   parentMentorId?: string;
@@ -94,8 +100,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
       setBrand({
         brandName: u.brandName,
         brandLogoUrl: u.brandLogoUrl,
+        brandBannerUrl: u.brandBannerUrl,
+        brandMobileBannerUrl: u.brandMobileBannerUrl,
         brandPrimaryColor: u.brandPrimaryColor,
         brandAccentColor: u.brandAccentColor,
+        brandTheme: u.brandTheme,
+        brandHighlightTheme: u.brandHighlightTheme,
+        brandDarkBannerUrl: u.brandDarkBannerUrl,
+        brandDarkLogoUrl: u.brandDarkLogoUrl,
         slug: u.slug,
       });
     }
@@ -113,8 +125,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
          slug: u.slug,
          brandName: u.brandName,
          brandLogoUrl: u.brandLogoUrl,
+         brandBannerUrl: u.brandBannerUrl,
+         brandMobileBannerUrl: u.brandMobileBannerUrl,
          brandPrimaryColor: u.brandPrimaryColor,
          brandAccentColor: u.brandAccentColor,
+         brandTheme: u.brandTheme,
+         brandHighlightTheme: u.brandHighlightTheme,
+         brandDarkBannerUrl: u.brandDarkBannerUrl,
+         brandDarkLogoUrl: u.brandDarkLogoUrl,
          onboardingCompleted: u.onboardingCompleted,
          mentorId: u.mentorId,
          parentMentorId: u.parentMentorId,
@@ -136,8 +154,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
                 slug: mentorData.slug,
                 brandName: mentorData.brandName,
                 brandLogoUrl: mentorData.brandLogoUrl,
+                 brandBannerUrl: mentorData.brandBannerUrl,
+                 brandMobileBannerUrl: mentorData.brandMobileBannerUrl,
                 brandPrimaryColor: mentorData.brandPrimaryColor,
                 brandAccentColor: mentorData.brandAccentColor,
+                 brandTheme: mentorData.brandTheme,
+                 brandHighlightTheme: mentorData.brandHighlightTheme,
+                 brandDarkBannerUrl: mentorData.brandDarkBannerUrl,
+                 brandDarkLogoUrl: mentorData.brandDarkLogoUrl,
                 customDomain: mentorData.customDomain
               } as SessionUser;
               setStaffMentor(mentorInfo);
@@ -146,8 +170,14 @@ const AuthContext = createContext<AuthContextValue | null>(null);
               setBrand({
                 brandName: mentorInfo.brandName,
                 brandLogoUrl: mentorInfo.brandLogoUrl,
+                brandBannerUrl: mentorData.brandBannerUrl,
+                brandMobileBannerUrl: mentorData.brandMobileBannerUrl,
                 brandPrimaryColor: mentorInfo.brandPrimaryColor,
                 brandAccentColor: mentorInfo.brandAccentColor,
+                brandTheme: mentorData.brandTheme,
+                brandHighlightTheme: mentorData.brandHighlightTheme,
+                brandDarkBannerUrl: mentorData.brandDarkBannerUrl,
+                brandDarkLogoUrl: mentorData.brandDarkLogoUrl,
                 slug: mentorInfo.slug,
               });
             }
