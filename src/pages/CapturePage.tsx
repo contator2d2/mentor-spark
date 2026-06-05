@@ -62,8 +62,14 @@ import { CheckCircle2, Loader2, Eye, EyeOff, LogIn, UserPlus } from "lucide-reac
           setBrand({
             brandName: m.brandName,
             brandLogoUrl: m.brandLogoUrl,
+            brandBannerUrl: m.brandBannerUrl,
+            brandMobileBannerUrl: m.brandMobileBannerUrl,
             brandPrimaryColor: m.brandPrimaryColor,
             brandAccentColor: m.brandAccentColor,
+            brandTheme: m.brandTheme,
+            brandHighlightTheme: m.brandHighlightTheme,
+            brandDarkBannerUrl: m.brandDarkBannerUrl,
+            brandDarkLogoUrl: m.brandDarkLogoUrl,
             slug: m.slug,
           });
         })

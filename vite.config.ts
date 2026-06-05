@@ -7,6 +7,13 @@ import { defineConfig } from "vite";
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_PROXY_TARGET || "https://blaster-mentorflor-backend.isyhhh.easypanel.host",
+        changeOrigin: true,
+        secure: true,
+      },
+    },
     hmr: {
       overlay: false,
     },
