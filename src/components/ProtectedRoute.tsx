@@ -12,7 +12,7 @@ export function ProtectedRoute({ roles, children }: { roles?: Role[]; children: 
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/" replace />;
   if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
   // Senha temporária — qualquer rota protegida redireciona para troca obrigatória
   if (user.mustChangePassword && location.pathname !== "/trocar-senha") {
