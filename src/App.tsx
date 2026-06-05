@@ -170,9 +170,9 @@ const App = () => (
       <Toaster />
       <Sonner position="top-right" />
       <BrowserRouter>
-        <BrandingProvider>
-          <ThemeProvider>
-            <AuthProvider>
+        <AuthProvider>
+          <BrandingProvider>
+            <ThemeProvider>
             <Routes>
               <Route path="/" element={<HomeRedirect />} />
               <Route path="/admin" element={<AdminRedirect />} />
