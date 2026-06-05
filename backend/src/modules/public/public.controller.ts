@@ -20,6 +20,28 @@ export class PublicController {
     private testsService: TestsService,
   ) {}
 
+  private normalizeHost(value?: string | null) {
+    return (value || '')
+      .toLowerCase()
+      .trim()
+      .replace(/^https?:\/\//, '')
+      .replace(/\/.*$/, '')
+      .replace(/:\d+$/, '')
+      .replace(/\.$/, '')
+      .replace(/^www\./, '');
+  }
+
+  private hostCandidates(host: string) {
+    const normalized = this.normalizeHost(host);
+    const candidates = new Set<string>([normalized, `www.${normalized}`]);
+    if (normalized.startsWith('app.') || normalized.startsWith('portal.')) {
+      const root = normalized.replace(/^(app|portal)\./, '');
+      candidates.add(root);
+      candidates.add(`www.${root}`);
+    }
+    return Array.from(candidates).filter(Boolean);
+  }
+
   /** Resolve tenant pelo host (subdomínio ou domínio próprio).
    *  Ex.: joao.mentorflow.com → mentor com slug=joao
    *       app.cliente.com    → mentor com customDomain='app.cliente.com'
@@ -27,30 +49,20 @@ export class PublicController {
   @Get('tenant-by-host')
   async tenantByHost(@Query('host') host?: string) {
     if (!host) return null;
-    const h = host.toLowerCase().split(':')[0].replace(/^www\./, '');
+    const h = this.normalizeHost(host);
+    const domainCandidates = this.hostCandidates(h);
 
-    // 1) Domínio customizado ou Slug exato
-    let mentor = await this.users.findOne({ 
-      where: [
-        { customDomain: h, status: UserStatus.ACTIVE },
-        { customDomain: 'www.' + h, status: UserStatus.ACTIVE },
-        { slug: h, status: UserStatus.ACTIVE }
-      ] 
-    });
+    // 1) Domínio customizado. Normaliza também valores antigos salvos com protocolo/barra.
+    let mentor = await this.users
+      .createQueryBuilder('u')
+      .where('u.status = :status', { status: UserStatus.ACTIVE })
+      .andWhere(
+        `LOWER(REGEXP_REPLACE(REGEXP_REPLACE(COALESCE(u."customDomain", ''), '^https?://', ''), '/.*$', '')) IN (:...domains)`,
+        { domains: domainCandidates },
+      )
+      .getOne();
 
-    // Fallback para subdomínios comuns (app., portal.) se não achou match exato
-    if (!mentor && (h.startsWith('app.') || h.startsWith('portal.'))) {
-      const rootDomain = h.replace(/^(app|portal)\./, '');
-      mentor = await this.users.findOne({ 
-        where: [
-          { customDomain: rootDomain, status: UserStatus.ACTIVE },
-          { customDomain: 'www.' + rootDomain, status: UserStatus.ACTIVE },
-          { slug: rootDomain, status: UserStatus.ACTIVE }
-        ] 
-      });
-    }
-
-    // 2) Subdomínio ou Slug (tenta extrair o slug se não achou por domínio customizado)
+    // 2) Subdomínio ou slug (tenta extrair o slug se não achou por domínio customizado)
     if (!mentor) {
       const parts = h.split('.');
       const sub = parts[0];
