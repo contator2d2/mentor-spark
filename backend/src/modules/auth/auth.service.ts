@@ -310,7 +310,6 @@ export class AuthService {
     if (!newPassword || newPassword.length < 8) {
       throw new BadRequestException('Nova senha precisa ter pelo menos 8 caracteres');
     }
-    // placeholder kept
     const user = await this.users
       .createQueryBuilder('u')
       .addSelect('u.passwordHash')
@@ -347,6 +346,32 @@ export class AuthService {
       phone: user.phone,
     });
     return { ok: true, tempPassword: newPassword };
+  }
+
+  /**
+   * Solicitação pública (sem autenticação) de redefinição de senha.
+   * Sempre retorna ok para não vazar existência de email.
+   * Se o email existir, gera senha temporária e dispara email/WhatsApp.
+   */
+  async requestPasswordReset(email: string) {
+    const user = await this.users.findOne({ where: { email: email.toLowerCase() } });
+    if (!user) return { ok: true };
+    const newPassword = this.generateTempPassword();
+    await this.users.update(user.id, {
+      passwordHash: await bcrypt.hash(newPassword, 10),
+      mustChangePassword: true,
+    });
+    try {
+      await this.sendWelcomeCredentials({
+        mentorId: user.mentorId || user.id,
+        email: user.email,
+        name: user.name,
+        password: newPassword,
+        brandName: user.brandName || 'MentorFlow',
+        phone: user.phone,
+      });
+    } catch {}
+    return { ok: true };
   }
 
   /**
