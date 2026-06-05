@@ -4,6 +4,7 @@ import { Bell, Download, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBranding } from "@/contexts/BrandingContext";
 
 function urlBase64ToUint8Array(base64: string): Uint8Array {
   const padding = "=".repeat((4 - (base64.length % 4)) % 4);
@@ -19,6 +20,7 @@ function urlBase64ToUint8Array(base64: string): Uint8Array {
  */
 export function PwaPrompts() {
   const { user } = useAuth();
+  const { brand } = useBranding();
   const [installEvt, setInstallEvt] = useState<any>(null);
   const [pushAsked, setPushAsked] = useState(false);
   const [hidden, setHidden] = useState(() => sessionStorage.getItem("pwa-prompt-hidden") === "1");
@@ -76,7 +78,7 @@ export function PwaPrompts() {
       >
         <X className="h-4 w-4" />
       </button>
-      <div className="text-sm font-semibold mb-2">Aproveite mais o Mentor Glee-go</div>
+      <div className="text-sm font-semibold mb-2">Aproveite mais {brand?.brandName || "a Mentoria"}</div>
       <div className="flex flex-col gap-2">
         {showInstall && (
           <Button size="sm" onClick={install}>

@@ -1,6 +1,10 @@
 import React from "react";
+import { useBranding } from "@/contexts/BrandingContext";
 
 const PrivacyPolicy = () => {
+  const { brand } = useBranding();
+  const name = brand?.brandName || "Plataforma";
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-12">
       <div className="mx-auto max-w-3xl space-y-8">
@@ -8,7 +12,7 @@ const PrivacyPolicy = () => {
         
         <div className="space-y-4 text-muted-foreground">
           <p>
-            Bem-vindo ao Mentor Gleego. Sua privacidade é muito importante para nós. Esta política descreve como
+            Bem-vindo ao {name}. Sua privacidade é muito importante para nós. Esta política descreve como
             coletamos, usamos e protegemos suas informações pessoais.
           </p>
 
