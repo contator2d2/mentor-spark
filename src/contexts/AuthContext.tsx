@@ -128,7 +128,15 @@ const AuthContext = createContext<AuthContextValue | null>(null);
            host === "localhost" ||
            host.startsWith("127.") ||
            host.startsWith("192.168.");
-         if (!isLovableHost) {
+         // Não aplicamos a trava de host para mentores/super_admin — caso contrário,
+         // a impersonação (super_admin → mentor) é derrubada porque o host atual
+         // pertence a outro tenant. A trava existe apenas para mentorado/prospect/equipe,
+         // que não devem ver branding de outro mentor em domínio white-label.
+         const isStaffOrAdmin =
+           u.role === "mentor" ||
+           u.role === "super_admin" ||
+           u.role === "mentor_team";
+         if (!isLovableHost && !isStaffOrAdmin) {
            const hostTenant = await api<any>(
              `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
              { auth: false },
@@ -136,9 +144,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
            const hostTenantId = hostTenant?.id;
            if (hostTenantId) {
              const userTenantId =
-               u.role === "mentor" || u.role === "super_admin"
-                 ? u.id
-                 : u.parentMentorId || u.mentorId || u.tenantBrand?.id;
+               u.parentMentorId || u.mentorId || u.tenantBrand?.id;
              if (userTenantId && userTenantId !== hostTenantId) {
                setToken(null);
                setUser(null);
