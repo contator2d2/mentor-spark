@@ -152,6 +152,8 @@ export default function ProfilePage() {
             Alterar Minha Senha
           </Button>
         </CardContent>
+      </Card>
+
       <Card className="border-border/50 shadow-soft">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
