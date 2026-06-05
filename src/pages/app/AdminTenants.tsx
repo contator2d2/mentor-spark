@@ -210,6 +210,8 @@ function TenantManager({ tenant, plans, onChange }: { tenant: TenantDetail; plan
   const [status, setStatus] = useState(tenant.status);
   const [role, setRole] = useState(tenant.role);
   const [tempPwd, setTempPwd] = useState<string | null>(null);
+  const [customDomain, setCustomDomain] = useState(tenant.customDomain || "");
+  const [slug, setSlug] = useState(tenant.slug || "");
 
   // Charge form
   const [chargeMethod, setChargeMethod] = useState<"pix" | "boleto" | "credit_card">("pix");
@@ -234,6 +236,22 @@ function TenantManager({ tenant, plans, onChange }: { tenant: TenantDetail; plan
         },
       });
       toast.success("Plano atualizado");
+      onChange();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setBusy(null); }
+  }
+
+  async function saveDomain() {
+    setBusy("domain");
+    try {
+      await api(`/admin/mentors/${tenant.id}`, {
+        method: "PATCH",
+        body: {
+          customDomain: customDomain.trim() || null,
+          slug: slug.trim() || null,
+        },
+      });
+      toast.success("Domínio/Slug atualizado");
       onChange();
     } catch (e: any) { toast.error(e.message); }
     finally { setBusy(null); }
@@ -301,8 +319,9 @@ function TenantManager({ tenant, plans, onChange }: { tenant: TenantDetail; plan
 
   return (
     <Tabs defaultValue="plan" className="w-full">
-      <TabsList className="grid grid-cols-4 w-full">
+      <TabsList className="grid grid-cols-5 w-full">
         <TabsTrigger value="plan"><CreditCard className="h-4 w-4 mr-1" />Plano</TabsTrigger>
+        <TabsTrigger value="domain"><ExternalLink className="h-4 w-4 mr-1" />Domínio</TabsTrigger>
         <TabsTrigger value="access"><KeyRound className="h-4 w-4 mr-1" />Acesso</TabsTrigger>
         <TabsTrigger value="role"><UserCog className="h-4 w-4 mr-1" />Tipo</TabsTrigger>
         <TabsTrigger value="charges"><CreditCard className="h-4 w-4 mr-1" />Cobranças</TabsTrigger>
@@ -352,6 +371,40 @@ function TenantManager({ tenant, plans, onChange }: { tenant: TenantDetail; plan
         <Button onClick={savePlan} disabled={busy === "plan"} className="w-full">
           {busy === "plan" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
           Salvar plano
+        </Button>
+      </TabsContent>
+
+      {/* ====== DOMÍNIO / SLUG ====== */}
+      <TabsContent value="domain" className="space-y-4 pt-4">
+        <div className="bg-muted/40 rounded-lg p-4 text-sm">
+          Configure aqui o domínio próprio (white-label) e o slug do tenant.
+          O slug é usado em URLs como <code>/c/&lt;slug&gt;</code> e no subdomínio
+          <code> &lt;slug&gt;.gleego.com.br</code>.
+        </div>
+        <div className="space-y-3">
+          <div>
+            <Label>Domínio customizado</Label>
+            <Input
+              value={customDomain}
+              onChange={(e) => setCustomDomain(e.target.value)}
+              placeholder="ex: app.draamandacristina.com.br"
+            />
+            <p className="text-xs text-muted-foreground mt-1">
+              Deixe vazio para remover. Não inclua https:// nem barras.
+            </p>
+          </div>
+          <div>
+            <Label>Slug</Label>
+            <Input
+              value={slug}
+              onChange={(e) => setSlug(e.target.value)}
+              placeholder="ex: amanda-cristina"
+            />
+          </div>
+        </div>
+        <Button onClick={saveDomain} disabled={busy === "domain"} className="w-full">
+          {busy === "domain" ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+          Salvar domínio/slug
         </Button>
       </TabsContent>
 
