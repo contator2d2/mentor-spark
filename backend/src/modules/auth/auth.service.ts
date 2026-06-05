@@ -310,6 +310,7 @@ export class AuthService {
     if (!newPassword || newPassword.length < 8) {
       throw new BadRequestException('Nova senha precisa ter pelo menos 8 caracteres');
     }
+    // placeholder kept
     const user = await this.users
       .createQueryBuilder('u')
       .addSelect('u.passwordHash')
