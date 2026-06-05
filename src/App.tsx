@@ -300,9 +300,9 @@ const App = () => (
             </Routes>
             <PwaPrompts />
             <OfflineIndicator />
-            </AuthProvider>
-          </ThemeProvider>
-        </BrandingProvider>
+            </ThemeProvider>
+          </BrandingProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
