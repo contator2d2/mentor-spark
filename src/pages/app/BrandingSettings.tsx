@@ -428,9 +428,14 @@ export default function BrandingSettings() {
             </div>
           )}
           {domainStatus === "error" && (
-            <div className="flex items-center gap-2 text-sm text-destructive">
-              <AlertCircle className="h-4 w-4" />
-              Domínio ainda não está apontando. Verifique os passos abaixo.
+            <div className="flex items-start gap-2 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <div>
+                Este domínio ainda não está vinculado à sua conta no servidor.
+                <div className="text-muted-foreground mt-1">
+                  Clique em <b>Salvar</b> no final desta página para registrar o domínio. Depois, confirme que o DNS (CNAME) e a ativação no Easypanel já foram feitos conforme os passos abaixo.
+                </div>
+              </div>
             </div>
           )}
         </div>
