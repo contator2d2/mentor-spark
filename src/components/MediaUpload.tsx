@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Upload, X, FileText, Image as ImageIcon, Music, Film, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { API_BASE, getToken } from "@/lib/api";
@@ -81,6 +81,33 @@ export function MediaUpload({
         }
       : null
   );
+
+  // Mantém o preview sincronizado quando o `value` muda externamente
+  // (ex.: após salvar/recarregar o formulário a partir do servidor).
+  useEffect(() => {
+    if (uploading) return;
+    if (!value) {
+      setPreview(null);
+      return;
+    }
+    setPreview((curr) => {
+      if (curr && curr.url === value) return curr;
+      const guessKind: UploadKind = value.match(/\.(jpg|jpeg|png|gif|webp|svg)$/i)
+        ? "image"
+        : value.match(/\.(mp3|wav|ogg|m4a)$/i)
+          ? "audio"
+          : value.match(/\.(mp4|webm|mov)$/i)
+            ? "video"
+            : "document";
+      return {
+        url: value,
+        kind: guessKind,
+        mimetype: "",
+        size: 0,
+        originalName: value.split("/").pop() || "arquivo",
+      };
+    });
+  }, [value, uploading]);
 
   const acceptString = (accept || (["image", "audio", "video", "document"] as UploadKind[]))
     .map((k) => KIND_TO_MIME[k])
