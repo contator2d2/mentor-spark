@@ -303,6 +303,7 @@ const App = () => (
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
                 <Route path="community" element={<MentoradoCommunity />} />
                 <Route path="financeiro" element={<MentoradoFinanceiro />} />
+                <Route path="profile" element={<ProfilePage />} />
               </Route>
 
               <Route path="*" element={<NotFound />} />

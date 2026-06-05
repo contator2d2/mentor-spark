@@ -36,6 +36,8 @@ export function DynamicMeta() {
     updateMeta("og:title", brandName, "property");
     updateMeta("og:description", description, "property");
     updateMeta("og:image", logoUrl, "property");
+    updateMeta("og:image:width", "512", "property");
+    updateMeta("og:image:height", "512", "property");
     updateMeta("twitter:title", brandName);
     updateMeta("twitter:description", description);
     updateMeta("twitter:image", logoUrl);
