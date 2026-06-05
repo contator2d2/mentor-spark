@@ -127,9 +127,9 @@ function HomeRedirect() {
   
     if (!user) {
       if (isCustomDomain && !isLoginPage) {
-        // Se estamos num domínio customizado, SEMPRE mostramos a CapturePage (Portal do Aluno)
-        // Mesmo que o brand ainda não tenha carregado o slug, a CapturePage tentará resolver.
-        return <CapturePage />;
+        // Domínio white-label abre direto no login do mentorado/cliente.
+        // A página de captação/cadastro continua disponível em /c/:slug.
+        return <Login />;
       }
       // Se estamos no domínio principal ou em /login /admin, mostramos a Landing ou Login normal
       if (isLoginPage) return <Login />;
