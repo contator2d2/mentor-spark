@@ -10,6 +10,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import MentoradoLogin from "./pages/MentoradoLogin";
 import Signup from "./pages/Signup";
 import CapturePage from "./pages/CapturePage";
 import TestPlayer from "./pages/TestPlayer";
@@ -126,18 +127,18 @@ function HomeRedirect() {
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
     // A raiz é SEMPRE a entrada do app do mentorado.
-    // Se não houver sessão, mostramos o login; após entrar, mentorado/prospect vai para /me.
+    // Se houver sessão de mentorado/prospect, vai direto para /me.
     if (window.location.pathname === "/") {
       if (user && (user.role === "prospect" || user.role === "mentorado")) {
         return <Navigate to="/me" replace />;
       }
-      return <Login />;
+      return <MentoradoLogin />;
     }
 
-    // Em domínio white-label, qualquer rota pública fora de /login também prioriza o login do mentorado.
-    // Mentores continuam podendo acessar /app via URL direta.
+    // Em domínio white-label, qualquer rota pública fora de /login também prioriza
+    // o login do mentorado. Mentores continuam podendo acessar /app via URL direta.
     if (isCustomDomain && !isLoginPage) {
-      return <Login />;
+      return <MentoradoLogin />;
     }
 
     if (!user) {
