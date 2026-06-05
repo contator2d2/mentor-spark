@@ -1,6 +1,10 @@
 import React from "react";
+import { useBranding } from "@/contexts/BrandingContext";
 
 const TermsOfService = () => {
+  const { brand } = useBranding();
+  const name = brand?.brandName || "Plataforma";
+
   return (
     <div className="min-h-screen bg-background p-6 md:p-12">
       <div className="mx-auto max-w-3xl space-y-8">
@@ -8,7 +12,7 @@ const TermsOfService = () => {
         
         <div className="space-y-4 text-muted-foreground">
           <p>
-            Ao utilizar o Mentor Gleego, você concorda com os seguintes termos e condições. Leia-os atentamente.
+            Ao utilizar o {name}, você concorda com os seguintes termos e condições. Leia-os atentamente.
           </p>
 
           <section className="space-y-2">
@@ -31,14 +35,14 @@ const TermsOfService = () => {
             <h2 className="text-xl font-semibold text-foreground">3. Conduta do Usuário</h2>
             <p>
               Você concorda em não usar a plataforma para fins ilegais ou que violem os direitos de terceiros.
-              Respeito e profissionalismo são fundamentais na comunidade Mentor Gleego.
+              Respeito e profissionalismo são fundamentais na comunidade {name}.
             </p>
           </section>
 
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">4. Propriedade Intelectual</h2>
             <p>
-              Todo o conteúdo e software da plataforma são de propriedade do Mentor Gleego ou de seus licenciadores,
+              Todo o conteúdo e software da plataforma são de propriedade do {name} ou de seus licenciadores,
               protegidos por leis de direitos autorais.
             </p>
           </section>
@@ -46,7 +50,7 @@ const TermsOfService = () => {
           <section className="space-y-2">
             <h2 className="text-xl font-semibold text-foreground">5. Limitação de Responsabilidade</h2>
             <p>
-              O Mentor Gleego não será responsável por quaisquer danos indiretos, incidentais ou punitivos decorrentes
+              O {name} não será responsável por quaisquer danos indiretos, incidentais ou punitivos decorrentes
               do uso ou incapacidade de usar o serviço.
             </p>
           </section>
