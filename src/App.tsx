@@ -180,6 +180,7 @@ const App = () => (
       <BrowserRouter>
         <BrandingProvider>
           <ThemeProvider>
+            <DynamicMeta />
             <AuthProvider>
               <Routes>
               <Route path="/" element={<HomeRedirect />} />
