@@ -166,12 +166,12 @@ function AdminRedirect() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" />
-        <BrowserRouter>
-          <BrandingProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner position="top-right" />
+      <BrowserRouter>
+        <BrandingProvider>
+          <ThemeProvider>
             <AuthProvider>
             <Routes>
               <Route path="/" element={<HomeRedirect />} />
@@ -301,10 +301,10 @@ const App = () => (
             <PwaPrompts />
             <OfflineIndicator />
             </AuthProvider>
-          </BrandingProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+          </ThemeProvider>
+        </BrandingProvider>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 
