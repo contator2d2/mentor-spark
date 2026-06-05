@@ -125,33 +125,33 @@ function HomeRedirect() {
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d)) && !currentHost.endsWith("gleego.com.br");
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
-    if (!user) {
-      if (isCustomDomain && !isLoginPage) {
-        // Domínio white-label abre direto no login do mentorado/cliente.
-        // A página de captação/cadastro continua disponível em /c/:slug.
-        return <Login />;
+    // Em domínio white-label, a raiz é SEMPRE o login do mentorado (prioridade).
+    // Mentorados logados vão para /me. Mentores logados continuam podendo acessar /app via menu/URL.
+    if (isCustomDomain && !isLoginPage) {
+      if (user && (user.role === "prospect" || user.role === "mentorado")) {
+        return <Navigate to="/me" replace />;
       }
-      // Se estamos no domínio principal ou em /login /admin, mostramos a Landing ou Login normal
+      return <Login />;
+    }
+
+    if (!user) {
       if (isLoginPage) return <Login />;
       return <Landing />;
     }
-  
-   if (user.role === "prospect" || user.role === "mentorado") {
-     return <Navigate to="/me" replace />;
-   }
- 
-   // Verificação de permissões da equipe (admin, editor, attendant)
-   // Membros da equipe são mapeados no backend para a role "mentor" (ou similar) mas possuem um campo de permissão específico
-   // No frontend, garantimos que eles sejam direcionados para o painel principal
+
+    if (user.role === "prospect" || user.role === "mentorado") {
+      return <Navigate to="/me" replace />;
+    }
+
     const staffRoles: any[] = ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"];
-   if (staffRoles.includes(user.role)) {
-     if (user.role === "mentor" && !user.onboardingCompleted) {
-       return <Navigate to="/app/onboarding" replace />;
-     }
-     return <Navigate to="/app" replace />;
-   }
-  
-   return <Navigate to="/" replace />;
+    if (staffRoles.includes(user.role)) {
+      if (user.role === "mentor" && !user.onboardingCompleted) {
+        return <Navigate to="/app/onboarding" replace />;
+      }
+      return <Navigate to="/app" replace />;
+    }
+
+    return <Navigate to="/" replace />;
 }
 
 /** Redireciona para o login ou dashboard de admin dependendo do estado */
