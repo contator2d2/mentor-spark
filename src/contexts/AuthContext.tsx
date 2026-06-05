@@ -116,6 +116,39 @@ const AuthContext = createContext<AuthContextValue | null>(null);
    const refreshUser = useCallback(async () => {
      try {
        const u = await api<any>("/me");
+
+       // Verifica se o host atual pertence a outro tenant. Se sim, NÃO aplicamos
+       // o branding desta sessão antiga e forçamos logout para evitar mostrar
+       // a marca de outro mentor em domínio white-label.
+       try {
+         const host = window.location.hostname.toLowerCase();
+         const isLovableHost =
+           host.endsWith("lovable.app") ||
+           host.endsWith("lovable.dev") ||
+           host === "localhost" ||
+           host.startsWith("127.") ||
+           host.startsWith("192.168.");
+         if (!isLovableHost) {
+           const hostTenant = await api<any>(
+             `/public/tenant-by-host?host=${encodeURIComponent(host)}`,
+             { auth: false },
+           ).catch(() => null);
+           const hostTenantId = hostTenant?.id;
+           if (hostTenantId) {
+             const userTenantId =
+               u.role === "mentor" || u.role === "super_admin"
+                 ? u.id
+                 : u.parentMentorId || u.mentorId || u.tenantBrand?.id;
+             if (userTenantId && userTenantId !== hostTenantId) {
+               setToken(null);
+               setUser(null);
+               setStaffMentor(null);
+               return;
+             }
+           }
+         }
+       } catch {}
+
        const sess: SessionUser = {
          id: u.id,
           email: u.email,

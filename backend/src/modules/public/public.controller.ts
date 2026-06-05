@@ -34,8 +34,12 @@ export class PublicController {
   private hostCandidates(host: string) {
     const normalized = this.normalizeHost(host);
     const candidates = new Set<string>([normalized, `www.${normalized}`]);
-    if (normalized.startsWith('app.') || normalized.startsWith('portal.')) {
-      const root = normalized.replace(/^(app|portal)\./, '');
+    if (
+      normalized.startsWith('app.') ||
+      normalized.startsWith('portal.') ||
+      normalized.startsWith('mentor.')
+    ) {
+      const root = normalized.replace(/^(app|portal|mentor)\./, '');
       candidates.add(root);
       candidates.add(`www.${root}`);
     }
