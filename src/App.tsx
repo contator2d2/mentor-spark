@@ -91,6 +91,7 @@ import MentoradoCommunity from "./pages/me/MentoradoCommunity";
 import { PwaPrompts } from "./components/PwaPrompts";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
+import { DynamicMeta } from "./components/DynamicMeta";
 import MentoradoHome from "./pages/me/MentoradoHome";
 import MentoradoFinanceiro from "./pages/me/MentoradoFinanceiro";
 import MentoradoTests from "./pages/me/MentoradoTests";
