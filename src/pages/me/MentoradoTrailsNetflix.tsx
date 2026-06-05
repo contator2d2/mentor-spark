@@ -5,10 +5,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { GraduationCap, Lock, Play, Clock, ChevronRight } from "lucide-react";
 import { useBranding } from "@/contexts/BrandingContext";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function MentoradoTrailsNetflix() {
   const navigate = useNavigate();
   const { brand } = useBranding();
+  const { theme } = useTheme();
   const [trails, setTrails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -33,18 +35,24 @@ export default function MentoradoTrailsNetflix() {
     );
   }
 
+  const desktopBanner =
+    (theme === "dark"
+      ? brand?.brandDarkBannerUrl || brand?.brandBannerUrl || brand?.brandMobileBannerUrl
+      : brand?.brandBannerUrl || brand?.brandMobileBannerUrl || brand?.brandDarkBannerUrl) || null;
+  const mobileBanner = brand?.brandMobileBannerUrl || desktopBanner;
+
   return (
     <div className="space-y-10 pb-10">
       {/* Banner de Destaque — sempre usa branding do mentor; sem banner = gradiente da marca */}
       <div className="relative w-full rounded-2xl overflow-hidden aspect-[16/9] md:aspect-[21/7] group shadow-2xl bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30">
-        {(brand?.brandBannerUrl || brand?.brandMobileBannerUrl) && (
+        {desktopBanner && (
           <picture>
             <source
               media="(max-width: 768px)"
-              srcSet={brand?.brandMobileBannerUrl || brand?.brandBannerUrl}
+              srcSet={mobileBanner || desktopBanner}
             />
             <img
-              src={brand?.brandBannerUrl || brand?.brandMobileBannerUrl}
+              src={desktopBanner}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               alt={brand?.brandName || "Destaque"}
             />
