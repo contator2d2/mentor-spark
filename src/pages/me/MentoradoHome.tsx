@@ -64,7 +64,10 @@ export default function MentoradoHome() {
     <div className="space-y-6">
       {/* Banner Superior Estilo Netflix — sempre usa branding do mentor; se não houver banner, usa gradiente da cor primária */}
       {(() => {
-        const desktopBanner = (theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || null;
+        const desktopBanner =
+          (theme === "dark"
+            ? brand?.brandDarkBannerUrl || brand?.brandBannerUrl || brand?.brandMobileBannerUrl
+            : brand?.brandBannerUrl || brand?.brandMobileBannerUrl || brand?.brandDarkBannerUrl) || null;
         const mobileBanner = brand?.brandMobileBannerUrl || desktopBanner;
         return (
       <div className="relative w-full rounded-2xl overflow-hidden aspect-[21/9] md:aspect-[3/1] border border-border group bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30">
