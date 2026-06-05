@@ -62,17 +62,22 @@ export default function MentoradoHome() {
 
   return (
     <div className="space-y-6">
-      {/* Banner Superior Estilo Netflix */}
-      <div className="relative w-full rounded-2xl overflow-hidden aspect-[21/9] md:aspect-[3/1] bg-card border border-border group">
-        <picture>
-          <source media="(max-width: 768px)" srcSet={brand?.brandMobileBannerUrl || (theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=1000"} />
-          <img 
-            src={(theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&q=80&w=2000"} 
-
-            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-            alt="Banner"
-          />
-        </picture>
+      {/* Banner Superior Estilo Netflix — sempre usa branding do mentor; se não houver banner, usa gradiente da cor primária */}
+      {(() => {
+        const desktopBanner = (theme === "dark" ? (brand?.brandDarkBannerUrl || brand?.brandBannerUrl) : brand?.brandBannerUrl) || null;
+        const mobileBanner = brand?.brandMobileBannerUrl || desktopBanner;
+        return (
+      <div className="relative w-full rounded-2xl overflow-hidden aspect-[21/9] md:aspect-[3/1] border border-border group bg-gradient-to-br from-primary/40 via-primary/20 to-accent/30">
+        {desktopBanner && (
+          <picture>
+            {mobileBanner && <source media="(max-width: 768px)" srcSet={mobileBanner} />}
+            <img
+              src={desktopBanner}
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+              alt={brand?.brandName || "Banner"}
+            />
+          </picture>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
         <div className="absolute bottom-0 left-0 p-6 md:p-10 w-full max-w-2xl">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/20 backdrop-blur-md text-primary-foreground text-[10px] font-bold uppercase tracking-wider mb-3 border border-white/10">
@@ -94,6 +99,8 @@ export default function MentoradoHome() {
           </div>
         </div>
       </div>
+        );
+      })()}
 
       <div className="grid md:grid-cols-12 gap-6">
         <div className="md:col-span-8 space-y-6">
