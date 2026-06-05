@@ -170,10 +170,10 @@ const App = () => (
       <Toaster />
       <Sonner position="top-right" />
       <BrowserRouter>
-        <AuthProvider>
-          <BrandingProvider>
-            <ThemeProvider>
-            <Routes>
+        <BrandingProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <Routes>
               <Route path="/" element={<HomeRedirect />} />
               <Route path="/admin" element={<AdminRedirect />} />
               <Route path="/login" element={<Login />} />
@@ -297,12 +297,12 @@ const App = () => (
               </Route>
 
               <Route path="*" element={<NotFound />} />
-            </Routes>
-            <PwaPrompts />
-            <OfflineIndicator />
-            </ThemeProvider>
-          </BrandingProvider>
-        </AuthProvider>
+              </Routes>
+              <PwaPrompts />
+              <OfflineIndicator />
+            </AuthProvider>
+          </ThemeProvider>
+        </BrandingProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
