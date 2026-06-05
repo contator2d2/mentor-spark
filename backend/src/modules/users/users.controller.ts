@@ -113,7 +113,9 @@ export class UsersController {
         where: { customDomain: normalizedDomain },
       });
       if (existing && existing.id !== u.sub) {
-        throw new BadRequestException('Este domínio customizado já está sendo utilizado por outro mentor.');
+        throw new BadRequestException(
+          `Este domínio já está vinculado à conta "${existing.email}" (${existing.name || 'sem nome'}). Remova o domínio dessa conta antes de tentar novamente.`,
+        );
       }
       patch.customDomain = normalizedDomain;
     } else if (dto.customDomain === '') {
