@@ -125,12 +125,18 @@ function HomeRedirect() {
     const isCustomDomain = !mainDomains.some(d => currentHost === d || currentHost.endsWith("." + d)) && !currentHost.endsWith("gleego.com.br");
     const isLoginPage = window.location.pathname === "/login" || window.location.pathname === "/admin";
   
-    // Em domínio white-label, a raiz é SEMPRE o login do mentorado (prioridade).
-    // Mentorados logados vão para /me. Mentores logados continuam podendo acessar /app via menu/URL.
-    if (isCustomDomain && !isLoginPage) {
+    // A raiz é SEMPRE a entrada do app do mentorado.
+    // Se não houver sessão, mostramos o login; após entrar, mentorado/prospect vai para /me.
+    if (window.location.pathname === "/") {
       if (user && (user.role === "prospect" || user.role === "mentorado")) {
         return <Navigate to="/me" replace />;
       }
+      return <Login />;
+    }
+
+    // Em domínio white-label, qualquer rota pública fora de /login também prioriza o login do mentorado.
+    // Mentores continuam podendo acessar /app via URL direta.
+    if (isCustomDomain && !isLoginPage) {
       return <Login />;
     }
 
