@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users, DollarSign } from "lucide-react";
+import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users, DollarSign, User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
