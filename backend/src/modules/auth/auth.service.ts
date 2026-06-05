@@ -349,6 +349,32 @@ export class AuthService {
   }
 
   /**
+   * Solicitação pública (sem autenticação) de redefinição de senha.
+   * Sempre retorna ok para não vazar existência de email.
+   * Se o email existir, gera senha temporária e dispara email/WhatsApp.
+   */
+  async requestPasswordReset(email: string) {
+    const user = await this.users.findOne({ where: { email: email.toLowerCase() } });
+    if (!user) return { ok: true };
+    const newPassword = this.generateTempPassword();
+    await this.users.update(user.id, {
+      passwordHash: await bcrypt.hash(newPassword, 10),
+      mustChangePassword: true,
+    });
+    try {
+      await this.sendWelcomeCredentials({
+        mentorId: user.mentorId || user.id,
+        email: user.email,
+        name: user.name,
+        password: newPassword,
+        brandName: user.brandName || 'MentorFlow',
+        phone: user.phone,
+      });
+    } catch {}
+    return { ok: true };
+  }
+
+  /**
    * Gera um JWT para o super admin "logar como" outro usuário (impersonate).
    * Útil para suporte e debug. Não exige senha.
    */

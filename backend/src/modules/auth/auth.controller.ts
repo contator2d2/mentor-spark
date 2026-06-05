@@ -25,6 +25,10 @@ class ChangePasswordDto {
   @IsString() @MinLength(8) newPassword: string;
 }
 
+class ForgotPasswordDto {
+  @IsEmail() email: string;
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -42,6 +46,13 @@ export class AuthController {
   @HttpCode(200)
   login(@Body() dto: LoginDto) {
     return this.auth.login(dto.email, dto.password);
+  }
+
+  /** Solicitação pública de redefinição de senha (gera senha temporária e envia por email/WhatsApp). */
+  @Post('forgot-password')
+  @HttpCode(200)
+  forgotPassword(@Body() dto: ForgotPasswordDto) {
+    return this.auth.requestPasswordReset(dto.email);
   }
 
   /** Troca de senha autenticada (usada no primeiro login forçado). */
