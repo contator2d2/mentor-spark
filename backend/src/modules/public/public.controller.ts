@@ -42,6 +42,22 @@ export class PublicController {
     return Array.from(candidates).filter(Boolean);
   }
 
+  private slugCandidatesFromHost(host: string) {
+    const normalized = this.normalizeHost(host);
+    const ignored = new Set(['www', 'app', 'portal', 'mentor', 'localhost', 'com', 'combr', 'br', '']);
+    const parts = normalized.split('.').filter(Boolean);
+    const candidates = new Set<string>();
+
+    for (const part of parts) {
+      const compact = part.replace(/[^a-z0-9]/g, '');
+      if (!ignored.has(part) && !ignored.has(compact) && compact.length >= 4) {
+        candidates.add(compact);
+      }
+    }
+
+    return Array.from(candidates);
+  }
+
   /** Resolve tenant pelo host (subdomínio ou domínio próprio).
    *  Ex.: joao.mentorflow.com → mentor com slug=joao
    *       app.cliente.com    → mentor com customDomain='app.cliente.com'
@@ -78,6 +94,29 @@ export class PublicController {
         const potentialSlug = parts[1];
         if (!ignore.has(potentialSlug)) {
           mentor = await this.users.findOne({ where: { slug: potentialSlug, status: UserStatus.ACTIVE } });
+        }
+      }
+
+      // 3) Domínios como app.draamandacristina.com.br: se o domínio não foi salvo
+      // exatamente em customDomain, tenta casar o token do domínio com o slug sem hífens.
+      if (!mentor) {
+        const slugTokens = this.slugCandidatesFromHost(h);
+        if (slugTokens.length) {
+          const compactExpr = (field: string) => `LOWER(REGEXP_REPLACE(COALESCE(${field}, ''), '[^a-z0-9]', '', 'g'))`;
+          const tokenClauses = slugTokens
+            .map((_, i) => {
+              const token = `:slugToken${i}`;
+              return `(${compactExpr('u.slug')} LIKE ${token} OR ${compactExpr('u."brandName"')} LIKE ${token} OR ${compactExpr('u.name')} LIKE ${token})`;
+            })
+            .join(' OR ');
+          const tokenParams = Object.fromEntries(slugTokens.map((token, i) => [`slugToken${i}`, `%${token}%`]));
+
+          mentor = await this.users
+            .createQueryBuilder('u')
+            .where('u.status = :status', { status: UserStatus.ACTIVE })
+            .andWhere('u.role = :role', { role: 'mentor' })
+            .andWhere(`(${tokenClauses})`, tokenParams)
+            .getOne();
         }
       }
     }
