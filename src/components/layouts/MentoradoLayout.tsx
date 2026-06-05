@@ -22,6 +22,8 @@ const NAV = [
   { to: "/me/tests", label: "Testes", icon: ClipboardList },
   { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
   { to: "/me/community", label: "Comunidade", icon: Users },
+  { to: "/me/financeiro", label: "Financeiro", icon: DollarSign },
+  { to: "/me/profile", label: "Perfil", icon: User },
 ];
 
 export default function MentoradoLayout() {
