@@ -28,8 +28,14 @@ export interface SessionUser {
   tenantBrand?: {
     brandName?: string;
     brandLogoUrl?: string;
+    brandBannerUrl?: string;
+    brandMobileBannerUrl?: string;
     brandPrimaryColor?: string;
     brandAccentColor?: string;
+    brandTheme?: "light" | "dark" | "system";
+    brandHighlightTheme?: string;
+    brandDarkBannerUrl?: string;
+    brandDarkLogoUrl?: string;
     slug?: string;
   };
 }

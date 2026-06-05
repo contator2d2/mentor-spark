@@ -39,6 +39,10 @@ export class UsersController {
               brandMobileBannerUrl: mentor.brandMobileBannerUrl,
               brandPrimaryColor: mentor.brandPrimaryColor,
               brandAccentColor: mentor.brandAccentColor,
+              brandTheme: mentor.brandTheme,
+              brandHighlightTheme: mentor.brandHighlightTheme,
+              brandDarkBannerUrl: mentor.brandDarkBannerUrl,
+              brandDarkLogoUrl: mentor.brandDarkLogoUrl,
               slug: mentor.slug,
             }
           : null,

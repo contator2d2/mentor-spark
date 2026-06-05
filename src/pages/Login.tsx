@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useBranding } from "@/contexts/BrandingContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +12,7 @@ import { Loader2 } from "lucide-react";
 export default function Login() {
   const { brand } = useBranding();
   const { login } = useAuth();
+  const { theme } = useTheme();
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,8 +41,12 @@ export default function Login() {
     }
   }
 
-   const logoUrl = brand?.brandLogoUrl || brand?.brandDarkLogoUrl;
-   const bannerUrl = brand?.brandBannerUrl || brand?.brandDarkBannerUrl;
+   const logoUrl = theme === "dark"
+     ? brand?.brandDarkLogoUrl || brand?.brandLogoUrl
+     : brand?.brandLogoUrl || brand?.brandDarkLogoUrl;
+   const bannerUrl = theme === "dark"
+     ? brand?.brandDarkBannerUrl || brand?.brandBannerUrl
+     : brand?.brandBannerUrl || brand?.brandDarkBannerUrl;
 
    return (
      <div className="min-h-screen grid md:grid-cols-2 bg-background">
@@ -84,7 +90,7 @@ export default function Login() {
         <form onSubmit={onSubmit} className="w-full max-w-sm space-y-5">
           <div className="flex flex-col items-center md:items-start space-y-4 mb-6">
             {logoUrl && (
-              <img src={logoUrl} alt={brand?.brandName} className="h-16 w-auto md:hidden mb-4" />
+              <img src={logoUrl} alt={brand?.brandName} className="h-16 w-auto mb-4" />
             )}
             <div>
               <h2 className="font-display text-2xl font-bold">Entrar</h2>

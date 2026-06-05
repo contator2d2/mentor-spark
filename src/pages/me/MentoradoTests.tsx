@@ -39,7 +39,7 @@ export default function MentoradoTests() {
   useEffect(() => {
     Promise.all([
       api<Assignment[]>("/test-assignments/me").catch(() => []),
-      api<Response[]>("/tests/responses").catch(() => []),
+      api<Response[]>("/tests/responses/me").catch(() => []),
     ])
       .then(([a, r]) => {
         setAssignments(Array.isArray(a) ? a : []);

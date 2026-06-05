@@ -174,6 +174,19 @@ export class TestsService {
     return this.responses.find({ where, order: { createdAt: 'DESC' }, relations: ['template'] });
   }
 
+  async listResponsesForUser(userId: string) {
+    const leads = await this.leads.find({ where: { userId } });
+    const leadIds = leads.map((lead) => lead.id);
+    if (!leadIds.length) return [];
+
+    return this.responses
+      .createQueryBuilder('r')
+      .leftJoinAndSelect('r.template', 'template')
+      .where('r.leadId IN (:...leadIds)', { leadIds })
+      .orderBy('r.createdAt', 'DESC')
+      .getMany();
+  }
+
   async getResponse(mentorId: string, id: string) {
     return this.responses.findOne({ where: { id, mentorId }, relations: ['template', 'lead'] });
   }

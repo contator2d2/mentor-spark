@@ -29,6 +29,24 @@ export class AuthService {
     return out;
   }
 
+  private publicBrand(mentor?: User | null) {
+    if (!mentor) return null;
+    return {
+      id: mentor.id,
+      brandName: mentor.brandName || mentor.name,
+      brandLogoUrl: mentor.brandLogoUrl,
+      brandBannerUrl: mentor.brandBannerUrl,
+      brandMobileBannerUrl: mentor.brandMobileBannerUrl,
+      brandPrimaryColor: mentor.brandPrimaryColor,
+      brandAccentColor: mentor.brandAccentColor,
+      brandTheme: mentor.brandTheme,
+      brandHighlightTheme: mentor.brandHighlightTheme,
+      brandDarkBannerUrl: mentor.brandDarkBannerUrl,
+      brandDarkLogoUrl: mentor.brandDarkLogoUrl,
+      slug: mentor.slug,
+    };
+  }
+
   async signUpMentor(dto: { name: string; email: string; password: string; brandName?: string }) {
     const existing = await this.users.findOne({ where: { email: dto.email.toLowerCase() } });
     if (existing) throw new ConflictException('Email já cadastrado');
@@ -90,6 +108,13 @@ export class AuthService {
       parentMentorId: user.parentMentorId,
       teamRole: user.teamRole,
     };
+    const tenantMentorId = user.role === UserRole.MENTOR_TEAM
+      ? user.parentMentorId || user.mentorId
+      : user.role === UserRole.MENTORADO || user.role === UserRole.PROSPECT
+        ? user.mentorId
+        : null;
+    const mentor = tenantMentorId ? await this.users.findOne({ where: { id: tenantMentorId } }) : null;
+
     return {
       access_token: await this.jwt.signAsync(payload),
       user: {
@@ -107,6 +132,7 @@ export class AuthService {
         parentMentorId: user.parentMentorId,
         teamRole: user.teamRole,
         mustChangePassword: user.mustChangePassword,
+        tenantBrand: this.publicBrand(mentor),
       },
     };
   }

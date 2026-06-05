@@ -28,13 +28,12 @@ export default function MentoradoHome() {
 
   useEffect(() => {
     Promise.all([
-      api<any[]>("/tests/responses").catch(() => []),
       api<any[]>("/test-assignments/me").catch(() => []),
-      api<any[]>("/contents").catch(() => []),
+      api<any[]>("/contents/feed").catch(() => []),
       api<any[]>("/meetings").catch(() => []),
     ])
-      .then(([t, a, c, m]) => {
-        setTests(Array.isArray(t) ? t : []);
+      .then(([a, c, m]) => {
+        setTests(Array.isArray(a) ? a.filter((x: any) => x.status === "completed") : []);
         setPendingTests(
           Array.isArray(a) ? a.filter((x: any) => x.status !== "completed") : [],
         );
