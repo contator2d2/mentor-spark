@@ -106,7 +106,14 @@ export class PublicController {
             .createQueryBuilder('u')
             .where('u.status = :status', { status: UserStatus.ACTIVE })
             .andWhere('u.role = :role', { role: 'mentor' })
-            .andWhere(`LOWER(REGEXP_REPLACE(COALESCE(u.slug, ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)`, { slugTokens })
+            .andWhere(
+              `(
+                LOWER(REGEXP_REPLACE(COALESCE(u.slug, ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
+                OR LOWER(REGEXP_REPLACE(COALESCE(u."brandName", ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
+                OR LOWER(REGEXP_REPLACE(COALESCE(u.name, ''), '[^a-z0-9]', '', 'g')) IN (:...slugTokens)
+              )`,
+              { slugTokens },
+            )
             .getOne();
         }
       }
