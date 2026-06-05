@@ -62,7 +62,34 @@ const AuthContext = createContext<AuthContextValue | null>(null);
     // Mentor/Super Admin → branding próprio.
     // Mentorado/Prospect/Equipe → tenantBrand do mentor dono.
     if (u.role === "mentorado" || u.role === "prospect" || u.role === "mentor_team") {
-      if (u.tenantBrand) setBrand(u.tenantBrand);
+      if (u.tenantBrand) {
+        setBrand(u.tenantBrand);
+      } else if (u.mentorId || u.parentMentorId) {
+        // Sem tenantBrand no payload — busca via endpoint público
+        const id = (u as any).parentMentorId || u.mentorId;
+        if (id) {
+          import("@/lib/api").then(({ api }) => {
+            api<any>(`/public/mentor-by-id/${id}`, { auth: false })
+              .then((m) => {
+                if (m) setBrand({
+                  id: m.id,
+                  slug: m.slug,
+                  brandName: m.brandName || m.name,
+                  brandLogoUrl: m.brandLogoUrl,
+                  brandBannerUrl: m.brandBannerUrl,
+                  brandMobileBannerUrl: m.brandMobileBannerUrl,
+                  brandPrimaryColor: m.brandPrimaryColor,
+                  brandAccentColor: m.brandAccentColor,
+                  brandTheme: m.brandTheme,
+                  brandHighlightTheme: m.brandHighlightTheme,
+                  brandDarkBannerUrl: m.brandDarkBannerUrl,
+                  brandDarkLogoUrl: m.brandDarkLogoUrl,
+                });
+              })
+              .catch(() => {});
+          });
+        }
+      }
     } else if (u.brandName || u.brandPrimaryColor) {
       setBrand({
         brandName: u.brandName,

@@ -25,7 +25,7 @@ interface BrandingContextValue {
 
 const BrandingContext = createContext<BrandingContextValue | null>(null);
 
-const DEFAULT_BRAND: TenantBrand = { brandName: "Mentor Glee-go", slug: "" };
+const DEFAULT_BRAND: TenantBrand = { brandName: "", slug: "" };
 
 /** Converte hex -> "h s% l%" para CSS variable */
 function hexToHslVar(hex: string): string | null {
