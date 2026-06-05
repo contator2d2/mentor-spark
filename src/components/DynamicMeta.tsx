@@ -61,6 +61,54 @@ export function DynamicMeta() {
       }
       appleLink.href = brand.brandLogoUrl;
     }
+
+    // Update Web Manifest (PWA Icon & Name)
+    if (brand.brandName || brand.brandLogoUrl) {
+      try {
+        const brandName = brand.brandName || "Mentoria Inteligente";
+        const logoUrl = brand.brandLogoUrl || "/placeholder.svg";
+        
+        const manifest = {
+          name: brandName,
+          short_name: brandName,
+          description: `Portal do mentorado ${brandName}`,
+          start_url: "/",
+          display: "standalone",
+          background_color: "#ffffff",
+          theme_color: brand.brandPrimaryColor || "#6366f1",
+          icons: [
+            {
+              src: logoUrl,
+              sizes: "192x192",
+              type: "image/png",
+              purpose: "any"
+            },
+            {
+              src: logoUrl,
+              sizes: "512x512",
+              type: "image/png",
+              purpose: "maskable"
+            }
+          ]
+        };
+
+        const stringManifest = JSON.stringify(manifest);
+        const blob = new Blob([stringManifest], { type: 'application/json' });
+        const manifestURL = URL.createObjectURL(blob);
+        
+        let manifestLink: HTMLLinkElement | null = document.querySelector("link[rel='manifest']");
+        if (manifestLink) {
+          manifestLink.href = manifestURL;
+        } else {
+          manifestLink = document.createElement("link");
+          manifestLink.rel = "manifest";
+          manifestLink.href = manifestURL;
+          document.head.appendChild(manifestLink);
+        }
+      } catch (e) {
+        console.warn("Failed to update manifest dynamically:", e);
+      }
+    }
   }, [brand]);
 
   return null;

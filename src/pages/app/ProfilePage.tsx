@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Loader2, User, KeyRound, Phone, ChevronLeft } from "lucide-react";
+import { Loader2, User, KeyRound, Phone, ChevronLeft, RefreshCw, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { PwaTutorial } from "@/components/PwaTutorial";
 
 export default function ProfilePage() {
   const { user, refreshUser } = useAuth();
@@ -15,6 +16,27 @@ export default function ProfilePage() {
   const [name, setName] = useState(user?.name || "");
   const [phone, setPhone] = useState(user?.phone || "");
   const [saving, setSaving] = useState(false);
+  const [updating, setUpdating] = useState(false);
+
+  async function handleUpdateApp() {
+    setUpdating(true);
+    try {
+      if ("serviceWorker" in navigator) {
+        const registrations = await navigator.serviceWorker.getRegistrations();
+        for (const registration of registrations) {
+          await registration.update();
+        }
+      }
+      toast.success("Verificando atualizações...");
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (err) {
+      toast.error("Falha ao atualizar app");
+    } finally {
+      setUpdating(false);
+    }
+  }
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
@@ -129,6 +151,30 @@ export default function ProfilePage() {
           >
             Alterar Minha Senha
           </Button>
+        </CardContent>
+      <Card className="border-border/50 shadow-soft">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+            <Smartphone className="w-5 h-5 text-primary" />
+            Configurações do Aplicativo
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Mantenha seu aplicativo sempre na versão mais recente para ter acesso às novas funcionalidades e correções.
+          </p>
+          <div className="flex flex-col md:flex-row gap-3">
+            <Button 
+              variant="secondary" 
+              className="flex-1"
+              onClick={handleUpdateApp}
+              disabled={updating}
+            >
+              {updating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+              Atualizar Aplicativo
+            </Button>
+            <PwaTutorial />
+          </div>
         </CardContent>
       </Card>
     </div>
