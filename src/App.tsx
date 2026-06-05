@@ -288,7 +288,7 @@ const App = () => (
               >
                 <Route index element={<MentoradoHome />} />
                 <Route path="tests" element={<MentoradoTests />} />
-                <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents" />} />
+                <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents/feed" />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
                 <Route path="trails" element={<MentoradoTrailsNetflix />} />
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
