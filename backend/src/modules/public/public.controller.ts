@@ -110,10 +110,24 @@ export class PublicController {
           const tokenClauses = slugTokens
             .map((_, i) => {
               const token = `:slugToken${i}`;
-              return `(${compactExpr('u.slug')} LIKE ${token} OR ${compactExpr('u."brandName"')} LIKE ${token} OR ${compactExpr('u.name')} LIKE ${token})`;
+              const tokenRaw = `:slugTokenRaw${i}`;
+              // Bidirectional match: host token contains mentor identifier, OR mentor identifier contains host token.
+              return `(
+                ${compactExpr('u.slug')} LIKE ${token}
+                OR ${compactExpr('u."brandName"')} LIKE ${token}
+                OR ${compactExpr('u.name')} LIKE ${token}
+                OR (LENGTH(${compactExpr('u.slug')}) >= 4 AND ${tokenRaw} LIKE '%' || ${compactExpr('u.slug')} || '%')
+                OR (LENGTH(${compactExpr('u."brandName"')}) >= 4 AND ${tokenRaw} LIKE '%' || ${compactExpr('u."brandName"')} || '%')
+                OR (LENGTH(${compactExpr('u.name')}) >= 4 AND ${tokenRaw} LIKE '%' || ${compactExpr('u.name')} || '%')
+              )`;
             })
             .join(' OR ');
-          const tokenParams = Object.fromEntries(slugTokens.map((token, i) => [`slugToken${i}`, `%${token}%`]));
+          const tokenParams = Object.fromEntries(
+            slugTokens.flatMap((token, i) => [
+              [`slugToken${i}`, `%${token}%`],
+              [`slugTokenRaw${i}`, token],
+            ]),
+          );
 
           mentor = await this.users
             .createQueryBuilder('u')
