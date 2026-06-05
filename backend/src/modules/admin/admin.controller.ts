@@ -129,6 +129,8 @@ export class AdminController {
       planDueDay?: number | null;
       planAmount?: number | null;
       planNotes?: string | null;
+      customDomain?: string | null;
+      slug?: string | null;
     },
   ) {
     const patch: any = {};
@@ -144,6 +146,42 @@ export class AdminController {
     }
     if (body.planAmount !== undefined) patch.planAmount = body.planAmount != null ? Number(body.planAmount) : null;
     if (body.planNotes !== undefined) patch.planNotes = body.planNotes || null;
+    if (body.customDomain !== undefined) {
+      const normalized = (body.customDomain || '')
+        .toLowerCase()
+        .trim()
+        .replace(/^https?:\/\//, '')
+        .replace(/\/$/, '');
+      if (normalized) {
+        const existing = await this.users.findOne({ where: { customDomain: normalized } });
+        if (existing && existing.id !== id) {
+          throw new BadRequestException(
+            `Domínio já vinculado à conta "${existing.email}". Remova de lá primeiro.`,
+          );
+        }
+        patch.customDomain = normalized;
+      } else {
+        patch.customDomain = null;
+      }
+    }
+    if (body.slug !== undefined) {
+      const normalized = (body.slug || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '')
+        .slice(0, 60);
+      if (normalized) {
+        const existing = await this.users.findOne({ where: { slug: normalized } });
+        if (existing && existing.id !== id) {
+          throw new BadRequestException(`Slug "${normalized}" já em uso por outra conta.`);
+        }
+        patch.slug = normalized;
+      } else {
+        patch.slug = null;
+      }
+    }
     await this.users.update(id, patch);
     return this.users.findOne({ where: { id } });
   }
