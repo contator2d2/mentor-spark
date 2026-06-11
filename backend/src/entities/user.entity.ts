@@ -77,6 +77,10 @@ export class User {
   @Column({ default: 'classic' })
   brandHighlightTheme: string;
 
+  /** Layout da área de cursos do mentorado ('netflix' | 'grid' | 'neon' | 'cinema') */
+  @Column({ default: 'netflix' })
+  brandCoursesLayout: string;
+
   /** Banner específico para modo escuro */
   @Column({ nullable: true })
   brandDarkBannerUrl?: string;

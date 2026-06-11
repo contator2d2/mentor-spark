@@ -14,6 +14,7 @@ export interface TenantBrand {
   brandHighlightTheme?: string;
   brandDarkBannerUrl?: string;
   brandDarkLogoUrl?: string;
+  brandCoursesLayout?: "netflix" | "grid" | "neon" | "cinema" | string;
 }
 
 interface BrandingContextValue {

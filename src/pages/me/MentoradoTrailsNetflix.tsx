@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "@/lib/api";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,128 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
+/** Reveal-on-scroll hook (IntersectionObserver, sem dependências) */
+function useReveal<T extends HTMLElement = HTMLDivElement>() {
+  const ref = useRef<T | null>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    if (!ref.current || visible) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            setVisible(true);
+            obs.disconnect();
+          }
+        });
+      },
+      { rootMargin: "0px 0px -10% 0px", threshold: 0.05 },
+    );
+    obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [visible]);
+  return { ref, visible };
+}
+
+type LayoutKind = "netflix" | "grid" | "neon" | "cinema";
+
+function CourseCard({
+  trail,
+  layout,
+  isDark,
+  onClick,
+  index,
+}: {
+  trail: any;
+  layout: LayoutKind;
+  isDark: boolean;
+  onClick: () => void;
+  index: number;
+}) {
+  const { ref, visible } = useReveal<HTMLDivElement>();
+  const locked = trail.locked;
+  const neonGlow = isDark && (layout === "neon" || layout === "cinema");
+
+  const sizeClasses =
+    layout === "netflix"
+      ? "flex-none w-[260px] md:w-[320px] aspect-video"
+      : layout === "grid"
+      ? "w-full aspect-[2/3]"
+      : layout === "neon"
+      ? "w-full aspect-video"
+      : "w-full aspect-[21/9]"; // cinema
+
+  return (
+    <div
+      ref={ref}
+      onClick={onClick}
+      style={{ transitionDelay: visible ? `${Math.min(index, 8) * 60}ms` : "0ms" }}
+      className={[
+        "relative rounded-xl overflow-hidden cursor-pointer border bg-card group shadow-lg",
+        "transition-all duration-500 hover:scale-[1.03] hover:z-10",
+        sizeClasses,
+        visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6",
+        neonGlow
+          ? "border-primary/30 hover:shadow-[0_0_28px_hsl(var(--primary)/0.55),0_0_60px_hsl(var(--accent)/0.35)] hover:border-primary"
+          : "border-border hover:shadow-2xl",
+      ].join(" ")}
+    >
+      {trail.coverUrl ? (
+        <img
+          src={trail.coverUrl}
+          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${locked ? "blur-[2px] scale-105" : ""}`}
+          alt={trail.title}
+        />
+      ) : (
+        <div className="w-full h-full bg-gradient-to-br from-primary/30 to-accent/30 flex items-center justify-center">
+          <GraduationCap className="h-12 w-12 text-primary/50" />
+        </div>
+      )}
+
+      {/* Glow ring para layouts neon/cinema em dark */}
+      {neonGlow && (
+        <div className="pointer-events-none absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 ring-2 ring-primary/60 ring-offset-2 ring-offset-background" />
+      )}
+
+      {/* Cadeado */}
+      {locked && (
+        <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-background/90 backdrop-blur border border-primary/40 px-2 py-1 rounded-full shadow-md">
+          <Lock className="h-3 w-3 text-primary" />
+          <span className="text-[10px] font-semibold text-foreground uppercase tracking-wide">
+            {trail.cta?.kind === "pay" ? "Pago" : "Bloqueado"}
+          </span>
+        </div>
+      )}
+
+      {/* Título sempre visível em grid/cinema */}
+      {(layout === "grid" || layout === "cinema") && (
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent p-3">
+          <h3 className="text-white font-bold text-sm md:text-base line-clamp-1">{trail.title}</h3>
+          {layout === "cinema" && trail.description && (
+            <p className="text-white/70 text-xs line-clamp-2 mt-1">{trail.description}</p>
+          )}
+        </div>
+      )}
+
+      {/* Overlay hover */}
+      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+        <h3 className="text-white font-bold text-sm">{trail.title}</h3>
+        <p className="text-white/70 text-[10px] line-clamp-2 mt-1">
+          {locked ? (trail.accessMessage || trail.upgradeCallout || "Solicite acesso ao mentor") : trail.description}
+        </p>
+        <div className="mt-3 flex items-center justify-between">
+          <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black">
+            {locked ? <Lock className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
+          </div>
+          <Badge variant="secondary" className="bg-primary text-white text-[9px]">
+            {locked ? (trail.cta?.kind === "pay" ? "Desbloquear" : "Solicitar") : "Acessar"}
+          </Badge>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function MentoradoTrailsNetflix() {
   const navigate = useNavigate();
   const { brand } = useBranding();
@@ -18,6 +140,9 @@ export default function MentoradoTrailsNetflix() {
   const [loading, setLoading] = useState(true);
   const [accessOpen, setAccessOpen] = useState<any>(null);
   const [accessMsg, setAccessMsg] = useState("");
+
+  const layout: LayoutKind = ((brand as any)?.brandCoursesLayout || "netflix") as LayoutKind;
+  const isDark = theme === "dark";
 
   function load() {
     api<any[]>("/trails")
@@ -53,10 +178,6 @@ export default function MentoradoTrailsNetflix() {
       navigate(`/me/trails/${t.id}`);
     }
   }
-
-  useEffect(() => {
-    // placeholder: keep effect parity
-  }, []);
 
   const continueWatching = trails.filter((t) => !t.locked && (t.completedLessons || 0) > 0 && !t.allDone);
   const novidades = trails.filter((t) => !t.locked && (t.completedLessons || 0) === 0);
@@ -118,52 +239,38 @@ export default function MentoradoTrailsNetflix() {
               <ChevronRight className="h-4 w-4 text-muted-foreground" />
             </h2>
           </div>
-          
-          <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 scroll-smooth">
-            {cat.items.map((t) => (
-              <div 
-                key={t.id}
-                onClick={() => handleCardClick(t)}
-                className="relative flex-none w-[280px] md:w-[320px] aspect-video rounded-lg overflow-hidden cursor-pointer transition-all duration-300 hover:scale-105 hover:z-10 shadow-lg border border-border bg-card group"
-              >
-                {t.coverUrl ? (
-                  <img src={t.coverUrl} className={`w-full h-full object-cover ${t.locked ? "blur-[2px] scale-105" : ""}`} alt={t.title} />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                    <GraduationCap className="h-12 w-12 text-primary/40" />
-                  </div>
-                )}
 
-                {/* Badge de cadeado fixa no topo */}
-                {t.locked && (
-                  <div className="absolute top-2 right-2 z-10 flex items-center gap-1 bg-background/90 backdrop-blur border border-primary/40 px-2 py-1 rounded-full shadow-md">
-                    <Lock className="h-3 w-3 text-primary" />
-                    <span className="text-[10px] font-semibold text-foreground uppercase tracking-wide">
-                      {t.cta?.kind === "pay" ? "Pago" : "Bloqueado"}
-                    </span>
-                  </div>
-                )}
+          {layout === "netflix" && (
+            <div className="flex gap-4 overflow-x-auto pb-4 no-scrollbar -mx-4 px-4 scroll-smooth">
+              {cat.items.map((t, i) => (
+                <CourseCard key={t.id} trail={t} layout={layout} isDark={isDark} index={i} onClick={() => handleCardClick(t)} />
+              ))}
+            </div>
+          )}
 
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                   <h3 className="text-white font-bold text-sm">{t.title}</h3>
-                   <p className="text-white/70 text-[10px] line-clamp-2 mt-1">{t.locked ? (t.accessMessage || t.upgradeCallout || "Solicite acesso ao mentor") : t.description}</p>
-                   <div className="mt-3 flex items-center justify-between">
-                      <div className="h-8 w-8 rounded-full bg-white flex items-center justify-center text-black">
-                        {t.locked ? <Lock className="h-4 w-4" /> : <Play className="h-4 w-4 fill-current ml-0.5" />}
-                      </div>
-                      <Badge variant="secondary" className="bg-primary text-white text-[9px]">
-                        {t.locked ? (t.cta?.kind === "pay" ? "Desbloquear" : "Solicitar") : "Acessar"}
-                      </Badge>
-                   </div>
-                </div>
-              </div>
-            ))}
-            {cat.items.length === 0 && (
-              <div className="w-[300px] flex-none py-10 text-center text-muted-foreground text-sm border border-dashed rounded-lg">
-                Nenhum item nesta categoria.
-              </div>
-            )}
-          </div>
+          {layout === "grid" && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+              {cat.items.map((t, i) => (
+                <CourseCard key={t.id} trail={t} layout={layout} isDark={isDark} index={i} onClick={() => handleCardClick(t)} />
+              ))}
+            </div>
+          )}
+
+          {layout === "neon" && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {cat.items.map((t, i) => (
+                <CourseCard key={t.id} trail={t} layout={layout} isDark={isDark} index={i} onClick={() => handleCardClick(t)} />
+              ))}
+            </div>
+          )}
+
+          {layout === "cinema" && (
+            <div className="flex flex-col gap-5">
+              {cat.items.map((t, i) => (
+                <CourseCard key={t.id} trail={t} layout={layout} isDark={isDark} index={i} onClick={() => handleCardClick(t)} />
+              ))}
+            </div>
+          )}
         </section>
       ))}
 

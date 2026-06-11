@@ -95,6 +95,7 @@ export class AuthController {
               brandAccentColor: mentor.brandAccentColor,
               brandTheme: mentor.brandTheme,
               brandHighlightTheme: mentor.brandHighlightTheme,
+              brandCoursesLayout: mentor.brandCoursesLayout,
               brandDarkBannerUrl: mentor.brandDarkBannerUrl,
               brandDarkLogoUrl: mentor.brandDarkLogoUrl,
               slug: mentor.slug,

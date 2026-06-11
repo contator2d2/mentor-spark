@@ -153,6 +153,7 @@ export class PublicController {
       brandAccentColor: mentor.brandAccentColor,
       brandTheme: mentor.brandTheme,
       brandHighlightTheme: mentor.brandHighlightTheme,
+      brandCoursesLayout: mentor.brandCoursesLayout,
       brandDarkBannerUrl: mentor.brandDarkBannerUrl,
       brandDarkLogoUrl: mentor.brandDarkLogoUrl,
     };
@@ -174,6 +175,7 @@ export class PublicController {
        brandAccentColor: m.brandAccentColor,
         brandTheme: m.brandTheme,
         brandHighlightTheme: m.brandHighlightTheme,
+        brandCoursesLayout: m.brandCoursesLayout,
         brandDarkBannerUrl: m.brandDarkBannerUrl,
         brandDarkLogoUrl: m.brandDarkLogoUrl,
        slug: m.slug,
@@ -197,6 +199,7 @@ export class PublicController {
       brandAccentColor: m.brandAccentColor,
       brandTheme: m.brandTheme,
       brandHighlightTheme: m.brandHighlightTheme,
+      brandCoursesLayout: m.brandCoursesLayout,
       brandDarkBannerUrl: m.brandDarkBannerUrl,
       brandDarkLogoUrl: m.brandDarkLogoUrl,
       slug: m.slug,

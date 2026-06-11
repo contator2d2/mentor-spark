@@ -41,6 +41,7 @@ export class UsersController {
               brandAccentColor: mentor.brandAccentColor,
               brandTheme: mentor.brandTheme,
               brandHighlightTheme: mentor.brandHighlightTheme,
+              brandCoursesLayout: mentor.brandCoursesLayout,
               brandDarkBannerUrl: mentor.brandDarkBannerUrl,
               brandDarkLogoUrl: mentor.brandDarkLogoUrl,
               slug: mentor.slug,
@@ -78,6 +79,7 @@ export class UsersController {
       brandAccentColor?: string;
       brandTheme?: string;
       brandHighlightTheme?: string;
+      brandCoursesLayout?: string;
       brandDarkBannerUrl?: string;
       brandDarkLogoUrl?: string;
       customDomain?: string;
@@ -97,6 +99,7 @@ export class UsersController {
     if (dto.brandAccentColor !== undefined) patch.brandAccentColor = dto.brandAccentColor;
     if (dto.brandTheme !== undefined) patch.brandTheme = dto.brandTheme;
     if (dto.brandHighlightTheme !== undefined) patch.brandHighlightTheme = dto.brandHighlightTheme;
+    if (dto.brandCoursesLayout !== undefined) patch.brandCoursesLayout = dto.brandCoursesLayout;
     if (dto.brandDarkBannerUrl !== undefined) patch.brandDarkBannerUrl = dto.brandDarkBannerUrl;
     if (dto.brandDarkLogoUrl !== undefined) patch.brandDarkLogoUrl = dto.brandDarkLogoUrl;
     if (dto.demandNotificationSettings !== undefined) patch.demandNotificationSettings = dto.demandNotificationSettings;

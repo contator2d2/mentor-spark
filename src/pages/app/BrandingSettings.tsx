@@ -42,6 +42,7 @@ export default function BrandingSettings() {
       brandAccentColor: initialData?.brandAccentColor || "#d4a017",
       brandTheme: (initialData as any)?.brandTheme || "system",
       brandHighlightTheme: (initialData as any)?.brandHighlightTheme || "classic",
+      brandCoursesLayout: (initialData as any)?.brandCoursesLayout || "netflix",
       brandDarkBannerUrl: (initialData as any)?.brandDarkBannerUrl || "",
       brandDarkLogoUrl: (initialData as any)?.brandDarkLogoUrl || "",
       customDomain: (initialData as any)?.customDomain || "",
@@ -59,6 +60,7 @@ export default function BrandingSettings() {
            brandAccentColor: data.brandAccentColor || "#d4a017",
            brandTheme: (data as any).brandTheme || "system",
            brandHighlightTheme: (data as any).brandHighlightTheme || "classic",
+           brandCoursesLayout: (data as any).brandCoursesLayout || "netflix",
            brandDarkBannerUrl: (data as any).brandDarkBannerUrl || "",
            brandDarkLogoUrl: (data as any).brandDarkLogoUrl || "",
            customDomain: (data as any).customDomain || "",
@@ -315,6 +317,62 @@ export default function BrandingSettings() {
               <option value="neon">Vibrante (Neon/Futurista)</option>
               <option value="impact">Impacto (Contrastante)</option>
             </select>
+          </div>
+        </div>
+
+        {/* ============== LAYOUT DA ÁREA DE CURSOS ============== */}
+        <div className="space-y-3 pt-2 border-t border-border">
+          <div>
+            <Label className="text-base">Layout da Área de Cursos</Label>
+            <p className="text-xs text-muted-foreground mt-1">
+              Escolha como os cards de cursos aparecem para os seus mentorados. O glow neon e a animação de entrada são aplicados automaticamente no modo escuro.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { value: "netflix", label: "Netflix", desc: "Linhas horizontais com scroll lateral", preview: "rows" },
+              { value: "grid", label: "Grade", desc: "Pôsteres uniformes em grade", preview: "grid" },
+              { value: "neon", label: "Neon Glow", desc: "Cards grandes com glow vibrante", preview: "neon" },
+              { value: "cinema", label: "Cinema", desc: "Destaque cinematográfico, 1 por linha", preview: "cinema" },
+            ].map((opt) => {
+              const active = form.brandCoursesLayout === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => onChange({ brandCoursesLayout: opt.value })}
+                  className={`text-left rounded-xl border-2 p-3 transition-all ${active ? "border-primary bg-primary/5 shadow-md" : "border-border hover:border-primary/40"}`}
+                >
+                  <div className="aspect-video rounded-md bg-muted overflow-hidden mb-2 relative">
+                    {opt.preview === "rows" && (
+                      <div className="absolute inset-0 flex flex-col gap-1 p-1.5">
+                        <div className="flex gap-1 flex-1"><div className="flex-1 bg-primary/40 rounded-sm"/><div className="flex-1 bg-primary/30 rounded-sm"/><div className="flex-1 bg-primary/20 rounded-sm"/></div>
+                        <div className="flex gap-1 flex-1"><div className="flex-1 bg-accent/40 rounded-sm"/><div className="flex-1 bg-accent/30 rounded-sm"/><div className="flex-1 bg-accent/20 rounded-sm"/></div>
+                      </div>
+                    )}
+                    {opt.preview === "grid" && (
+                      <div className="absolute inset-0 grid grid-cols-3 gap-1 p-1.5">
+                        {Array.from({length:6}).map((_,i)=>(<div key={i} className="bg-primary/30 rounded-sm"/>))}
+                      </div>
+                    )}
+                    {opt.preview === "neon" && (
+                      <div className="absolute inset-0 grid grid-cols-2 gap-2 p-2 bg-black">
+                        <div className="bg-primary/30 rounded shadow-[0_0_8px_hsl(var(--primary))]"/>
+                        <div className="bg-accent/30 rounded shadow-[0_0_8px_hsl(var(--accent))]"/>
+                      </div>
+                    )}
+                    {opt.preview === "cinema" && (
+                      <div className="absolute inset-0 flex flex-col gap-1 p-1.5">
+                        <div className="flex-1 bg-gradient-to-r from-primary/40 to-accent/40 rounded-sm"/>
+                        <div className="flex-1 bg-gradient-to-r from-accent/30 to-primary/30 rounded-sm"/>
+                      </div>
+                    )}
+                  </div>
+                  <div className="font-semibold text-sm">{opt.label}</div>
+                  <div className="text-[11px] text-muted-foreground leading-tight">{opt.desc}</div>
+                </button>
+              );
+            })}
           </div>
         </div>
       </section>
