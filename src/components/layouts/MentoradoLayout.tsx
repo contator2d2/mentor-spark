@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Home, ClipboardList, BookOpen, Calendar, Bell, LogOut, GraduationCap, Users, DollarSign, User } from "lucide-react";
+import { ClipboardList, Bell, LogOut, GraduationCap, Users, DollarSign, User } from "lucide-react";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,9 +18,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const NAV = [
-  { to: "/me", label: "Início", icon: Home, end: true },
+  { to: "/me", label: "Cursos", icon: GraduationCap, end: true },
   { to: "/me/tests", label: "Testes", icon: ClipboardList },
-  { to: "/me/trails", label: "Trilhas", icon: GraduationCap },
   { to: "/me/community", label: "Comunidade", icon: Users },
   { to: "/me/financeiro", label: "Financeiro", icon: DollarSign },
   { to: "/me/profile", label: "Perfil", icon: User },
@@ -59,8 +58,8 @@ export default function MentoradoLayout() {
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header app-style */}
       <header className="sticky top-0 z-40 bg-sidebar text-sidebar-foreground border-b border-sidebar-border/50 shadow-soft">
-        <div className="px-4 pt-[env(safe-area-inset-top)]">
-          <div className="h-14 flex items-center justify-between gap-3">
+        <div className="px-4 md:px-8 pt-[env(safe-area-inset-top)] max-w-7xl mx-auto w-full">
+          <div className="h-14 md:h-16 flex items-center justify-between gap-3">
             <button
               onClick={() => navigate("/me")}
               className="flex items-center gap-2.5 min-w-0 flex-1"
@@ -69,7 +68,7 @@ export default function MentoradoLayout() {
                 <img
                   src={logoUrl}
                   alt={displayName}
-                  className="h-9 w-9 rounded-lg object-contain bg-white/10 p-1 shrink-0"
+                  className="h-9 w-9 md:h-10 md:w-10 rounded-lg object-contain bg-white/10 p-1 shrink-0"
                 />
               ) : (
                 <div className="h-9 w-9 rounded-lg bg-gradient-primary shrink-0 flex items-center justify-center text-white font-display font-bold">
@@ -78,15 +77,40 @@ export default function MentoradoLayout() {
               )}
               {brand?.brandName && (
                 <div className="min-w-0 text-left">
-                  <div className="font-display text-sm text-white truncate leading-tight">
+                  <div className="font-display text-sm md:text-base text-white truncate leading-tight">
                     {displayName}
                   </div>
-                  <div className="text-[11px] text-sidebar-foreground/60 truncate leading-tight">
+                  <div className="text-[11px] md:text-xs text-sidebar-foreground/60 truncate leading-tight">
                     Olá, {user?.name?.split(" ")[0] || "mentorado"}
                   </div>
                 </div>
               )}
             </button>
+
+            {/* Nav desktop */}
+            <nav className="hidden md:flex items-center gap-1 mr-2">
+              {NAV.map((n) => {
+                const Icon = n.icon;
+                return (
+                  <NavLink
+                    key={n.to}
+                    to={n.to}
+                    end={n.end}
+                    className={({ isActive }) =>
+                      cn(
+                        "flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-all",
+                        isActive
+                          ? "bg-accent/20 text-white"
+                          : "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-white",
+                      )
+                    }
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{n.label}</span>
+                  </NavLink>
+                );
+              })}
+            </nav>
 
             <div className="flex items-center gap-1 shrink-0">
               <DropdownMenu>
@@ -160,15 +184,15 @@ export default function MentoradoLayout() {
       </header>
 
       {/* Conteúdo */}
-      <main className="flex-1 overflow-y-auto pb-[calc(72px+env(safe-area-inset-bottom))]">
-        <div className="max-w-2xl mx-auto px-4 py-6 animate-fade-in">
+      <main className="flex-1 overflow-y-auto pb-[calc(72px+env(safe-area-inset-bottom))] md:pb-10">
+        <div className="max-w-2xl md:max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 animate-fade-in">
           <Outlet />
         </div>
       </main>
 
-      {/* Bottom Nav fixa */}
-      <nav className="fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border/50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
-        <div className="max-w-2xl mx-auto grid grid-cols-6">{/* mantém 6 itens agora */}
+      {/* Bottom Nav (somente mobile) */}
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-sidebar border-t border-sidebar-border/50 pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_20px_rgba(0,0,0,0.15)]">
+        <div className="max-w-2xl mx-auto grid grid-cols-5">
           {NAV.map((n) => {
             const Icon = n.icon;
             return (
