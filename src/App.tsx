@@ -295,12 +295,12 @@ const App = () => (
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<MentoradoHome />} />
+                <Route index element={<MentoradoTrailsNetflix />} />
                 <Route path="home" element={<MentoradoHome />} />
                 <Route path="tests" element={<MentoradoTests />} />
                 <Route path="contents" element={<PlaceholderPage title="Conteúdos" description="Liberados pelo seu mentor." endpoint="/contents/feed" />} />
                 <Route path="meetings" element={<PlaceholderPage title="Reuniões" description="Suas reuniões agendadas." endpoint="/meetings" />} />
-                <Route path="trails" element={<MentoradoTrailsNetflix />} />
+                <Route path="trails" element={<Navigate to="/me" replace />} />
                 <Route path="trails/:id" element={<MentoradoTrailPlayer />} />
                 <Route path="community" element={<MentoradoCommunity />} />
                 <Route path="financeiro" element={<MentoradoFinanceiro />} />
