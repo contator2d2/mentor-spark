@@ -99,7 +99,7 @@ export class UsersController {
     if (dto.brandAccentColor !== undefined) patch.brandAccentColor = dto.brandAccentColor;
     if (dto.brandTheme !== undefined) patch.brandTheme = dto.brandTheme;
     if (dto.brandHighlightTheme !== undefined) patch.brandHighlightTheme = dto.brandHighlightTheme;
-    brandCoursesLayout: dto.brandCoursesLayout,
+    if (dto.brandCoursesLayout !== undefined) patch.brandCoursesLayout = dto.brandCoursesLayout;
     if (dto.brandDarkBannerUrl !== undefined) patch.brandDarkBannerUrl = dto.brandDarkBannerUrl;
     if (dto.brandDarkLogoUrl !== undefined) patch.brandDarkLogoUrl = dto.brandDarkLogoUrl;
     if (dto.demandNotificationSettings !== undefined) patch.demandNotificationSettings = dto.demandNotificationSettings;
