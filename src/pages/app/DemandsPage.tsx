@@ -1,6 +1,6 @@
- import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
- import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -167,204 +167,208 @@ export default function DemandsPage() {
   if (loading) return <Loader2 className="h-6 w-6 animate-spin text-primary" />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold tracking-tight">Central de Demandas</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestão de produção de materiais e marketing.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          {(user?.role === "mentor" || user?.role === "super_admin") && (
-            <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="gap-2">
-              <Bell className="h-4 w-4" /> Notificações
-            </Button>
-          )}
-          <div className="bg-muted p-1 rounded-lg flex items-center gap-1 mr-2">
-             <Button 
-               variant={view === "kanban" ? "secondary" : "ghost"} 
-               size="sm" 
-               className="h-8 px-2"
-               onClick={() => setView("kanban")}
-             >
-               <LayoutGrid className="h-4 w-4 mr-1" /> Kanban
-             </Button>
-             <Button 
-               variant={view === "list" ? "secondary" : "ghost"} 
-               size="sm" 
-               className="h-8 px-2"
-               onClick={() => setView("list")}
-             >
-               <ListIcon className="h-4 w-4 mr-1" /> Lista
-             </Button>
+    <div className="flex flex-col h-[calc(100vh-14rem)] md:h-[calc(100vh-5rem)] gap-6">
+      <div className="flex-none space-y-6">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="font-display text-3xl font-bold tracking-tight">Central de Demandas</h1>
+            <p className="text-muted-foreground mt-1">
+              Gestão de produção de materiais e marketing.
+            </p>
           </div>
-           {!isAgency && (
-             <Button onClick={() => navigate("new")}>
-               <Plus className="h-4 w-4 mr-2" />Nova Demanda
-             </Button>
-           )}
+          <div className="flex items-center gap-2">
+            {(user?.role === "mentor" || user?.role === "super_admin") && (
+              <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)} className="gap-2">
+                <Bell className="h-4 w-4" /> Notificações
+              </Button>
+            )}
+            <div className="bg-muted p-1 rounded-lg flex items-center gap-1 mr-2">
+               <Button 
+                 variant={view === "kanban" ? "secondary" : "ghost"} 
+                 size="sm" 
+                 className="h-8 px-2"
+                 onClick={() => setView("kanban")}
+               >
+                 <LayoutGrid className="h-4 w-4 mr-1" /> Kanban
+               </Button>
+               <Button 
+                 variant={view === "list" ? "secondary" : "ghost"} 
+                 size="sm" 
+                 className="h-8 px-2"
+                 onClick={() => setView("list")}
+               >
+                 <ListIcon className="h-4 w-4 mr-1" /> Lista
+               </Button>
+            </div>
+             {!isAgency && (
+               <Button onClick={() => navigate("new")}>
+                 <Plus className="h-4 w-4 mr-2" />Nova Demanda
+               </Button>
+             )}
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
+          <div className="relative w-full max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              placeholder="Buscar demandas..." 
+              className="pl-9" 
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </div>
+
+          <Button
+            variant={showOverdueOnly ? "destructive" : "outline"}
+            size="sm"
+            onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+            className="gap-2 shrink-0"
+          >
+            <AlertCircle className="h-4 w-4" />
+            {showOverdueOnly ? "Mostrando Atrasadas" : "Filtrar Atrasadas"}
+          </Button>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-4 w-full">
-        <div className="relative w-full max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar demandas..." 
-            className="pl-9" 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        <Button
-          variant={showOverdueOnly ? "destructive" : "outline"}
-          size="sm"
-          onClick={() => setShowOverdueOnly(!showOverdueOnly)}
-          className="gap-2 shrink-0"
-        >
-          <AlertCircle className="h-4 w-4" />
-          {showOverdueOnly ? "Mostrando Atrasadas" : "Filtrar Atrasadas"}
-        </Button>
-      </div>
-
-      {view === "kanban" ? (
-        <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/30">
-          {STATUS_COLUMNS.map((col) => {
-            const items = filtered.filter((d) => d.status === col.key);
-            return (
-              <div
-                key={col.key}
-                className={`bg-muted/30 rounded-xl border-t-4 ${col.color} p-3 min-h-[500px] w-full min-w-[260px]`}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={(e) => {
-                  const id = e.dataTransfer.getData("demandId");
-                  if (id) moveDemand(id, col.key);
-                }}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
-                    {col.label}
-                  </h3>
-                  <Badge variant="outline" className="bg-background">{items.length}</Badge>
-                </div>
-                
-                <div className="space-y-3">
-                  {items.map((d) => (
-                    <div
-                      key={d.id}
-                      draggable
-                      onDragStart={(e) => e.dataTransfer.setData("demandId", d.id)}
-                      onClick={() => navigate(d.id)}
-                      className="bg-card border border-border rounded-xl p-4 cursor-pointer shadow-sm hover:shadow-md transition-all group active:scale-[0.98]"
-                    >
-                      <div className="flex items-start gap-2 mb-2">
-                        <GripVertical className="h-4 w-4 text-muted-foreground/30 mt-0.5 shrink-0" />
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
-                            {d.title}
-                          </p>
-                          <Badge variant="secondary" className="mt-1.5 text-[10px] uppercase font-bold tracking-tighter py-0">
-                            {d.department ? `${d.department} • ` : ''}{d.type}
-                          </Badge>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-col gap-2 mt-4">
-                        <div className="flex items-center justify-between text-[10px]">
-                           <div className="flex items-center gap-1 text-muted-foreground">
-                             <UserIcon className="h-3 w-3" />
-                             <span className="truncate max-w-[80px]">
-                               {d.responsibles && d.responsibles.length > 0 
-                                 ? d.responsibles.map(r => r.name).join(', ') 
-                                 : (d.agency?.name || d.responsible?.name || 'Sem resp.')}
-                             </span>
-                           </div>
-                           <Badge variant="secondary" className={`text-[9px] ${PRIORITY_COLORS[d.priority]}`}>
-                             {d.priority.toUpperCase()}
-                           </Badge>
-                        </div>
-
-                        {d.definedDeadline && (
-                          <div className={`flex items-center gap-1 text-[10px] font-medium ${
-                            new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved'
-                              ? 'text-rose-500' 
-                              : 'text-muted-foreground'
-                          }`}>
-                            <CalIcon className="h-3 w-3" />
-                            {new Date(d.definedDeadline).toLocaleDateString()}
-                            {new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved' && " (ATRASADA)"}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {view === "kanban" ? (
+          <div className="flex gap-4 h-full overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-muted-foreground/30 hover:scrollbar-thumb-muted-foreground/50">
+            {STATUS_COLUMNS.map((col) => {
+              const items = filtered.filter((d) => d.status === col.key);
+              return (
+                <div
+                  key={col.key}
+                  className={`bg-muted/30 rounded-xl border-t-4 ${col.color} p-3 h-full flex flex-col w-full min-w-[260px]`}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    const id = e.dataTransfer.getData("demandId");
+                    if (id) moveDemand(id, col.key);
+                  }}
+                >
+                  <div className="flex items-center justify-between mb-4 flex-none">
+                    <h3 className="font-semibold text-sm uppercase tracking-wider text-muted-foreground">
+                      {col.label}
+                    </h3>
+                    <Badge variant="outline" className="bg-background">{items.length}</Badge>
+                  </div>
+                  
+                  <div className="flex-1 overflow-y-auto min-h-0 space-y-3 pr-1">
+                    {items.map((d) => (
+                      <div
+                        key={d.id}
+                        draggable
+                        onDragStart={(e) => e.dataTransfer.setData("demandId", d.id)}
+                        onClick={() => navigate(d.id)}
+                        className="bg-card border border-border rounded-xl p-4 cursor-pointer shadow-sm hover:shadow-md transition-all group active:scale-[0.98]"
+                      >
+                        <div className="flex items-start gap-2 mb-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground/30 mt-0.5 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <p className="font-semibold text-sm leading-tight group-hover:text-primary transition-colors">
+                              {d.title}
+                            </p>
+                            <Badge variant="secondary" className="mt-1.5 text-[10px] uppercase font-bold tracking-tighter py-0">
+                              {d.department ? `${d.department} • ` : ''}{d.type}
+                            </Badge>
                           </div>
-                        )}
+                        </div>
 
-                        <div
-                          onClick={(e) => e.stopPropagation()}
-                          onPointerDown={(e) => e.stopPropagation()}
-                          draggable={false}
-                          onDragStart={(e) => e.preventDefault()}
-                          className="mt-1"
-                        >
-                          <Select
-                            value={d.status}
-                            onValueChange={(v) => moveDemand(d.id, v as DemandStatus)}
+                        <div className="flex flex-col gap-2 mt-4">
+                          <div className="flex items-center justify-between text-[10px]">
+                             <div className="flex items-center gap-1 text-muted-foreground">
+                               <UserIcon className="h-3 w-3" />
+                               <span className="truncate max-w-[80px]">
+                                 {d.responsibles && d.responsibles.length > 0 
+                                   ? d.responsibles.map(r => r.name).join(', ') 
+                                   : (d.agency?.name || d.responsible?.name || 'Sem resp.')}
+                               </span>
+                             </div>
+                             <Badge variant="secondary" className={`text-[9px] ${PRIORITY_COLORS[d.priority]}`}>
+                               {d.priority.toUpperCase()}
+                             </Badge>
+                          </div>
+
+                          {d.definedDeadline && (
+                            <div className={`flex items-center gap-1 text-[10px] font-medium ${
+                              new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved'
+                                ? 'text-rose-500' 
+                                : 'text-muted-foreground'
+                            }`}>
+                              <CalIcon className="h-3 w-3" />
+                              {new Date(d.definedDeadline).toLocaleDateString()}
+                              {new Date(d.definedDeadline) < new Date() && d.status !== 'finished' && d.status !== 'approved' && " (ATRASADA)"}
+                            </div>
+                          )}
+
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            onPointerDown={(e) => e.stopPropagation()}
+                            draggable={false}
+                            onDragStart={(e) => e.preventDefault()}
+                            className="mt-1"
                           >
-                            <SelectTrigger className="h-7 text-[11px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {ALL_STATUSES.map((s) => (
-                                <SelectItem key={s.key} value={s.key} className="text-xs">
-                                  {s.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                            <Select
+                              value={d.status}
+                              onValueChange={(v) => moveDemand(d.id, v as DemandStatus)}
+                            >
+                              <SelectTrigger className="h-7 text-[11px]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ALL_STATUSES.map((s) => (
+                                  <SelectItem key={s.key} value={s.key} className="text-xs">
+                                    {s.label}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                  {items.length === 0 && (
-                    <div className="border-2 border-dashed border-muted rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground/40">
-                       <Plus className="h-6 w-6 mb-1" />
-                       <span className="text-[10px] font-medium uppercase">Vazio</span>
-                    </div>
-                  )}
+                    ))}
+                    {items.length === 0 && (
+                      <div className="border-2 border-dashed border-muted rounded-xl py-8 flex flex-col items-center justify-center text-muted-foreground/40">
+                         <Plus className="h-6 w-6 mb-1" />
+                         <span className="text-[10px] font-medium uppercase">Vazio</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <div className="rounded-xl border border-border bg-card overflow-x-auto">
-          <table className="w-full text-sm min-w-[800px]">
-            <thead className="bg-muted/50 border-b border-border">
-              <tr>
-                <th className="text-left p-4 font-medium">Demanda</th>
-                <th className="text-left p-4 font-medium">Tipo</th>
-                <th className="text-left p-4 font-medium">Status</th>
-                <th className="text-left p-4 font-medium">Responsável</th>
-                <th className="text-left p-4 font-medium">Prazo</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {filtered.map(d => (
-                <tr key={d.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => navigate(d.id)}>
-                  <td className="p-4 font-medium">{d.title}</td>
-                  <td className="p-4 uppercase text-xs">{d.type}</td>
-                  <td className="p-4">
-                     <Badge variant="outline">{STATUS_COLUMNS.find(c => c.key === d.status)?.label || d.status}</Badge>
-                  </td>
-                  <td className="p-4 text-muted-foreground">{d.agency?.name || d.responsible?.name || '-'}</td>
-                  <td className="p-4 text-muted-foreground">
-                    {d.definedDeadline ? new Date(d.definedDeadline).toLocaleDateString() : '-'}
-                  </td>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="rounded-xl border border-border bg-card overflow-x-auto h-full overflow-y-auto">
+            <table className="w-full text-sm min-w-[800px]">
+              <thead className="bg-muted/50 border-b border-border">
+                <tr>
+                  <th className="text-left p-4 font-medium">Demanda</th>
+                  <th className="text-left p-4 font-medium">Tipo</th>
+                  <th className="text-left p-4 font-medium">Status</th>
+                  <th className="text-left p-4 font-medium">Responsável</th>
+                  <th className="text-left p-4 font-medium">Prazo</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-border">
+                {filtered.map(d => (
+                  <tr key={d.id} className="hover:bg-muted/20 cursor-pointer" onClick={() => navigate(d.id)}>
+                    <td className="p-4 font-medium">{d.title}</td>
+                    <td className="p-4 uppercase text-xs">{d.type}</td>
+                    <td className="p-4">
+                       <Badge variant="outline">{STATUS_COLUMNS.find(c => c.key === d.status)?.label || d.status}</Badge>
+                    </td>
+                    <td className="p-4 text-muted-foreground">{d.agency?.name || d.responsible?.name || '-'}</td>
+                    <td className="p-4 text-muted-foreground">
+                      {d.definedDeadline ? new Date(d.definedDeadline).toLocaleDateString() : '-'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
 
       <Dialog open={settingsOpen} onOpenChange={setSettingsOpen}>
         <DialogContent>
