@@ -32,6 +32,7 @@
    GraduationCap,
    DollarSign,
    CalendarClock,
+    HelpCircle,
  } from "lucide-react";
 import { useState } from "react";
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
@@ -80,6 +81,7 @@ const NAV: NavItem[] = [
     { to: "/app/contracts/templates", label: "Contratos", icon: FileText, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
     { to: "/app/integrations", label: "Integrações", icon: Plug, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
      { to: "/app/settings/branding", label: "Branding", icon: Settings, roles: ["mentor", "super_admin", "mentor_team", "admin"] },
+     { to: "/app/docs", label: "Documentação", icon: HelpCircle, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant", "agency"] },
      
   { to: "/app/admin", label: "Mentores", icon: ShieldCheck, roles: ["super_admin"] },
   { to: "/app/admin/finance", label: "Financeiro", icon: Wallet, roles: ["super_admin"] },
