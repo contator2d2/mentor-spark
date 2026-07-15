@@ -87,6 +87,7 @@ import MentoradoTrailsNetflix from "./pages/me/MentoradoTrailsNetflix";
 import CommunityPage from "./pages/app/CommunityPage";
 import AnalyticsPage from "./pages/app/AnalyticsPage";
 import AgendaPage from "./pages/app/AgendaPage";
+import DocsPage from "./pages/app/DocsPage";
 import MentoradoCommunity from "./pages/me/MentoradoCommunity";
 import { PwaPrompts } from "./components/PwaPrompts";
 import { OfflineIndicator } from "./components/OfflineIndicator";
@@ -274,6 +275,7 @@ const App = () => (
                 <Route path="community" element={<CommunityPage />} />
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="agenda" element={<AgendaPage />} />
+                <Route path="docs" element={<DocsPage />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}
