@@ -4,9 +4,11 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import {
-   ArrowRight, Sparkles, Users, ClipboardList, Brain, BarChart3, ShieldCheck, Smartphone, Search, Database, TrendingDown,
-   Calendar, DollarSign, GraduationCap, MessageSquare, Zap, CheckCircle2, Monitor, X, Check, Activity, Eye,
-   Star, TrendingUp, Quote, Play, ChevronRight, Workflow, Target, CheckCircle, Layers, Lock, Settings2, FileText, Scale, Briefcase, CircleDollarSign, HeartHandshake,
+  ArrowRight, Sparkles, Users, ClipboardList, Brain, ShieldCheck, Smartphone,
+  Calendar, MessageSquare, Zap, CheckCircle2, Check, TrendingUp,
+  Target, Layers, FileText, QrCode, Video, BookOpen, MessagesSquare,
+  Gamepad2, ListChecks, Workflow, CreditCard, FileSignature, Palette,
+  Globe, Bot, LineChart,
 } from "lucide-react";
 import {
   Accordion,
@@ -15,492 +17,433 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
- import { LeadForm } from "@/components/landing/LeadForm";
- 
- const problemCards = [
-   { icon: Users, title: "Muito atendimento, pouco controle", desc: "Perdido entre várias ferramentas e sem visão clara." },
-   { icon: Search, title: "Diagnóstico sem padrão", desc: "Cada cliente é avaliado de um jeito diferente." },
-   { icon: Calendar, title: "Reuniões que se perdem", desc: "Sem histórico organizado do que foi conversado." },
-   { icon: TrendingDown, title: "Baixa execução do mentorado", desc: "O cliente não sabe o que fazer entre as sessões." },
-   { icon: Smartphone, title: "App fraco ou inexistente", desc: "Falta de profissionalismo na entrega digital." },
-   { icon: Layers, title: "Difícil escalar sem caos", desc: "Crescer significa mais bagunça operacional." },
- ];
- 
- const modules = [
-   { title: "Captação", icon: Target, items: ["QR Code para eventos", "Formulários", "Entrada via landing page", "Pipeline comercial"] },
-   { title: "Diagnóstico", icon: ClipboardList, items: ["Testes por segmento", "Score automático", "Relatórios detalhados", "Leitura inicial com IA"] },
-   { title: "Prontuário", icon: MessageSquare, items: ["Dores e objetivos", "Histórico completo", "Evolução do cliente", "Timeline viva"] },
-   { title: "Reuniões", icon: Calendar, items: ["Meet / Zoom", "Resumo automático", "Transcrição", "Próximos passos"] },
-   { title: "Execução", icon: TrendingUp, items: ["Tarefas e metas", "Planos de ação", "Alertas de atraso", "Acompanhamento"] },
-   { title: "App", icon: Smartphone, items: ["Agenda integrada", "Conteúdos exclusivos", "Tarefas pendentes", "Notificações push"] },
- ];
- 
- const timelineSteps = [
-   { t: "Entrada do Lead", d: "O lead entra por evento, palestra, campanha ou indicação." },
-   { t: "Diagnóstico Inicial", d: "Faz testes e diagnósticos automáticos no app." },
-   { t: "Análise Estratégica", d: "O mentor recebe análise inicial consolidada pela IA." },
-   { t: "Sessão Inteligente", d: "A reunião acontece com histórico e contexto completo." },
-   { t: "Plano de Ação", d: "Tarefas e conteúdos específicos são liberados no app." },
-   { t: "Evolução Contínua", d: "Plataforma acompanha engajamento, riscos e progresso." },
- ];
- 
- const differentials = [
-   { title: "Prontuário Inteligente", desc: "Cada mentorado com contexto completo e visão 360º.", icon: Brain },
-   { title: "IA como Suporte", desc: "Resumos, insights e sugestões de próximos passos.", icon: Sparkles },
-   { title: "App Próprio", desc: "Experiência premium para o cliente no mobile e desktop.", icon: Smartphone },
-   { title: "Biblioteca de Testes", desc: "Modelos prontos por nicho para você começar rápido.", icon: Database },
-   { title: "Funil de Conversão", desc: "Transforme eventos e palestras em mentorias pagas.", icon: Zap },
-   { title: "Escala com Método", desc: "Atenda mais clientes sem perder a qualidade do serviço.", icon: TrendingUp },
- ];
- 
- const niches = [
-   { title: "Mentor Empresarial", desc: "Vendas, liderança, processos e finanças.", icon: Briefcase },
-   { title: "Mentor Jurídico", desc: "Captação, operação e produtividade no direito.", icon: Scale },
-   { title: "Mentor Financeiro", desc: "Margem, caixa e indicadores de performance.", icon: CircleDollarSign },
-   { title: "Mentor RH", desc: "Cultura, liderança e gestão de pessoas.", icon: HeartHandshake },
- ];
- 
- const aiCapabilities = [
-   "Resumir reuniões automaticamente",
-   "Consolidar histórico de sessões",
-   "Sugerir próximos passos estratégicos",
-   "Detectar riscos de cancelamento",
-   "Apontar padrões de comportamento",
-   "Gerar visão executiva da jornada",
-   "Organizar informações dispersas",
- ];
- 
- const librarySegments = [
-   { title: "Empresarial", icon: Briefcase },
-   { title: "RH & Pessoas", icon: Users },
-   { title: "Financeiro", icon: DollarSign },
-   { title: "Jurídico", icon: Scale },
- ];
- 
- const realBenefits = [
-   { title: "Mais Clareza", desc: "Você entende cada mentorado rapidamente.", icon: Eye },
-   { title: "Mais Valor Percebido", desc: "O cliente sente o acompanhamento real.", icon: Star },
-   { title: "Mais Escala", desc: "Atenda mais sem perder o contexto.", icon: TrendingUp },
-   { title: "Mais Retenção", desc: "Motivos reais para continuar com você.", icon: Activity },
-   { title: "Mais Conversão", desc: "Leads entram melhor preparados.", icon: Zap },
-   { title: "Mais Profissionalismo", desc: "Sua operação sobe de nível imediatamente.", icon: ShieldCheck },
- ];
+import { LeadForm } from "@/components/landing/LeadForm";
 
-const stats = [
-  { v: "+128", l: "leads/semana" },
-  { v: "82", l: "testes aplicados" },
-  { v: "23.4%", l: "conversão lead→mentorado" },
-  { v: "412", l: "insights gerados" },
+const replaces = [
+  "WhatsApp",
+  "Planilhas",
+  "Calendly",
+  "Hotmart",
+  "CRM",
+  "Kahoot",
+  "Trello",
+  "Google Forms",
+];
+
+type Feature = { icon: any; title: string; desc: string };
+type Category = { name: string; features: Feature[] };
+
+const categories: Category[] = [
+  {
+    name: "Comercial",
+    features: [
+      { icon: Target, title: "Funil de Leads", desc: "Kanban configurável, conversão em mentorado com 1 clique." },
+      { icon: Calendar, title: "Agenda Pública", desc: "Estilo Calendly, sincroniza com Google Calendar." },
+      { icon: QrCode, title: "Captação & QR Code", desc: "Landing pages + QR Code para eventos presenciais." },
+    ],
+  },
+  {
+    name: "Gestão de Mentorados",
+    features: [
+      { icon: ClipboardList, title: "Prontuário 360°", desc: "Dores, objetivos, plano de ação e histórico completo." },
+      { icon: FileText, title: "Testes & Diagnósticos", desc: "Biblioteca pronta com análise por IA." },
+      { icon: Video, title: "Reuniões com IA", desc: "Pauta, transcrição, resumo e follow-ups automáticos." },
+    ],
+  },
+  {
+    name: "Conteúdo",
+    features: [
+      { icon: BookOpen, title: "Trilhas / Cursos", desc: "Área de membros estilo Netflix, com acesso por grupo." },
+      { icon: MessagesSquare, title: "Comunidade", desc: "Feed interno com posts, reações e gamificação." },
+      { icon: Gamepad2, title: "Quizzes ao Vivo", desc: "Estilo Kahoot para aulas e eventos presenciais." },
+    ],
+  },
+  {
+    name: "Operação",
+    features: [
+      { icon: Workflow, title: "Central de Demandas", desc: "Fluxo de aprovação para marketing, jurídico e financeiro." },
+      { icon: ListChecks, title: "Kanbans & Tarefas", desc: "Boards customizados vinculados a cada mentorado." },
+      { icon: Zap, title: "Automações", desc: "Gatilhos → ações, sem código." },
+    ],
+  },
+  {
+    name: "Financeiro",
+    features: [
+      { icon: CreditCard, title: "Cobranças", desc: "Recorrentes ou avulsas via Stripe, Paddle e Pix." },
+      { icon: FileSignature, title: "Contratos Digitais", desc: "Modelos com assinatura eletrônica integrada." },
+    ],
+  },
+  {
+    name: "Inteligência Artificial",
+    features: [
+      { icon: Bot, title: "Assistente IA", desc: "Treinado no contexto da sua mentoria e método." },
+      { icon: Brain, title: "Análise por IA", desc: "Insights em testes, reuniões e prontuários." },
+    ],
+  },
 ];
 
 const testimonials = [
-  { name: "Carlos Mendes", role: "Mentor de negócios", quote: "Triplicou minha conversão. A IA entrega insights que eu levaria horas pra escrever." , initial: "C" },
-  { name: "Ana Paula Silva", role: "Coach executiva", quote: "Finalmente tenho controle total — captação, agenda, cobrança e cursos num único lugar." , initial: "A" },
-  { name: "Roberto Lima", role: "Consultor estratégico", quote: "Saí de planilhas pro Mentor Glee-go. Cresci 2x em 4 meses. Indispensável." , initial: "R" },
+  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento do cliente sobre como a plataforma transformou a operação da mentoria.]", initial: "A" },
+  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento focado em ganho de tempo e centralização de ferramentas.]", initial: "B" },
+  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento sobre retenção, escala e profissionalismo.]", initial: "C" },
 ];
 
 const plans = [
   {
-    name: "Starter", price: "R$ 97", period: "/mês",
-    desc: "Pra começar profissional", highlight: false,
-    features: ["Até 50 leads", "Testes ilimitados", "1 trilha de conteúdo", "Agenda pública", "Suporte por email"],
+    name: "Starter", price: "[preço]", period: "/mês",
+    desc: "Para mentores começando a organizar a operação.",
+    features: ["Funil de leads", "Agenda pública", "Prontuário básico", "1 trilha de conteúdo", "Suporte por e-mail"],
+    highlight: false,
   },
   {
-    name: "Pro", price: "R$ 297", period: "/mês",
-    desc: "Pro mentor que escala", highlight: true,
-    features: ["Leads ilimitados", "IA personalizada", "Trilhas ilimitadas", "Cobrança recorrente Asaas", "WhatsApp + automações", "Dashboard executivo", "Suporte prioritário"],
+    name: "Pro", price: "[preço]", period: "/mês",
+    desc: "Para quem já entrega e quer escalar com método.",
+    features: ["Tudo do Starter", "IA nativa em reuniões e testes", "Trilhas ilimitadas", "Central de Demandas", "Cobranças recorrentes", "Automações e integrações"],
+    highlight: true,
   },
   {
-    name: "Enterprise", price: "Custom", period: "",
-    desc: "Times e instituições", highlight: false,
-    features: ["Multi-mentor", "API + integrações", "Branding white-label", "Onboarding dedicado", "SLA garantido"],
+    name: "White-label", price: "[preço]", period: "",
+    desc: "Marca própria, domínio próprio, sem menção à plataforma.",
+    features: ["Tudo do Pro", "Domínio + branding 100% seus", "Multi-mentor / time", "Onboarding dedicado", "SLA e suporte prioritário"],
+    highlight: false,
   },
 ];
 
 const faqs = [
-  { q: "O Mentor Glee-go serve para qualquer nicho?", a: "Sim. A estrutura é genérica e o conteúdo é 100% personalizável para atender diferentes metodologias." },
-  { q: "Posso personalizar testes e relatórios?", a: "Sim. Você pode adaptar perguntas, pesos, linguagem, categorias e o layout dos resultados." },
-  { q: "O mentorado tem app próprio?", a: "Sim. Ele acessa agenda, tarefas, conteúdos e sua evolução direto pelo celular ou navegador." },
-  { q: "A IA substitui o mentor?", a: "Não. Ela apenas apoia sua operação, automatizando resumos e insights baseados no seu método." },
-  { q: "Funciona para eventos e palestras?", a: "Sim. Leads podem entrar via QR Code e realizar testes rápidos durante seus eventos." },
+  { q: "Preciso trocar minhas ferramentas atuais?", a: "A Gleego substitui de 6 a 8 ferramentas (CRM, agenda, plataforma de cursos, comunidade, cobrança, quizzes, formulários e planilhas) em um único lugar. Você migra no seu ritmo." },
+  { q: "A área do mentorado pode ter minha marca?", a: "Sim. No plano White-label, seu mentorado acessa por um domínio seu, com sua logo, cores e nome — sem menção à Gleego." },
+  { q: "A IA substitui o mentor?", a: "Não. Ela automatiza tarefas repetitivas (resumos, follow-ups, análise de testes) para você focar no que só um mentor humano entrega." },
+  { q: "Como funcionam as cobranças?", a: "Integração nativa com Stripe, Paddle e Pix. Cobranças recorrentes, avulsas e contratos com assinatura digital." },
+  { q: "Preciso de cartão de crédito para testar?", a: "Não. O teste gratuito não exige cartão." },
 ];
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
       {/* ============ HEADER ============ */}
-       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
-         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-           <div className="flex items-center gap-2">
-             <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
-               <Sparkles className="h-5 w-5 text-white" />
-             </div>
-             <div className="font-display text-xl font-bold">Mentor Glee-go <span className="text-xs font-normal text-muted-foreground ml-1">by Mentor Glee-go</span></div>
-           </div>
-           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
-             <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
-             <a href="#para-quem" className="text-muted-foreground hover:text-foreground transition-colors">Para quem serve</a>
-             <a href="#app" className="text-muted-foreground hover:text-foreground transition-colors">App Mentorado</a>
-             <a href="#diagnosticos" className="text-muted-foreground hover:text-foreground transition-colors">Diagnósticos</a>
-             <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
-             <a href="#demonstracao" className="text-muted-foreground hover:text-foreground transition-colors">Demonstração</a>
-           </nav>
-           <div className="flex items-center gap-2">
-             <ThemeToggle />
-             <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
-             <a href="#demonstracao"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Agendar Demonstração</Button></a>
-           </div>
-         </div>
-       </header>
+      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
+              <Sparkles className="h-5 w-5 text-primary-foreground" />
+            </div>
+            <div className="font-display text-xl font-bold">Gleego</div>
+          </div>
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
+            <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+            <a href="#whitelabel" className="text-muted-foreground hover:text-foreground transition-colors">White-label</a>
+            <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Clientes</a>
+            <a href="#planos" className="text-muted-foreground hover:text-foreground transition-colors">Planos</a>
+            <a href="#faq" className="text-muted-foreground hover:text-foreground transition-colors">FAQ</a>
+          </nav>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
+            <a href="#cta"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Testar Grátis</Button></a>
+          </div>
+        </div>
+      </header>
 
       {/* ============ HERO ============ */}
-       {/* ============ HERO ============ */}
-       <section className="relative overflow-hidden bg-gradient-hero border-b border-border/40">
-         <div className="absolute inset-0 bg-grid opacity-20" />
-         <div className="absolute inset-0 bg-gradient-mesh" />
-         <div className="blob bg-primary/20 h-[600px] w-[600px] -top-80 -left-80" />
-         <div className="blob bg-accent/15 h-[500px] w-[500px] bottom-0 -right-40" />
-         
-         <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-32 grid md:grid-cols-2 gap-12 items-center">
-           <div className="animate-fade-in">
-             <Badge variant="outline" className="mb-6 bg-primary/5 border-primary/20 text-primary">Infraestrutura digital para mentores</Badge>
-             <h1 className="font-display text-5xl md:text-7xl font-bold leading-[1.05] mb-6">
-               Transforme sua mentoria em uma operação <span className="text-gradient">organizada, escalável e inteligente</span>
-             </h1>
-             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
-               Com o Mentor Glee-go, você reúne mentorados, diagnósticos, reuniões, prontuário estratégico, app próprio e IA de suporte em uma única plataforma.
-             </p>
-             <div className="flex flex-wrap gap-3 mb-8">
-               <a href="#demonstracao">
-                 <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow h-12 px-8 group font-bold">
-                   Quero Ver uma Demonstração <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
-                 </Button>
-               </a>
-               <Button size="lg" variant="outline" className="h-12 px-8 font-semibold">Falar com Especialista</Button>
-             </div>
-             <div className="flex flex-wrap gap-4 text-sm text-muted-foreground font-medium">
-               {["App para mentorados", "Testes e diagnósticos", "Reuniões com histórico", "IA Aplicada"].map((t) => (
-                 <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> {t}</span>
-               ))}
-             </div>
-           </div>
-           <div className="relative animate-scale-in anim-delay-200">
-             <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full" />
-             <Card className="relative overflow-hidden shadow-elegant border-primary/20 p-2 glass-card">
-                <img src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800" alt="Mentor Glee-go Dashboard" className="rounded-lg shadow-2xl" />
-             </Card>
-           </div>
-         </div>
-       </section>
+      <section className="relative overflow-hidden bg-gradient-hero border-b border-border/40">
+        <div className="absolute inset-0 bg-grid opacity-20" />
+        <div className="absolute inset-0 bg-gradient-mesh" />
+        <div className="blob bg-primary/20 h-[600px] w-[600px] -top-80 -left-80" />
+        <div className="blob bg-accent/15 h-[500px] w-[500px] bottom-0 -right-40" />
 
-       {/* ============ PROBLEM ============ */}
-       <section className="py-24 bg-muted/30">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quando a mentoria cresce, a operação começa a travar</h2>
-             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">Muitos mentores entregam valor, mas operam no improviso, o que limita o crescimento e a percepção de valor.</p>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {problemCards.map((card, i) => (
-               <Card key={i} className="p-6 glass-card border-destructive/10 hover:border-destructive/30 transition-colors animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
-                 <div className="h-12 w-12 rounded-xl bg-destructive/5 flex items-center justify-center mb-4">
-                   <card.icon className="h-6 w-6 text-destructive/70" />
-                 </div>
-                 <h3 className="font-bold text-lg mb-2">{card.title}</h3>
-                 <p className="text-sm text-muted-foreground">{card.desc}</p>
-               </Card>
-             ))}
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ SOLUTION ============ */}
-       <section id="recursos" className="py-24 relative overflow-hidden">
-         <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full" />
-         <div className="max-w-7xl mx-auto px-6 relative">
-           <div className="text-center mb-16">
-             <Badge variant="outline" className="mb-4">Módulos Mentor Glee-go</Badge>
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O Mentor Glee-go centraliza toda a operação</h2>
-             <p className="text-muted-foreground text-lg">Da entrada do lead até a evolução do mentorado, tudo conectado em um único sistema.</p>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {modules.map((m, i) => (
-               <Card key={i} className="p-6 glass-card glass-card-hover border-primary/10">
-                 <div className="flex items-center gap-3 mb-4">
-                   <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                     <m.icon className="h-5 w-5 text-primary" />
-                   </div>
-                   <h3 className="font-bold text-xl">{m.title}</h3>
-                 </div>
-                 <ul className="space-y-2">
-                   {m.items.map((item, idx) => (
-                     <li key={idx} className="flex items-center gap-2 text-sm text-muted-foreground">
-                       <CheckCircle2 className="h-4 w-4 text-primary/60 shrink-0" />
-                       {item}
-                     </li>
-                   ))}
-                 </ul>
-               </Card>
-             ))}
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ LEAD FORM 1 ============ */}
-       <section id="diagnosticos" className="py-24 bg-gradient-to-b from-background to-muted/30">
-          <div className="max-w-7xl mx-auto px-6">
+        <div className="relative max-w-7xl mx-auto px-6 py-20 md:py-28 grid lg:grid-cols-2 gap-12 items-center">
+          <div className="animate-fade-in">
+            <Badge variant="outline" className="mb-6 bg-primary/5 border-primary/20 text-primary">
+              Plataforma tudo-em-um para mentoria
+            </Badge>
+            <h1 className="font-display text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6">
+              Uma única plataforma no lugar de <span className="text-gradient">8 ferramentas</span> soltas.
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl leading-relaxed">
+              CRM de leads, prontuário de mentorados, cursos, cobranças, IA e comunidade — integrados em um sistema white-label com a sua marca.
+            </p>
+            <div className="flex flex-wrap gap-3 mb-8">
+              <a href="#cta">
+                <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow h-12 px-8 group font-bold">
+                  Testar Grátis <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </Button>
+              </a>
+              <a href="#cta">
+                <Button size="lg" variant="outline" className="h-12 px-8 font-semibold">
+                  Agendar Demonstração
+                </Button>
+              </a>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground font-medium">
+              {["Sem cartão de crédito", "Setup em minutos", "Suporte em português"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> {t}</span>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative animate-scale-in anim-delay-200">
+            <div className="absolute -inset-4 bg-primary/20 blur-3xl rounded-full" />
+            <Card className="relative overflow-hidden shadow-elegant border-primary/20 p-2 glass-card">
+              <img
+                src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
+                alt="Dashboard Gleego"
+                className="rounded-lg shadow-2xl w-full"
+                loading="lazy"
+              />
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PROBLEMA → SOLUÇÃO ============ */}
+      <section className="py-20 bg-muted/30 border-b border-border/40">
+        <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <Badge variant="outline" className="mb-4 border-destructive/30 text-destructive bg-destructive/5">O problema</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              Seu WhatsApp, planilha, Calendly, Hotmart e CRM não conversam entre si.
+            </h2>
+            <p className="text-muted-foreground text-lg mb-6">
+              Cada ferramenta guarda um pedaço da história do mentorado. Você perde tempo copiando dados, perde contexto nas reuniões e perde vendas por falta de follow-up.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {replaces.map((r) => (
+                <span key={r} className="text-xs font-medium px-3 py-1 rounded-full border border-border bg-background text-muted-foreground line-through">
+                  {r}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">A solução</Badge>
+            <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
+              A <span className="text-gradient">Gleego</span> centraliza tudo — com IA nativa.
+            </h2>
+            <p className="text-muted-foreground text-lg mb-6">
+              Um único sistema para captar leads, atender mentorados, entregar conteúdo, cobrar e analisar resultados. A IA cuida da parte repetitiva; você foca na mentoria.
+            </p>
+            <ul className="space-y-3">
+              {["Um único login para todo o time", "Contexto completo de cada mentorado", "IA nativa em reuniões, testes e prontuários", "Marca própria (white-label)"].map((i) => (
+                <li key={i} className="flex items-start gap-2 font-medium">
+                  <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" /> {i}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ FEATURES ============ */}
+      <section id="recursos" className="py-24 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-primary/5 blur-[120px] rounded-full" />
+        <div className="max-w-7xl mx-auto px-6 relative">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Tudo em um só lugar</Badge>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+              Todos os módulos que sua mentoria precisa
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Da entrada do lead à cobrança recorrente — passando por conteúdo, comunidade e IA.
+            </p>
+          </div>
+
+          <div className="space-y-14">
+            {categories.map((cat) => (
+              <div key={cat.name}>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="h-px flex-1 bg-border" />
+                  <h3 className="font-display text-xl md:text-2xl font-bold text-primary">{cat.name}</h3>
+                  <div className="h-px flex-1 bg-border" />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                  {cat.features.map((f) => (
+                    <Card key={f.title} className="p-6 glass-card glass-card-hover border-primary/10 group">
+                      <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/15 transition-colors">
+                        <f.icon className="h-5 w-5 text-primary" />
+                      </div>
+                      <h4 className="font-bold text-lg mb-2">{f.title}</h4>
+                      <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ WHITE-LABEL ============ */}
+      <section id="whitelabel" className="py-24 relative overflow-hidden bg-gradient-to-br from-primary/95 via-primary to-primary/80 text-primary-foreground">
+        <div className="absolute inset-0 bg-grid opacity-10" />
+        <div className="relative max-w-6xl mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            <Badge className="mb-6 bg-primary-foreground/10 text-primary-foreground border-primary-foreground/20 hover:bg-primary-foreground/10">
+              <Palette className="h-3 w-3 mr-1" /> White-label
+            </Badge>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
+              A área do mentorado é 100% sua.
+            </h2>
+            <p className="text-lg opacity-90 mb-8">
+              Domínio próprio, logo, cores e nome do produto. O mentorado nunca vê a marca da plataforma — só a sua. Ideal para escolas, agências e mentores que vendem experiência premium.
+            </p>
+            <div className="grid sm:grid-cols-2 gap-4">
+              {[
+                { icon: Globe, t: "Domínio próprio" },
+                { icon: Palette, t: "Logo e paleta de cores" },
+                { icon: Smartphone, t: "PWA instalável com sua marca" },
+                { icon: ShieldCheck, t: "Sem menção à Gleego" },
+              ].map((item) => (
+                <div key={item.t} className="flex items-center gap-3 p-3 rounded-lg bg-primary-foreground/10 border border-primary-foreground/15">
+                  <item.icon className="h-5 w-5 shrink-0" />
+                  <span className="font-medium">{item.t}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="relative">
+            <div className="absolute -inset-10 bg-primary-foreground/20 blur-3xl rounded-full" />
+            <Card className="relative p-6 bg-background text-foreground shadow-2xl border-primary-foreground/20">
+              <div className="flex items-center gap-2 pb-3 border-b border-border mb-4">
+                <div className="h-2.5 w-2.5 rounded-full bg-destructive/60" />
+                <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
+                <div className="h-2.5 w-2.5 rounded-full bg-primary/60" />
+                <div className="ml-3 text-xs text-muted-foreground font-mono">app.suamarca.com.br</div>
+              </div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="h-10 w-10 rounded-lg bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground">S</div>
+                <div>
+                  <div className="font-bold">Sua Marca</div>
+                  <div className="text-xs text-muted-foreground">Bem-vindo(a), João</div>
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {["Trilhas", "Reuniões", "Comunidade"].map((t) => (
+                  <div key={t} className="p-3 rounded-lg bg-muted text-center text-xs font-semibold">{t}</div>
+                ))}
+              </div>
+              <div className="p-4 rounded-lg border border-border">
+                <div className="text-xs text-muted-foreground mb-1">Próxima reunião</div>
+                <div className="font-bold text-sm">Estratégia comercial — Ter, 14h</div>
+              </div>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PROVA SOCIAL ============ */}
+      <section id="depoimentos" className="py-24 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quem já opera com a Gleego</h2>
+            <p className="text-muted-foreground text-lg">Depoimentos de mentores, coaches e escolas de treinamento.</p>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center mb-16 opacity-70">
+            {["[Logo 1]", "[Logo 2]", "[Logo 3]", "[Logo 4]", "[Logo 5]", "[Logo 6]"].map((l) => (
+              <div key={l} className="text-sm font-mono text-muted-foreground border border-dashed border-border rounded-md px-4 py-3 w-full text-center">
+                {l}
+              </div>
+            ))}
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((t, i) => (
+              <Card key={i} className="p-6 glass-card border-primary/10">
+                <p className="text-sm leading-relaxed mb-6 italic">"{t.quote}"</p>
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground">
+                    {t.initial}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ PLANOS ============ */}
+      <section id="planos" className="py-24">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <Badge variant="outline" className="mb-4">Planos</Badge>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Comece grátis. Escale quando quiser.</h2>
+            <p className="text-muted-foreground text-lg">Sem cartão de crédito no teste. Cancele a qualquer momento.</p>
+          </div>
+          <div className="grid md:grid-cols-3 gap-6">
+            {plans.map((p) => (
+              <Card
+                key={p.name}
+                className={`p-8 relative flex flex-col ${p.highlight ? "border-primary shadow-glow scale-[1.02] bg-gradient-to-b from-primary/5 to-transparent" : "glass-card"}`}
+              >
+                {p.highlight && (
+                  <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground shadow-glow">Mais popular</Badge>
+                )}
+                <div className="font-display text-xl font-bold mb-1">{p.name}</div>
+                <p className="text-sm text-muted-foreground mb-6">{p.desc}</p>
+                <div className="mb-6">
+                  <span className="font-display text-4xl font-bold">{p.price}</span>
+                  <span className="text-muted-foreground">{p.period}</span>
+                </div>
+                <ul className="space-y-3 mb-8 flex-1">
+                  {p.features.map((f) => (
+                    <li key={f} className="flex items-start gap-2 text-sm">
+                      <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" /> {f}
+                    </li>
+                  ))}
+                </ul>
+                <a href="#cta">
+                  <Button
+                    className={`w-full ${p.highlight ? "bg-gradient-primary hover:opacity-90 shadow-glow" : ""}`}
+                    variant={p.highlight ? "default" : "outline"}
+                  >
+                    {p.name === "White-label" ? "Falar com vendas" : "Começar agora"}
+                  </Button>
+                </a>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ============ CTA FINAL ============ */}
+      <section id="cta" className="relative py-24 overflow-hidden bg-gradient-to-br from-background via-muted/30 to-background border-y border-border">
+        <div className="absolute inset-0 bg-grid opacity-10" />
+        <div className="relative max-w-4xl mx-auto px-6 text-center">
+          <Badge variant="outline" className="mb-6 bg-primary/5 border-primary/20 text-primary">
+            <LineChart className="h-3 w-3 mr-1" /> Comece grátis, sem cartão de crédito
+          </Badge>
+          <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
+            Pronto para operar sua mentoria como uma <span className="text-gradient">empresa de verdade</span>?
+          </h2>
+          <p className="text-lg text-muted-foreground mb-10">
+            Deixe seus dados e um especialista mostra como a Gleego se encaixa na sua operação.
+          </p>
+          <div className="max-w-xl mx-auto">
             <LeadForm />
           </div>
-       </section>
+        </div>
+      </section>
 
-       {/* ============ HOW IT WORKS ============ */}
-       <section className="py-24 bg-background">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Da entrada do prospect à evolução do mentorado</h2>
-           </div>
-           <div className="relative">
-             <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent -translate-y-1/2" />
-             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-8">
-               {timelineSteps.map((step, i) => (
-                 <div key={i} className="relative z-10 text-center animate-slide-up" style={{ animationDelay: `${i * 100}ms` }}>
-                   <div className="h-12 w-12 rounded-full bg-primary text-white flex items-center justify-center mx-auto mb-4 font-bold shadow-glow">
-                     {i + 1}
-                   </div>
-                   <h3 className="font-bold text-sm mb-2">{step.t}</h3>
-                   <p className="text-xs text-muted-foreground">{step.d}</p>
-                 </div>
-               ))}
-             </div>
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ DIFFERENTIALS ============ */}
-       <section className="py-24 bg-muted/30">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Mais do que agenda. Mais do que CRM.</h2>
-             <p className="text-muted-foreground text-lg">Diferenciais que tornam o Mentor Glee-go único.</p>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-             {differentials.map((diff, i) => (
-               <div key={i} className="p-8 rounded-2xl bg-background border border-border/50 shadow-sm hover:shadow-md transition-shadow">
-                 <diff.icon className="h-10 w-10 text-primary mb-6" />
-                 <h3 className="font-bold text-xl mb-3">{diff.title}</h3>
-                 <p className="text-muted-foreground">{diff.desc}</p>
-               </div>
-             ))}
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ PERSONALIZATION ============ */}
-       <section id="para-quem" className="py-24">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="grid lg:grid-cols-2 gap-12 items-center">
-             <div>
-               <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">A estrutura é escalável. A metodologia continua sendo sua.</h2>
-               <p className="text-lg text-muted-foreground mb-8">O Mentor Glee-go atende diferentes nichos porque a base do sistema é sólida e o conteúdo é personalizável. Você adapta tudo ao seu método.</p>
-               <div className="grid grid-cols-2 gap-4 mb-8">
-                 {["Linguagem", "Testes", "Categorias", "Prompts da IA", "Score", "Relatórios"].map(item => (
-                   <div key={item} className="flex items-center gap-2 font-medium">
-                     <CheckCircle2 className="h-5 w-5 text-primary" /> {item}
-                   </div>
-                 ))}
-               </div>
-               <p className="p-4 rounded-lg bg-primary/5 border border-primary/10 font-medium italic">
-                 "Seu método continua sendo o diferencial. A tecnologia potencializa."
-               </p>
-             </div>
-             <div className="grid grid-cols-2 gap-4">
-               {niches.map((niche, i) => (
-                 <Card key={i} className="p-6 text-center glass-card border-primary/5 group hover:border-primary/20 transition-colors">
-                   <niche.icon className="h-10 w-10 text-primary/70 mx-auto mb-4 group-hover:scale-110 transition-transform" />
-                   <h4 className="font-bold mb-2">{niche.title}</h4>
-                   <p className="text-xs text-muted-foreground">{niche.desc}</p>
-                 </Card>
-               ))}
-             </div>
-           </div>
-         </div>
-       </section>
-
-       {/* ============ APP ============ */}
-       <section id="app" className="py-24 bg-gradient-to-r from-primary to-primary/80 text-white overflow-hidden relative">
-         <div className="absolute inset-0 bg-grid opacity-10" />
-         <div className="max-w-7xl mx-auto px-6 relative flex flex-col lg:flex-row gap-12 items-center">
-           <div className="lg:w-1/2">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">Seu mentorado não recebe só conteúdo. Ele acompanha a própria evolução.</h2>
-             <p className="text-xl text-white/80 mb-8">No app o mentorado acessa agenda, tarefas, conteúdos e todo o seu progresso em tempo real.</p>
-             <div className="grid grid-cols-2 gap-y-4">
-               {["Próximas reuniões", "Tarefas da semana", "Testes liberados", "Trilhas de conteúdo", "Progresso visual", "Histórico completo"].map(item => (
-                 <div key={item} className="flex items-center gap-2">
-                   <Check className="h-5 w-5 bg-white/20 rounded-full p-1" /> {item}
-                 </div>
-               ))}
-             </div>
-             <p className="mt-8 text-sm font-medium bg-white/10 p-3 rounded-lg border border-white/20 inline-block">
-               Até prospects podem entrar no app antes de fechar a mentoria.
-             </p>
-           </div>
-           <div className="lg:w-1/2 relative">
-             <div className="absolute -inset-10 bg-white/20 blur-3xl rounded-full" />
-             <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&q=80&w=400" alt="App Mockup" className="relative mx-auto w-64 md:w-80 rounded-[3rem] border-[8px] border-white/10 shadow-2xl" />
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ IA ============ */}
-       <section id="ia" className="py-24 relative overflow-hidden">
-         <div className="absolute left-0 bottom-0 w-1/2 h-1/2 bg-accent/5 blur-[120px] rounded-full" />
-         <div className="max-w-7xl mx-auto px-6 relative">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4 flex items-center justify-center gap-3">
-               IA como suporte, não substituição <Brain className="h-10 w-10 text-primary animate-pulse" />
-             </h2>
-             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">A inteligência artificial apoia sua operação sem substituir sua experiência humana e metodologia.</p>
-           </div>
-           <div className="grid md:grid-cols-2 gap-12 items-center">
-             <Card className="p-8 glass-card border-primary/20">
-               <h3 className="font-bold text-2xl mb-6">O que a IA faz por você:</h3>
-               <div className="space-y-4">
-                 {aiCapabilities.map((cap, i) => (
-                   <div key={i} className="flex items-start gap-3">
-                     <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                     <p className="font-medium">{cap}</p>
-                   </div>
-                 ))}
-               </div>
-               <p className="mt-8 text-sm text-center font-bold text-primary">A metodologia continua humana. A eficiência ganha escala.</p>
-             </Card>
-             <div className="space-y-6">
-               <div className="p-6 bg-muted rounded-2xl border border-border relative">
-                 <div className="flex items-center gap-2 mb-3 text-primary font-bold">
-                   <Brain className="h-4 w-4" /> Insight da IA
-                 </div>
-                 <p className="italic text-muted-foreground">"Baseado na última sessão, o mentorado João Silva apresenta um padrão de procrastinação na etapa de finanças. Sugestão: Liberar trilha de Mindset Financeiro."</p>
-               </div>
-               <div className="p-6 bg-primary/5 rounded-2xl border border-primary/10">
-                 <p className="font-bold mb-2">Resumo da Reunião</p>
-                 <div className="h-2 w-full bg-primary/20 rounded-full mb-2 overflow-hidden">
-                   <div className="h-full bg-primary w-[70%]" />
-                 </div>
-                 <p className="text-xs text-muted-foreground">Transcrição e análise estratégica concluída com sucesso.</p>
-               </div>
-             </div>
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ LIBRARY ============ */}
-       <section className="py-24 bg-muted/30">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Comece com diagnósticos prontos</h2>
-             <p className="text-muted-foreground text-lg">Adapte os modelos existentes ao seu método ou crie do zero.</p>
-           </div>
-           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-12">
-             {librarySegments.map((seg, i) => (
-               <div key={i} className="p-6 text-center bg-background rounded-xl border border-border shadow-sm">
-                 <seg.icon className="h-8 w-8 text-primary mx-auto mb-3" />
-                 <h4 className="font-bold">{seg.title}</h4>
-               </div>
-             ))}
-           </div>
-           <div className="grid md:grid-cols-2 gap-8 text-sm">
-             <div className="space-y-3">
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Duplicar modelos prontos</div>
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Editar todas as perguntas</div>
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Alterar pesos dos resultados</div>
-             </div>
-             <div className="space-y-3">
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Mudar linguagem e tom</div>
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Personalizar relatórios finais</div>
-               <div className="flex items-center gap-2 font-medium"><CheckCircle2 className="h-4 w-4 text-primary" /> Salvar como modelo próprio</div>
-             </div>
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ BENEFITS ============ */}
-       <section className="py-24">
-         <div className="max-w-7xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">O que muda quando a mentoria deixa de ser improvisada</h2>
-           </div>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {realBenefits.map((b, i) => (
-               <Card key={i} className="p-6 glass-card border-primary/5 hover:border-primary/20">
-                 <b.icon className="h-10 w-10 text-primary mb-4" />
-                 <h3 className="font-bold text-lg mb-2">{b.title}</h3>
-                 <p className="text-sm text-muted-foreground">{b.desc}</p>
-               </Card>
-             ))}
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ COMPARISON ============ */}
-       <section className="py-24 bg-muted/50">
-         <div className="max-w-5xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Antes e depois do Mentor Glee-go</h2>
-           </div>
-           <div className="grid md:grid-cols-2 gap-0 rounded-3xl overflow-hidden border border-border shadow-2xl">
-             <div className="p-8 md:p-12 bg-destructive/5">
-               <h3 className="font-bold text-2xl mb-8 flex items-center gap-2 text-destructive"><X className="h-6 w-6" /> Antes</h3>
-               <ul className="space-y-4">
-                 {["WhatsApp solto", "Planilhas paralelas", "Reuniões sem histórico", "Testes desorganizados", "Pouca visão da jornada", "Cancelamentos inesperados"].map(item => (
-                   <li key={item} className="flex items-center gap-3 text-muted-foreground">
-                     <div className="h-1.5 w-1.5 rounded-full bg-destructive/30" /> {item}
-                   </li>
-                 ))}
-               </ul>
-             </div>
-             <div className="p-8 md:p-12 bg-primary/5">
-               <h3 className="font-bold text-2xl mb-8 flex items-center gap-2 text-primary"><Check className="h-6 w-6" /> Depois</h3>
-               <ul className="space-y-4 font-medium">
-                 {["Operação centralizada", "Prontuário vivo", "Reuniões organizadas", "Testes com método", "App ativo", "IA apoiando evolução", "Mais retenção"].map(item => (
-                   <li key={item} className="flex items-center gap-3">
-                     <CheckCircle2 className="h-5 w-5 text-primary shrink-0" /> {item}
-                   </li>
-                 ))}
-               </ul>
-             </div>
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ CTA FINAL ============ */}
-       <section id="demonstracao" className="relative py-24 md:py-32 overflow-hidden bg-primary text-white">
-         <div className="absolute inset-0 bg-grid opacity-20" />
-         <div className="relative max-w-4xl mx-auto px-6 text-center">
-           <h2 className="font-display text-4xl md:text-6xl font-bold mb-6">Se sua mentoria cresceu, sua estrutura também precisa crescer.</h2>
-           <p className="text-xl text-white/80 mb-12">O Mentor Glee-go foi criado para mentores que querem sair do improviso e operar com método, contexto e escala.</p>
-           <LeadForm />
-           <div className="mt-12 flex flex-wrap gap-4 justify-center">
-             <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 h-14 px-8 font-bold">Falar com Especialista</Button>
-           </div>
-         </div>
-       </section>
- 
-       {/* ============ FAQ ============ */}
-       <section className="py-24">
-         <div className="max-w-3xl mx-auto px-6">
-           <div className="text-center mb-16">
-             <h2 className="font-display text-4xl md:text-5xl font-bold">Tudo que você precisa saber</h2>
-           </div>
-           <Accordion type="single" collapsible className="space-y-4">
-             {faqs.map((faq, i) => (
-               <AccordionItem key={i} value={`item-${i}`} className="border rounded-xl px-6 bg-muted/20">
-                 <AccordionTrigger className="font-bold text-left py-6">{faq.q}</AccordionTrigger>
-                 <AccordionContent className="pb-6 text-muted-foreground">{faq.a}</AccordionContent>
-               </AccordionItem>
-             ))}
-           </Accordion>
-         </div>
-       </section>
+      {/* ============ FAQ ============ */}
+      <section id="faq" className="py-24">
+        <div className="max-w-3xl mx-auto px-6">
+          <div className="text-center mb-14">
+            <h2 className="font-display text-4xl md:text-5xl font-bold">Perguntas frequentes</h2>
+          </div>
+          <Accordion type="single" collapsible className="space-y-4">
+            {faqs.map((faq, i) => (
+              <AccordionItem key={i} value={`item-${i}`} className="border rounded-xl px-6 bg-muted/20">
+                <AccordionTrigger className="font-bold text-left py-6">{faq.q}</AccordionTrigger>
+                <AccordionContent className="pb-6 text-muted-foreground">{faq.a}</AccordionContent>
+              </AccordionItem>
+            ))}
+          </Accordion>
+        </div>
+      </section>
 
       {/* ============ FOOTER ============ */}
       <footer className="py-12 border-t border-border bg-muted/20">
@@ -508,35 +451,41 @@ export default function Landing() {
           <div className="grid md:grid-cols-4 gap-8 mb-8">
             <div>
               <div className="flex items-center gap-2 mb-3">
-                <div className="font-display font-bold text-xl">Mentor Glee-go</div>
+                <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
+                  <Sparkles className="h-4 w-4 text-primary-foreground" />
+                </div>
+                <div className="font-display font-bold text-xl">Gleego</div>
               </div>
-              <p className="text-sm text-muted-foreground">A infraestrutura digital definitiva para quem leva mentoria a sério.</p>
+              <p className="text-sm text-muted-foreground">
+                Plataforma tudo-em-um de gestão de mentoria. Uma marca. Um sistema. Zero ferramenta solta.
+              </p>
             </div>
             <div>
               <div className="font-semibold text-sm mb-3">Produto</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#recursos" className="hover:text-foreground">Recursos</a></li>
-                <li><a href="#app" className="hover:text-foreground">App Mentorado</a></li>
-                <li><a href="#ia" className="hover:text-foreground">IA</a></li>
+                <li><a href="#whitelabel" className="hover:text-foreground">White-label</a></li>
+                <li><a href="#planos" className="hover:text-foreground">Planos</a></li>
               </ul>
             </div>
             <div>
               <div className="font-semibold text-sm mb-3">Empresa</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Sobre</a></li>
-                <li><a href="#" className="hover:text-foreground">Contato</a></li>
+                <li><a href="#depoimentos" className="hover:text-foreground">Clientes</a></li>
+                <li><a href="#cta" className="hover:text-foreground">Contato</a></li>
+                <li><a href="#faq" className="hover:text-foreground">FAQ</a></li>
               </ul>
             </div>
             <div>
               <div className="font-semibold text-sm mb-3">Legal</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li><a href="#" className="hover:text-foreground">Termos</a></li>
-                <li><a href="#" className="hover:text-foreground">Privacidade</a></li>
+                <li><Link to="/terms" className="hover:text-foreground">Termos</Link></li>
+                <li><Link to="/privacy" className="hover:text-foreground">Privacidade</Link></li>
               </ul>
             </div>
           </div>
           <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Mentor Glee-go by Mentor Glee-go — Mentoria Inteligente
+            © {new Date().getFullYear()} Gleego — Plataforma de gestão de mentoria.
           </div>
         </div>
       </footer>
