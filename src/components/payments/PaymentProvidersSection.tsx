@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle } from "lucide-react";
+import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle, Copy, Webhook } from "lucide-react";
 import { toast } from "sonner";
 
 interface Provider {
@@ -19,6 +19,7 @@ interface Provider {
   hasApiKey: boolean;
   manualInstructions?: string;
   manualCheckoutUrl?: string;
+  metadata?: { webhookToken?: string } | null;
 }
 
 const PROVIDER_LABELS: Record<string, string> = {
@@ -79,6 +80,12 @@ export default function PaymentProvidersSection() {
     load();
   }
 
+  function copy(text: string, label = "Copiado") {
+    navigator.clipboard.writeText(text).then(() => toast.success(label));
+  }
+
+  const webhookUrl = `${window.location.origin}/api/public/event-payments/webhook/asaas`;
+
   if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
 
   return (
@@ -125,6 +132,44 @@ export default function PaymentProvidersSection() {
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
+              {p.type === "asaas" && p.metadata?.webhookToken && (
+                <div className="mt-2 rounded-lg border border-border/60 bg-background/50 p-3 space-y-2 text-xs">
+                  <div className="flex items-center gap-1.5 font-semibold text-primary">
+                    <Webhook className="h-3.5 w-3.5" /> Webhook do Asaas (obrigatório)
+                  </div>
+                  <p className="text-muted-foreground leading-relaxed">
+                    Para que as vendas sejam confirmadas automaticamente, cadastre este webhook na sua conta Asaas em
+                    <b> Configurações → Integrações → Notificações via webhook</b>.
+                  </p>
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-0.5">URL do webhook</div>
+                    <div className="flex gap-1">
+                      <code className="flex-1 bg-muted/40 rounded px-2 py-1 break-all text-[11px]">{webhookUrl}</code>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(webhookUrl, "URL copiada")}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-[10px] text-muted-foreground mb-0.5">Token de autenticação</div>
+                    <div className="flex gap-1">
+                      <code className="flex-1 bg-muted/40 rounded px-2 py-1 break-all text-[11px]">{p.metadata.webhookToken}</code>
+                      <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(p.metadata!.webhookToken!, "Token copiado")}>
+                        <Copy className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                  <ol className="list-decimal list-inside space-y-0.5 text-muted-foreground pl-1 pt-1">
+                    <li>Abra o painel Asaas → <b>Configurações → Integrações → Webhooks</b>.</li>
+                    <li>Clique em <b>Adicionar webhook</b>.</li>
+                    <li>Cole a <b>URL</b> acima no campo "URL".</li>
+                    <li>Cole o <b>Token</b> acima no campo "Token de autenticação".</li>
+                    <li>Versão da API: <b>v3</b>. Envio: <b>Sequencial</b>.</li>
+                    <li>Eventos: marque <b>PAYMENT_CONFIRMED, PAYMENT_RECEIVED, PAYMENT_REFUNDED, PAYMENT_DELETED</b>.</li>
+                    <li>Salve. Pronto — as inscrições serão confirmadas automaticamente ao receber o pagamento.</li>
+                  </ol>
+                </div>
+              )}
             </div>
           ))}
         </div>
