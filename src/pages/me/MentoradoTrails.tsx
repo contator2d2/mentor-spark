@@ -47,7 +47,7 @@ export function MentoradoTrailsList() {
   return (
     <div className="space-y-4">
       <h1 className="text-2xl font-display font-bold flex items-center gap-2">
-        <GraduationCap className="h-6 w-6 text-primary" /> Minhas Trilhas
+        <GraduationCap className="h-6 w-6 text-primary" /> Minha Academy
       </h1>
       <div className="grid gap-3">
         {trails.map(t => {
@@ -73,7 +73,7 @@ export function MentoradoTrailsList() {
                 <div className="p-3 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <div className="font-semibold truncate">{t.title}</div>
-                    {locked && <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Bloqueada</Badge>}
+                    {locked && <Badge variant="outline" className="text-[10px] border-warning/40 text-warning">Bloqueado</Badge>}
                   </div>
                   <div className="text-xs text-muted-foreground line-clamp-1">{locked ? t.accessMessage : t.description}</div>
                   <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -100,12 +100,12 @@ export function MentoradoTrailsList() {
             </Card>
           );
         })}
-        {trails.length === 0 && <Card className="p-8 text-center text-muted-foreground">Nenhuma trilha disponível ainda.</Card>}
+        {trails.length === 0 && <Card className="p-8 text-center text-muted-foreground">Nenhum curso disponível ainda.</Card>}
       </div>
 
       <Dialog open={!!reqOpen} onOpenChange={(o) => { if (!o) { setReqOpen(null); setReqMsg(""); } }}>
         <DialogContent>
-          <DialogHeader><DialogTitle>{reqOpen?.cta?.kind === "pay" ? "Desbloquear trilha" : "Solicitar acesso"}</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{reqOpen?.cta?.kind === "pay" ? "Desbloquear curso" : "Solicitar acesso"}</DialogTitle></DialogHeader>
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground">{reqOpen?.title}</div>
             {reqOpen?.cta?.kind === "pay" && (
@@ -113,7 +113,7 @@ export function MentoradoTrailsList() {
             )}
             <div>
               <label className="text-xs text-muted-foreground">Mensagem ao mentor (opcional)</label>
-              <Textarea value={reqMsg} onChange={(e) => setReqMsg(e.target.value)} placeholder="Por que você quer essa trilha?" />
+              <Textarea value={reqMsg} onChange={(e) => setReqMsg(e.target.value)} placeholder="Por que você quer esse curso?" />
             </div>
           </div>
           <DialogFooter>
@@ -160,7 +160,7 @@ export default function MentoradoTrailPlayer() {
         <Card className="p-8 text-center bg-gradient-to-br from-primary/10 to-accent/10 border-primary">
           <Award className="h-20 w-20 mx-auto text-primary mb-4" />
           <h2 className="text-3xl font-display font-bold">Certificado de Conclusão</h2>
-          <p className="text-muted-foreground mt-2">Concedido por completar a trilha</p>
+          <p className="text-muted-foreground mt-2">Concedido por completar o curso</p>
           <div className="text-2xl font-bold my-4">{cert.trail.title}</div>
           <div className="text-sm text-muted-foreground">Emitido em {new Date(cert.issuedAt).toLocaleDateString("pt-BR")}</div>
           <div className="text-xs font-mono mt-2 bg-muted px-2 py-1 rounded inline-block">{cert.verificationCode}</div>
@@ -172,7 +172,7 @@ export default function MentoradoTrailPlayer() {
 
   return (
     <div className="space-y-4">
-      <Button variant="ghost" size="sm" onClick={() => navigate("/me/trails")}><ChevronLeft className="h-4 w-4 mr-1" />Trilhas</Button>
+      <Button variant="ghost" size="sm" onClick={() => navigate("/me/trails")}><ChevronLeft className="h-4 w-4 mr-1" />Academy</Button>
 
       <Card className="overflow-hidden">
         <div className="h-32 bg-gradient-to-br from-primary/30 to-accent/30">
