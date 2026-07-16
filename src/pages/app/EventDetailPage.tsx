@@ -315,6 +315,10 @@ export default function EventDetailPage() {
           )}
         </TabsContent>
 
+        <TabsContent value="coupons" className="space-y-2">
+          {event && <EventCouponsSection eventId={event.id} />}
+        </TabsContent>
+
         <TabsContent value="history" className="space-y-2">
           {actions.length === 0 ? (
             <Card className="glass-card"><CardContent className="py-12 text-center text-muted-foreground text-sm">Nenhuma ação registrada.</CardContent></Card>
