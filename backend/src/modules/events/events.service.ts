@@ -18,6 +18,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { LeadsService } from '../leads/leads.service';
 import { AiService } from '../ai/ai.service';
 import { EventPaymentsService } from './event-payments.service';
+import { EventCouponsService } from './event-coupons.service';
 
 function makeSlug(name: string) {
   const base = name
@@ -57,6 +58,7 @@ export class EventsService {
     private leadsService: LeadsService,
     private ai: AiService,
     @Inject(forwardRef(() => EventPaymentsService)) private paymentsSvc: EventPaymentsService,
+    private couponsSvc: EventCouponsService,
   ) {}
 
   // ==================== CRUD ====================
@@ -137,7 +139,7 @@ export class EventsService {
   /** Inscrição via formulário público */
   async publicRegister(
     eventSlug: string,
-    dto: { name: string; email: string; phone?: string; company?: string; role?: string; tierId?: string; cpfCnpj?: string },
+    dto: { name: string; email: string; phone?: string; company?: string; role?: string; tierId?: string; cpfCnpj?: string; couponCode?: string },
   ) {
     const event = await this.events.findOne({ where: { slug: eventSlug } });
     if (!event) throw new NotFoundException('Evento não encontrado');
@@ -167,6 +169,15 @@ export class EventsService {
       }
     }
 
+    // Valida cupom se informado (evento pago com tier)
+    let couponResult: Awaited<ReturnType<EventCouponsService['validateAndApply']>> | null = null;
+    if (event.isPaid && tier && dto.couponCode) {
+      couponResult = await this.couponsSvc.validateAndApply(event.id, dto.couponCode, tier, {
+        email: dto.email.trim().toLowerCase(),
+        cpfCnpj: dto.cpfCnpj,
+      });
+    }
+
     const email = dto.email.trim().toLowerCase();
     let reg = await this.regs.findOne({ where: { eventId: event.id, email } });
     if (reg) {
@@ -175,10 +186,10 @@ export class EventsService {
       let payment = null;
       if (event.isPaid && tier && reg.paymentStatus !== RegistrationPaymentStatus.PAID) {
         payment = await this.paymentsSvc
-          .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+          .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj, coupon: couponResult })
           .catch((e) => ({ error: e.message }));
       }
-      return { event, registration: reg, tier, payment };
+      return { event, registration: reg, tier, payment, coupon: couponResult };
     }
 
     reg = this.regs.create({
@@ -203,7 +214,7 @@ export class EventsService {
     let payment = null;
     if (event.isPaid && tier && tier.priceCents > 0) {
       payment = await this.paymentsSvc
-        .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj })
+        .createCheckout({ registration: reg, event, tier, payerCpfCnpj: dto.cpfCnpj, coupon: couponResult })
         .catch((e) => {
           this.logger.warn(`Checkout falhou: ${e.message}`);
           return { error: e.message };
@@ -213,7 +224,7 @@ export class EventsService {
     // dispara confirmação em background (sem bloquear UI)
     this.sendConfirmation(event, reg).catch((e) => this.logger.warn(`confirmação falhou: ${e.message}`));
 
-    return { event, registration: reg, tier, payment };
+    return { event, registration: reg, tier, payment, coupon: couponResult };
   }
 
   async getRegistrationByTicket(ticketCode: string) {
