@@ -212,7 +212,7 @@ const SECTIONS: Section[] = [
     category: "Visão Geral",
     summary: "Relatórios avançados de captação, conversão, retenção e engajamento.",
     content: [
-      { heading: "Métricas", body: "Funil de conversão, tempo médio por etapa, LTV, churn, engajamento na comunidade e nas trilhas, ranking de mentorados mais ativos." },
+      { heading: "Métricas", body: "Funil de conversão, tempo médio por etapa, LTV, churn, engajamento na comunidade e na Academy, ranking de mentorados mais ativos." },
     ],
   },
   {
@@ -255,7 +255,7 @@ const SECTIONS: Section[] = [
     content: [
       { heading: "Papéis", body: "", items: [
         "Admin: acesso total",
-        "Editor: gerencia conteúdos, trilhas e prontuários",
+        "Editor: gerencia conteúdos, cursos e prontuários",
         "Atendente: foca em leads e mentorados",
         "Agência: recebe demandas de marketing",
       ]},
@@ -268,7 +268,7 @@ const SECTIONS: Section[] = [
     category: "Conteúdo",
     summary: "Biblioteca de conteúdos avulsos (vídeos, PDFs, links) liberados para mentorados.",
     content: [
-      { heading: "Uso", body: "Diferente das trilhas, aqui você posta conteúdos independentes que aparecem no feed do mentorado. Bom para materiais complementares e novidades." },
+      { heading: "Uso", body: "Diferente dos cursos da Academy, aqui você posta conteúdos independentes que aparecem no feed do mentorado. Bom para materiais complementares e novidades." },
     ],
   },
   {
@@ -335,7 +335,7 @@ const SECTIONS: Section[] = [
     summary: "Personalize logo, nome, cores, domínio e layout da área do mentorado.",
     content: [
       { heading: "White-label", body: "Configure um domínio próprio (ex.: alunos.suamentoria.com.br) e a área do mentorado será servida com sua marca — sem menção ao Glee-go." },
-      { heading: "Layout de cursos", body: "Escolha entre 4 modelos (Netflix, Grade, Neon, Cinema) para a área de trilhas do mentorado." },
+      { heading: "Layout de cursos", body: "Escolha entre 4 modelos (Netflix, Grade, Neon, Cinema) para a Academy do mentorado." },
     ],
   },
 ];
@@ -376,7 +376,7 @@ export default function DocsPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar (ex.: trilha, cobrança, WhatsApp, IA...)"
+            placeholder="Buscar (ex.: curso, cobrança, WhatsApp, IA...)"
             className="pl-9"
           />
         </div>
