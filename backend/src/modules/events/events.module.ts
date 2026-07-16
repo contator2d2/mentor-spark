@@ -14,10 +14,13 @@ import { Notification } from '../../entities/notification.entity';
 import { EventTicketTier } from '../../entities/event-ticket-tier.entity';
 import { EventPayment } from '../../entities/event-payment.entity';
 import { MentorPaymentProvider } from '../../entities/mentor-payment-provider.entity';
+import { EventCoupon } from '../../entities/event-coupon.entity';
+import { EventCouponRedemption } from '../../entities/event-coupon-redemption.entity';
 import { EventsController } from './events.controller';
 import { PublicEventsController } from './public-events.controller';
 import { EventsService } from './events.service';
 import { EventPaymentsService } from './event-payments.service';
+import { EventCouponsService } from './event-coupons.service';
 import { EventPaymentsController, PublicEventPaymentsController } from './event-payments.controller';
 import { MailService } from '../../shared/mail.service';
 import { PushService } from '../push/push.service';
@@ -32,6 +35,7 @@ import { IntegrationsModule } from '../integrations/integrations.module';
       CaptureEvent, EventRegistration, EventAction, Lead, TestTemplate, TestAssignment,
       User, Company, MentorIntegration, PushSubscription, Notification,
       EventTicketTier, EventPayment, MentorPaymentProvider,
+      EventCoupon, EventCouponRedemption,
     ]),
     NotificationsModule,
     LeadsModule,
@@ -39,7 +43,7 @@ import { IntegrationsModule } from '../integrations/integrations.module';
     IntegrationsModule,
   ],
   controllers: [EventsController, PublicEventsController, EventPaymentsController, PublicEventPaymentsController],
-  providers: [EventsService, EventPaymentsService, MailService, PushService],
-  exports: [EventsService, EventPaymentsService],
+  providers: [EventsService, EventPaymentsService, EventCouponsService, MailService, PushService],
+  exports: [EventsService, EventPaymentsService, EventCouponsService],
 })
 export class EventsModule {}
