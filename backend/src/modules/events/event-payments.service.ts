@@ -68,6 +68,16 @@ export class EventPaymentsService {
     if (dto.manualInstructions !== undefined) p.manualInstructions = dto.manualInstructions;
     if (dto.manualCheckoutUrl !== undefined) p.manualCheckoutUrl = dto.manualCheckoutUrl;
     if (dto.status) p.status = dto.status;
+    // Gera automaticamente um token de webhook por mentor/provedor (usado no Asaas)
+    if (dto.type === PaymentProviderType.ASAAS) {
+      const meta = (p.metadata || {}) as Record<string, any>;
+      if (!meta.webhookToken) {
+        meta.webhookToken =
+          'whk_' +
+          require('crypto').randomBytes(24).toString('hex');
+      }
+      p.metadata = meta;
+    }
     await this.providers.save(p);
     const fresh = await this.providers.findOne({ where: { id: p.id } });
     return { ...fresh, apiKey: undefined, hasApiKey: !!fresh?.apiKey };
@@ -362,19 +372,28 @@ export class EventPaymentsService {
 
   // ==================== Webhooks ====================
   async handleAsaasWebhook(body: any, receivedToken?: string) {
-    // Validação opcional do token do webhook (configurado no painel Asaas).
-    // Se ASAAS_WEBHOOK_TOKEN estiver definido no ambiente, exige match.
-    const expected = process.env.ASAAS_WEBHOOK_TOKEN;
-    if (expected && receivedToken !== expected) {
-      this.logger.warn(`Asaas webhook token inválido`);
-      return { ok: false, error: 'invalid token' };
-    }
     // Eventos: PAYMENT_CONFIRMED, PAYMENT_RECEIVED
     const eventType = body?.event;
     const ext = body?.payment?.id;
     if (!ext) return { ok: true, ignored: 'no payment id' };
     const payment = await this.payments.findOne({ where: { externalId: ext, providerType: PaymentProviderType.ASAAS } });
     if (!payment) return { ok: true, ignored: 'unknown payment' };
+    // Valida token do webhook contra o provider do mentor deste pagamento
+    try {
+      const ev = await this.events.findOne({ where: { id: payment.eventId } });
+      if (ev?.paymentProviderId) {
+        const provider = await this.providers.findOne({ where: { id: ev.paymentProviderId } });
+        const expected = (provider?.metadata as any)?.webhookToken;
+        // fallback global (compat): ASAAS_WEBHOOK_TOKEN
+        const globalExpected = process.env.ASAAS_WEBHOOK_TOKEN;
+        if (expected && receivedToken !== expected && (!globalExpected || receivedToken !== globalExpected)) {
+          this.logger.warn(`Asaas webhook token inválido para provider ${provider?.id}`);
+          return { ok: false, error: 'invalid token' };
+        }
+      }
+    } catch (e: any) {
+      this.logger.warn(`Asaas webhook token check erro: ${e.message}`);
+    }
     if (['PAYMENT_CONFIRMED', 'PAYMENT_RECEIVED'].includes(eventType)) {
       await this.markPaid(payment, body);
     } else if (['PAYMENT_REFUNDED', 'PAYMENT_DELETED'].includes(eventType)) {
