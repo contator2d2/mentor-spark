@@ -38,6 +38,17 @@ export class EventPaymentsService {
       .addSelect('p.apiKey')
       .where('p.mentorId = :mentorId', { mentorId })
       .getMany();
+    // Backfill: garante que provedores Asaas antigos tenham webhookToken em metadata
+    for (const p of items) {
+      if (p.type === PaymentProviderType.ASAAS) {
+        const meta = (p.metadata || {}) as Record<string, any>;
+        if (!meta.webhookToken) {
+          meta.webhookToken = 'whk_' + require('crypto').randomBytes(24).toString('hex');
+          p.metadata = meta;
+          await this.providers.save(p);
+        }
+      }
+    }
     // não vaza apiKey
     return items.map((p) => ({
       ...p,
