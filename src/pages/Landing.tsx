@@ -17,7 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-const WHATSAPP_URL = "https://wa.me/5517991308048?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20a%20Gleego.";
+const WHATSAPP_URL = "https://wa.me/5517991308048?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Mentor%20Glee-go.";
 
 const replaces = [
   "WhatsApp",
@@ -104,8 +104,8 @@ const plans = [
 ];
 
 const faqs = [
-  { q: "Preciso trocar minhas ferramentas atuais?", a: "A Gleego substitui de 6 a 8 ferramentas (CRM, agenda, plataforma de cursos, comunidade, cobrança, quizzes, formulários e planilhas) em um único lugar. Você migra no seu ritmo." },
-  { q: "A área do mentorado pode ter minha marca?", a: "Sim. No plano White-label, seu mentorado acessa por um domínio seu, com sua logo, cores e nome — sem menção à Gleego." },
+  { q: "Preciso trocar minhas ferramentas atuais?", a: "A Mentor Glee-go substitui de 6 a 8 ferramentas (CRM, agenda, plataforma de cursos, comunidade, cobrança, quizzes, formulários e planilhas) em um único lugar. Você migra no seu ritmo." },
+  { q: "A área do mentorado pode ter minha marca?", a: "Sim. No plano White-label, seu mentorado acessa por um domínio seu, com sua logo, cores e nome — sem menção à Mentor Glee-go." },
   { q: "A IA substitui o mentor?", a: "Não. Ela automatiza tarefas repetitivas (resumos, follow-ups, análise de testes) para você focar no que só um mentor humano entrega." },
   { q: "Como funcionam as cobranças?", a: "Integração nativa com Stripe, Paddle e Pix. Cobranças recorrentes, avulsas e contratos com assinatura digital." },
   { q: "Preciso de cartão de crédito para testar?", a: "Não. O teste gratuito não exige cartão." },
@@ -121,7 +121,7 @@ export default function Landing() {
             <div className="h-9 w-9 rounded-xl bg-gradient-primary flex items-center justify-center shadow-glow">
               <Sparkles className="h-5 w-5 text-primary-foreground" />
             </div>
-            <div className="font-display text-xl font-bold">Gleego</div>
+            <div className="font-display text-xl font-bold">Mentor Glee-go</div>
           </div>
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
             <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
@@ -180,7 +180,7 @@ export default function Landing() {
             <Card className="relative overflow-hidden shadow-elegant border-primary/20 p-2 glass-card">
               <img
                 src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
-                alt="Dashboard Gleego"
+                alt="Dashboard Mentor Glee-go"
                 className="rounded-lg shadow-2xl w-full"
                 loading="lazy"
               />
@@ -211,7 +211,7 @@ export default function Landing() {
           <div>
             <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">A solução</Badge>
             <h2 className="font-display text-3xl md:text-4xl font-bold mb-4">
-              A <span className="text-gradient">Gleego</span> centraliza tudo — com IA nativa.
+              A <span className="text-gradient">Mentor Glee-go</span> centraliza tudo — com IA nativa.
             </h2>
             <p className="text-muted-foreground text-lg mb-6">
               Um único sistema para captar leads, atender mentorados, entregar conteúdo, cobrar e analisar resultados. A IA cuida da parte repetitiva; você foca na mentoria.
@@ -285,7 +285,7 @@ export default function Landing() {
                 { icon: Globe, t: "Domínio próprio" },
                 { icon: Palette, t: "Logo e paleta de cores" },
                 { icon: Smartphone, t: "PWA instalável com sua marca" },
-                { icon: ShieldCheck, t: "Sem menção à Gleego" },
+                { icon: ShieldCheck, t: "Sem menção à Mentor Glee-go" },
               ].map((item) => (
                 <div key={item.t} className="flex items-center gap-3 p-3 rounded-lg bg-primary-foreground/10 border border-primary-foreground/15">
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -328,7 +328,7 @@ export default function Landing() {
       <section id="depoimentos" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quem já opera com a Gleego</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quem já opera com a Mentor Glee-go</h2>
             <p className="text-muted-foreground text-lg">Mentores, coaches e escolas de treinamento que já centralizaram sua operação.</p>
           </div>
 
@@ -397,7 +397,7 @@ export default function Landing() {
             Pronto para operar sua mentoria como uma <span className="text-gradient">empresa de verdade</span>?
           </h2>
           <p className="text-lg text-muted-foreground mb-10">
-            Deixe seus dados e um especialista mostra como a Gleego se encaixa na sua operação.
+            Deixe seus dados e um especialista mostra como a Mentor Glee-go se encaixa na sua operação.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
             <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
@@ -440,7 +440,7 @@ export default function Landing() {
                 <div className="h-8 w-8 rounded-lg bg-gradient-primary flex items-center justify-center">
                   <Sparkles className="h-4 w-4 text-primary-foreground" />
                 </div>
-                <div className="font-display font-bold text-xl">Gleego</div>
+                <div className="font-display font-bold text-xl">Mentor Glee-go</div>
               </div>
               <p className="text-sm text-muted-foreground">
                 Plataforma tudo-em-um de gestão de mentoria. Uma marca. Um sistema. Zero ferramenta solta.
@@ -471,7 +471,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="pt-8 border-t border-border text-center text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Gleego — Plataforma de gestão de mentoria.
+            © {new Date().getFullYear()} Mentor Glee-go — Plataforma de gestão de mentoria.
           </div>
         </div>
       </footer>
