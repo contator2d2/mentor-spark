@@ -13,6 +13,13 @@ import { defineConfig } from "vite";
         changeOrigin: true,
         secure: true,
       },
+      "/__l5e": {
+        target:
+          process.env.VITE_ASSETS_PROXY_TARGET ||
+          "https://id-preview--e4411f93-7e6a-4f97-9441-3f6ff2ddf2fb.lovable.app",
+        changeOrigin: true,
+        secure: true,
+      },
     },
     hmr: {
       overlay: false,
