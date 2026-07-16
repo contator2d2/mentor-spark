@@ -68,7 +68,7 @@ export default function SalesPageEditorPage() {
       try {
         const [p, provs] = await Promise.all([
           api<SalesPage>(`/sales-pages/${id}`),
-          api<Provider[]>(`/events/payments/providers`).catch(() => [] as Provider[]),
+          api<Provider[]>(`/event-payments/providers`).catch(() => [] as Provider[]),
         ]);
         setPage(p);
         setProviders((provs || []).filter((x) => x.type === "asaas"));
