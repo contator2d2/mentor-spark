@@ -96,7 +96,7 @@ export default function TrailEditorPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" onClick={() => navigate("/app/trails")}><ChevronLeft className="h-4 w-4 mr-1" />Trilhas</Button>
+      <Button variant="ghost" onClick={() => navigate("/app/trails")}><ChevronLeft className="h-4 w-4 mr-1" />Academy</Button>
 
       <Tabs defaultValue="content">
         <TabsList>
@@ -111,8 +111,8 @@ export default function TrailEditorPage() {
             <div><Label>Título</Label><Input value={trail.title} onChange={(e) => setTrail({ ...trail, title: e.target.value })} /></div>
             <div><Label>Descrição</Label><Textarea value={trail.description || ""} onChange={(e) => setTrail({ ...trail, description: e.target.value })} /></div>
             <ImageUploadField
-              label="Capa da trilha"
-              hint="Esta imagem aparece para os mentorados no card e na página da trilha."
+              label="Capa do curso"
+              hint="Esta imagem aparece para os alunos no card e na página do curso."
               aspect="16/9"
               value={trail.coverUrl || ""}
               onChange={(url) => setTrail({ ...trail, coverUrl: url })}
@@ -202,7 +202,7 @@ export default function TrailEditorPage() {
             )}
             <div>
               <Label>Texto exibido no card bloqueado (CTA)</Label>
-              <Textarea value={trail.upgradeCallout || ""} placeholder="Ex.: Faça upgrade para o plano Premium e acesse essa trilha."
+              <Textarea value={trail.upgradeCallout || ""} placeholder="Ex.: Faça upgrade para o plano Premium e acesse esse curso."
                 onChange={(e) => setTrail({ ...trail, upgradeCallout: e.target.value })} />
             </div>
             <div>
@@ -241,7 +241,7 @@ export default function TrailEditorPage() {
                   </Badge>
                 );
               })}
-              {!allTrails.length && <span className="text-xs text-muted-foreground">Sem outras trilhas.</span>}
+              {!allTrails.length && <span className="text-xs text-muted-foreground">Sem outros cursos.</span>}
             </div>
           </Card>
 
@@ -347,7 +347,7 @@ export default function TrailEditorPage() {
                     value={editingModule.dripDaysAfterEnroll ?? 0}
                     onChange={(e) => setEditingModule({ ...editingModule, dripDaysAfterEnroll: +e.target.value })}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">0 = sem espera. Ex.: 7 = libera 7 dias após o aluno receber acesso à trilha.</p>
+                  <p className="text-xs text-muted-foreground mt-1">0 = sem espera. Ex.: 7 = libera 7 dias após o aluno receber acesso ao curso.</p>
                 </div>
                 <div>
                   <Label>Disponível a partir de (data fixa)</Label>
@@ -378,7 +378,7 @@ export default function TrailEditorPage() {
                       );
                     })}
                     {(trail.modules || []).filter((m: any) => m.id !== editingModule.id).length === 0 && (
-                      <span className="text-xs text-muted-foreground">Não há outros módulos nesta trilha.</span>
+                      <span className="text-xs text-muted-foreground">Não há outros módulos neste curso.</span>
                     )}
                   </div>
                 </div>
