@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle, Copy, Webhook } from "lucide-react";
+import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle, Copy, Webhook, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
 interface Provider {
@@ -40,6 +40,7 @@ export default function PaymentProvidersSection() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<any>({
     type: "asaas",
     label: "",
@@ -65,13 +66,36 @@ export default function PaymentProvidersSection() {
   async function save() {
     setSaving(true);
     try {
-      await api("/event-payments/providers", { method: "POST", body: form });
+      // Backend faz upsert por (mentorId, type) — não enviar apiKey vazia para não sobrescrever a existente
+      const payload: any = { ...form };
+      if (editingId && !payload.apiKey) delete payload.apiKey;
+      await api("/event-payments/providers", { method: "POST", body: payload });
       toast.success("Provedor salvo");
       setOpen(false);
+      setEditingId(null);
       setForm({ type: "asaas", label: "", apiKey: "", environment: "sandbox", manualInstructions: "", manualCheckoutUrl: "" });
       load();
     } catch (e: any) { toast.error(e.message); }
     finally { setSaving(false); }
+  }
+
+  function openEdit(p: Provider) {
+    setEditingId(p.id);
+    setForm({
+      type: p.type,
+      label: p.label || "",
+      apiKey: "",
+      environment: p.environment || "sandbox",
+      manualInstructions: p.manualInstructions || "",
+      manualCheckoutUrl: p.manualCheckoutUrl || "",
+    });
+    setOpen(true);
+  }
+
+  function openNew() {
+    setEditingId(null);
+    setForm({ type: "asaas", label: "", apiKey: "", environment: "sandbox", manualInstructions: "", manualCheckoutUrl: "" });
+    setOpen(true);
   }
 
   async function remove(id: string) {
@@ -100,7 +124,7 @@ export default function PaymentProvidersSection() {
             Configure provedores para cobrar inscrições. Cada evento escolhe qual usar.
           </p>
         </div>
-        <Button onClick={() => setOpen(true)}><Plus className="h-4 w-4 mr-2" />Adicionar provedor</Button>
+        <Button onClick={openNew}><Plus className="h-4 w-4 mr-2" />Adicionar provedor</Button>
       </div>
 
       {providers.length === 0 ? (
@@ -128,9 +152,14 @@ export default function PaymentProvidersSection() {
                     {p.type === "manual" && (p.manualCheckoutUrl ? "Link configurado ✓" : "Sem link")}
                   </div>
                 </div>
-                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => remove(p.id)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                <div className="flex items-center gap-1">
+                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(p)} title="Editar">
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => remove(p.id)} title="Remover">
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
               {p.type === "asaas" && p.metadata?.webhookToken && (
                 <div className="mt-2 rounded-lg border border-border/60 bg-background/50 p-3 space-y-2 text-xs">
@@ -175,13 +204,13 @@ export default function PaymentProvidersSection() {
         </div>
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setEditingId(null); }}>
         <DialogContent className="max-w-lg">
-          <DialogHeader><DialogTitle>Novo provedor de pagamento</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>{editingId ? "Editar provedor" : "Novo provedor de pagamento"}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div>
               <Label>Provedor</Label>
-              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })} disabled={!!editingId}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {Object.entries(PROVIDER_LABELS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
@@ -196,8 +225,8 @@ export default function PaymentProvidersSection() {
             {form.type !== "manual" ? (
               <>
                 <div>
-                  <Label>API Key / Token</Label>
-                  <Input type="password" value={form.apiKey} onChange={(e) => setForm({ ...form, apiKey: e.target.value })} placeholder="Cole aqui" />
+                  <Label>API Key / Token {editingId && <span className="text-xs text-muted-foreground font-normal">(deixe em branco para manter a atual)</span>}</Label>
+                  <Input type="password" value={form.apiKey} onChange={(e) => setForm({ ...form, apiKey: e.target.value })} placeholder={editingId ? "•••••••• (mantém a atual)" : "Cole aqui"} />
                 </div>
                 <div>
                   <Label>Ambiente</Label>
