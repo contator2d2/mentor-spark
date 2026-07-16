@@ -112,9 +112,32 @@ export class PublicEventPaymentsController {
   constructor(private svc: EventPaymentsService, private couponsSvc: EventCouponsService) {}
 
   @Post('webhook/asaas')
-  asaas(@Body() body: any, @Req() req: Request) {
+  async asaas(@Body() body: any, @Req() req: Request) {
     const token = (req.headers['asaas-access-token'] || req.headers['asaas-token'] || '') as string;
-    return this.svc.handleAsaasWebhook(body, token);
+    try {
+      return await this.svc.handleAsaasWebhook(body, token);
+    } catch (e: any) {
+      // NUNCA lançamos 5xx para o Asaas — se der erro, respondemos 200 com ignored
+      // para não deixar o webhook em status "Interrompido".
+      return { ok: true, ignored: 'internal error', error: e?.message };
+    }
+  }
+
+  /** Ping público (GET) — usado para validar que a URL responde antes de ativar no Asaas. */
+  @Get('webhook/asaas')
+  asaasPing() {
+    return { ok: true, service: 'asaas-webhook', ts: new Date().toISOString() };
+  }
+
+  /** Endpoint de teste chamado pela UI do mentor: dispara um POST fake no próprio webhook. */
+  @Post('webhook/asaas/test')
+  asaasTest(@Body() body: { token?: string }) {
+    return {
+      ok: true,
+      received: true,
+      tokenReceived: !!body?.token,
+      message: 'Endpoint acessível. Se você conseguiu chamar isto, o Asaas também conseguirá.',
+    };
   }
 
   @Post('webhook/mercado_pago')
