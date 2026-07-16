@@ -416,12 +416,12 @@ export default function Landing() {
               { name: "Esney Menezes", role: "Mentoria de Negócios", photo: esneyPhoto.url },
             ].map((c) => (
               <Card key={c.name} className="overflow-hidden glass-card border-primary/10 group">
-                <div className="aspect-[4/3] overflow-hidden bg-muted">
+                <div className="aspect-[16/9] overflow-hidden bg-muted">
                   <img
                     src={c.photo}
                     alt={c.name}
                     loading="lazy"
-                    className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-contain object-center transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-5">
