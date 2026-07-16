@@ -58,6 +58,18 @@ export class EventPayment {
   @Column({ type: 'int' })
   amountCents: number;
 
+  /** Valor original (antes de cupom), em centavos. Se sem cupom = amountCents. */
+  @Column({ type: 'int', nullable: true })
+  originalAmountCents?: number;
+
+  /** Cupom aplicado (opcional). */
+  @Column({ type: 'uuid', nullable: true })
+  couponId?: string;
+
+  /** Valor descontado por cupom (centavos). */
+  @Column({ type: 'int', default: 0 })
+  discountCents: number;
+
   @Column({ default: 'BRL' })
   currency: string;
 
