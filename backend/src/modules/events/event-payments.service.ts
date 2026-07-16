@@ -31,12 +31,16 @@ export class EventPaymentsService {
 
   // ==================== Config (mentor) ====================
   async listProviders(mentorId: string) {
-    const items = await this.providers.find({ where: { mentorId } });
+    const items = await this.providers
+      .createQueryBuilder('p')
+      .addSelect('p.apiKey')
+      .where('p.mentorId = :mentorId', { mentorId })
+      .getMany();
     // não vaza apiKey
     return items.map((p) => ({
       ...p,
-      apiKey: undefined,
       hasApiKey: !!p.apiKey,
+      apiKey: undefined,
     }));
   }
 
