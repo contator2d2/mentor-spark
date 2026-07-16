@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -37,6 +38,7 @@ const PROVIDER_HELP: Record<string, string> = {
 };
 
 export default function PaymentProvidersSection() {
+  const { user } = useAuth();
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -108,7 +110,12 @@ export default function PaymentProvidersSection() {
     navigator.clipboard.writeText(text).then(() => toast.success(label));
   }
 
-  const webhookUrl = `${window.location.origin}/api/public/event-payments/webhook/asaas`;
+  // Sempre usar o domínio do tenant (customDomain do mentor) quando existir,
+  // caindo para o host atual (útil enquanto o mentor ainda não configurou domínio).
+  const tenantHost =
+    (user as any)?.customDomain?.trim() ||
+    window.location.host;
+  const webhookUrl = `https://${tenantHost}/api/public/event-payments/webhook/asaas`;
 
   const [testingId, setTestingId] = useState<string | null>(null);
   async function testWebhook(p: Provider) {
