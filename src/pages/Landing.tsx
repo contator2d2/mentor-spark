@@ -17,7 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { LeadForm } from "@/components/landing/LeadForm";
+const WHATSAPP_URL = "https://wa.me/5517991308048?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20a%20Gleego.";
 
 const replaces = [
   "WhatsApp",
@@ -82,27 +82,21 @@ const categories: Category[] = [
   },
 ];
 
-const testimonials = [
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento do cliente sobre como a plataforma transformou a operação da mentoria.]", initial: "A" },
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento focado em ganho de tempo e centralização de ferramentas.]", initial: "B" },
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento sobre retenção, escala e profissionalismo.]", initial: "C" },
-];
-
 const plans = [
   {
-    name: "Starter", price: "[preço]", period: "/mês",
+    name: "Starter", price: "R$ 89,90", period: "/mês",
     desc: "Para mentores começando a organizar a operação.",
     features: ["Funil de leads", "Agenda pública", "Prontuário básico", "1 trilha de conteúdo", "Suporte por e-mail"],
     highlight: false,
   },
   {
-    name: "Pro", price: "[preço]", period: "/mês",
+    name: "Pro", price: "R$ 199,90", period: "/mês",
     desc: "Para quem já entrega e quer escalar com método.",
     features: ["Tudo do Starter", "IA nativa em reuniões e testes", "Trilhas ilimitadas", "Central de Demandas", "Cobranças recorrentes", "Automações e integrações"],
     highlight: true,
   },
   {
-    name: "White-label", price: "[preço]", period: "",
+    name: "White-label", price: "R$ 399,99", period: "/mês",
     desc: "Marca própria, domínio próprio, sem menção à plataforma.",
     features: ["Tudo do Pro", "Domínio + branding 100% seus", "Multi-mentor / time", "Onboarding dedicado", "SLA e suporte prioritário"],
     highlight: false,
@@ -335,31 +329,14 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
             <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Quem já opera com a Gleego</h2>
-            <p className="text-muted-foreground text-lg">Depoimentos de mentores, coaches e escolas de treinamento.</p>
+            <p className="text-muted-foreground text-lg">Mentores, coaches e escolas de treinamento que já centralizaram sua operação.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center mb-16 opacity-70">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center opacity-70">
             {["[Logo 1]", "[Logo 2]", "[Logo 3]", "[Logo 4]", "[Logo 5]", "[Logo 6]"].map((l) => (
               <div key={l} className="text-sm font-mono text-muted-foreground border border-dashed border-border rounded-md px-4 py-3 w-full text-center">
                 {l}
               </div>
-            ))}
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <Card key={i} className="p-6 glass-card border-primary/10">
-                <p className="text-sm leading-relaxed mb-6 italic">"{t.quote}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground">
-                    {t.initial}
-                  </div>
-                  <div>
-                    <div className="font-bold text-sm">{t.name}</div>
-                    <div className="text-xs text-muted-foreground">{t.role}</div>
-                  </div>
-                </div>
-              </Card>
             ))}
           </div>
         </div>
@@ -422,8 +399,17 @@ export default function Landing() {
           <p className="text-lg text-muted-foreground mb-10">
             Deixe seus dados e um especialista mostra como a Gleego se encaixa na sua operação.
           </p>
-          <div className="max-w-xl mx-auto">
-            <LeadForm />
+          <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <a href={WHATSAPP_URL} target="_blank" rel="noopener noreferrer">
+              <Button size="lg" className="h-14 px-8 text-base font-bold bg-[#25D366] hover:bg-[#20ba57] text-white shadow-glow group">
+                <MessageSquare className="mr-2 h-5 w-5" />
+                Falar no WhatsApp
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
+            </a>
+            <a href="tel:+5517991308048" className="text-sm text-muted-foreground hover:text-foreground font-medium">
+              ou ligue: (17) 99130-8048
+            </a>
           </div>
         </div>
       </section>
