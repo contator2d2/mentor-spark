@@ -332,11 +332,17 @@ export default function Landing() {
             <p className="text-muted-foreground text-lg">Mentores, coaches e escolas de treinamento que já centralizaram sua operação.</p>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6 items-center justify-items-center opacity-70">
-            {["[Logo 1]", "[Logo 2]", "[Logo 3]", "[Logo 4]", "[Logo 5]", "[Logo 6]"].map((l) => (
-              <div key={l} className="text-sm font-mono text-muted-foreground border border-dashed border-border rounded-md px-4 py-3 w-full text-center">
-                {l}
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {[
+              { name: "Dra. Amanda Cristina", initial: "A" },
+              { name: "Esney Menezes", initial: "E" },
+            ].map((c) => (
+              <Card key={c.name} className="p-6 glass-card border-primary/10 flex items-center gap-4">
+                <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground text-lg shrink-0">
+                  {c.initial}
+                </div>
+                <div className="font-display font-bold text-lg">{c.name}</div>
+              </Card>
             ))}
           </div>
         </div>
