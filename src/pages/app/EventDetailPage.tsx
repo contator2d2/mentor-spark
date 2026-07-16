@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import CheckinScanner from "@/components/events/CheckinScanner";
 import StartQuizDialog from "@/components/quiz/StartQuizDialog";
+import EventCouponsSection from "@/components/events/EventCouponsSection";
 
 const STATUS_LABELS: Record<string, string> = {
   registered: "Inscrito",
@@ -189,6 +190,7 @@ export default function EventDetailPage() {
           <TabsTrigger value="registrations"><Users className="h-3 w-3 mr-1" />Inscritos</TabsTrigger>
           <TabsTrigger value="actions"><Send className="h-3 w-3 mr-1" />Ações</TabsTrigger>
           <TabsTrigger value="nps"><BarChart3 className="h-3 w-3 mr-1" />NPS</TabsTrigger>
+          <TabsTrigger value="coupons"><Ticket className="h-3 w-3 mr-1" />Cupons</TabsTrigger>
           <TabsTrigger value="history"><ClipboardList className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
         </TabsList>
 
