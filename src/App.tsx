@@ -89,6 +89,9 @@ import AnalyticsPage from "./pages/app/AnalyticsPage";
 import AgendaPage from "./pages/app/AgendaPage";
 import DocsPage from "./pages/app/DocsPage";
 import MentoradoCommunity from "./pages/me/MentoradoCommunity";
+import SalesPagesListPage from "./pages/app/SalesPagesListPage";
+import SalesPageEditorPage from "./pages/app/SalesPageEditorPage";
+import SalesPagePublic from "./pages/SalesPagePublic";
 import { PwaPrompts } from "./components/PwaPrompts";
 import { OfflineIndicator } from "./components/OfflineIndicator";
 
@@ -201,6 +204,7 @@ const App = () => (
               <Route path="/quiz" element={<QuizPlayerPage />} />
               <Route path="/agendar/:slug" element={<SchedulingPublicPage />} />
               <Route path="/demands/public/:id" element={<DemandPublicReviewPage />} />
+              <Route path="/p/:mentorSlug/:pageSlug" element={<SalesPagePublic />} />
 
               {/* Troca de senha (forçada no 1º login) — exige auth, qualquer role */}
               <Route
@@ -276,6 +280,8 @@ const App = () => (
                 <Route path="analytics" element={<AnalyticsPage />} />
                 <Route path="agenda" element={<AgendaPage />} />
                 <Route path="docs" element={<DocsPage />} />
+                <Route path="sales-pages" element={<SalesPagesListPage />} />
+                <Route path="sales-pages/:id" element={<SalesPageEditorPage />} />
               </Route>
 
               {/* Onboarding (full-screen, mas exige auth) */}
