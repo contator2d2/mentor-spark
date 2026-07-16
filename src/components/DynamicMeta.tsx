@@ -15,7 +15,7 @@ export function DynamicMeta() {
     if (!brand) return;
 
     const brandName = brand.brandName || "Mentoria";
-    const description = `Portal do mentorado ${brandName}. Acesse seus conteúdos, trilhas e testes.`;
+    const description = `Portal do mentorado ${brandName}. Acesse seus conteúdos, cursos e testes.`;
     const logoUrl = brand.brandLogoUrl || "/placeholder.svg";
 
     // Update Title

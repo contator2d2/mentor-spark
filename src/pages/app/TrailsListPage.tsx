@@ -41,7 +41,7 @@ export default function TrailsListPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Remover trilha?")) return;
+    if (!confirm("Remover curso?")) return;
     await api(`/trails/${id}`, { method: "DELETE" });
     load();
   }
@@ -51,12 +51,12 @@ export default function TrailsListPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-display font-bold flex items-center gap-2">
-            <GraduationCap className="h-7 w-7 text-primary" /> Trilhas de Conteúdo
+            <GraduationCap className="h-7 w-7 text-primary" /> Academy
           </h1>
-          <p className="text-muted-foreground">Crie cursos e jornadas de aprendizado para seus mentorados.</p>
+          <p className="text-muted-foreground">Crie e venda cursos ilimitados diretamente na sua plataforma — sem intermediários.</p>
         </div>
         <Button onClick={() => setCreating({ title: "", releaseMode: "immediate", published: true, certificateEnabled: true })}>
-          <Plus className="h-4 w-4 mr-1" /> Nova trilha
+          <Plus className="h-4 w-4 mr-1" /> Novo curso
         </Button>
       </div>
 
@@ -78,12 +78,12 @@ export default function TrailsListPage() {
             </div>
           </Card>
         ))}
-        {list.length === 0 && <Card className="p-8 text-center text-muted-foreground col-span-full">Nenhuma trilha ainda. Crie a primeira!</Card>}
+        {list.length === 0 && <Card className="p-8 text-center text-muted-foreground col-span-full">Nenhum curso ainda. Crie o primeiro!</Card>}
       </div>
 
       <Dialog open={!!creating} onOpenChange={(o) => !o && setCreating(null)}>
         <DialogContent>
-          <DialogHeader><DialogTitle>Nova trilha</DialogTitle></DialogHeader>
+          <DialogHeader><DialogTitle>Novo curso</DialogTitle></DialogHeader>
           {creating && (
             <div className="space-y-3">
               <div><Label>Título *</Label><Input value={creating.title || ""} onChange={(e) => setCreating({ ...creating, title: e.target.value })} /></div>

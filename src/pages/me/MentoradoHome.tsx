@@ -96,7 +96,7 @@ export default function MentoradoHome() {
           <div className="mt-6 flex gap-3">
             <Button asChild className="shadow-lg">
               <Link to="/me/trails">
-                <PlayCircle className="h-4 w-4 mr-2" /> Começar Trilha
+                <PlayCircle className="h-4 w-4 mr-2" /> Começar Curso
               </Link>
             </Button>
           </div>

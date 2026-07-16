@@ -85,7 +85,7 @@ export default function AccessGroupsPage() {
           <h1 className="text-3xl font-display font-bold flex items-center gap-2">
             <Users className="h-7 w-7 text-primary" /> Grupos de Acesso
           </h1>
-          <p className="text-muted-foreground">Organize mentorados em grupos para liberar trilhas e conteúdos.</p>
+          <p className="text-muted-foreground">Organize mentorados em grupos para liberar cursos e conteúdos.</p>
         </div>
         <Button onClick={() => setCreating({ name: "", kind: "manual", filter: {} })}>
           <Plus className="h-4 w-4 mr-1" /> Novo grupo

@@ -259,7 +259,7 @@ export function AcessoTab({ leadId }: { leadId: string }) {
               </Select>
               <span className="text-xs text-muted-foreground">
                 {u!.role === "mentorado"
-                  ? "Vê trilhas, tarefas, materiais, comunidade e financeiro."
+                  ? "Vê cursos, tarefas, materiais, comunidade e financeiro."
                   : "Acesso restrito — útil enquanto está em negociação."}
               </span>
             </div>

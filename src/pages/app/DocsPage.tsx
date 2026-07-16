@@ -169,13 +169,14 @@ const SECTIONS: Section[] = [
   },
   {
     id: "trails",
-    title: "Trilhas (Cursos)",
+    title: "Academy (Cursos EAD)",
     icon: GraduationCap,
     category: "Conteúdo",
-    summary: "Área de membros com trilhas, módulos e aulas — layout estilo Netflix personalizável.",
+    summary: "Área de membros EAD com cursos, módulos e aulas — layout estilo Netflix personalizável. Cursos ilimitados com venda direta.",
     content: [
-      { heading: "Estrutura", body: "Trilha → Módulos → Aulas. Aulas suportam vídeo, texto, PDF, quiz e materiais anexos. Progresso do aluno é rastreado." },
-      { heading: "Controle de acesso", body: "Libere trilhas por Grupo de Acesso, por mentorado individual, ou torne pública. Trilhas bloqueadas mostram cadeado com CTA de upgrade/solicitação." },
+      { heading: "Estrutura", body: "Curso → Módulos → Aulas. Aulas suportam vídeo, texto, PDF, quiz e materiais anexos. Progresso do aluno é rastreado." },
+      { heading: "Controle de acesso", body: "Libere cursos por Grupo de Acesso, por aluno individual, ou torne público. Cursos bloqueados mostram cadeado com CTA de upgrade/solicitação." },
+      { heading: "Venda direta", body: "Cobre pelos cursos sem intermediários. Upsell individual direto na sua plataforma via cobrança PIX." },
       { heading: "Layouts", body: "Escolha em Branding entre Netflix (linhas), Grade, Neon Glow ou Cinema. Efeitos neon no modo escuro e animações de entrada ao rolar." },
     ],
   },
@@ -184,9 +185,9 @@ const SECTIONS: Section[] = [
     title: "Grupos de Acesso",
     icon: Layers,
     category: "Conteúdo",
-    summary: "Grupos para liberar conjuntos de trilhas/conteúdos para grupos de mentorados.",
+    summary: "Grupos para liberar conjuntos de cursos/conteúdos para grupos de alunos.",
     content: [
-      { heading: "Uso", body: "Ex.: grupo 'Turma Junho' com acesso às trilhas A, B e C. Adicione mentorados ao grupo e todos ganham acesso automaticamente. Facilita a gestão de coortes." },
+      { heading: "Uso", body: "Ex.: grupo 'Turma Junho' com acesso aos cursos A, B e C. Adicione alunos ao grupo e todos ganham acesso automaticamente. Facilita a gestão de turmas." },
     ],
   },
   {
@@ -211,7 +212,7 @@ const SECTIONS: Section[] = [
     category: "Visão Geral",
     summary: "Relatórios avançados de captação, conversão, retenção e engajamento.",
     content: [
-      { heading: "Métricas", body: "Funil de conversão, tempo médio por etapa, LTV, churn, engajamento na comunidade e nas trilhas, ranking de mentorados mais ativos." },
+      { heading: "Métricas", body: "Funil de conversão, tempo médio por etapa, LTV, churn, engajamento na comunidade e na Academy, ranking de mentorados mais ativos." },
     ],
   },
   {
@@ -254,7 +255,7 @@ const SECTIONS: Section[] = [
     content: [
       { heading: "Papéis", body: "", items: [
         "Admin: acesso total",
-        "Editor: gerencia conteúdos, trilhas e prontuários",
+        "Editor: gerencia conteúdos, cursos e prontuários",
         "Atendente: foca em leads e mentorados",
         "Agência: recebe demandas de marketing",
       ]},
@@ -267,7 +268,7 @@ const SECTIONS: Section[] = [
     category: "Conteúdo",
     summary: "Biblioteca de conteúdos avulsos (vídeos, PDFs, links) liberados para mentorados.",
     content: [
-      { heading: "Uso", body: "Diferente das trilhas, aqui você posta conteúdos independentes que aparecem no feed do mentorado. Bom para materiais complementares e novidades." },
+      { heading: "Uso", body: "Diferente dos cursos da Academy, aqui você posta conteúdos independentes que aparecem no feed do mentorado. Bom para materiais complementares e novidades." },
     ],
   },
   {
@@ -334,7 +335,7 @@ const SECTIONS: Section[] = [
     summary: "Personalize logo, nome, cores, domínio e layout da área do mentorado.",
     content: [
       { heading: "White-label", body: "Configure um domínio próprio (ex.: alunos.suamentoria.com.br) e a área do mentorado será servida com sua marca — sem menção ao Glee-go." },
-      { heading: "Layout de cursos", body: "Escolha entre 4 modelos (Netflix, Grade, Neon, Cinema) para a área de trilhas do mentorado." },
+      { heading: "Layout de cursos", body: "Escolha entre 4 modelos (Netflix, Grade, Neon, Cinema) para a Academy do mentorado." },
     ],
   },
 ];
@@ -375,7 +376,7 @@ export default function DocsPage() {
           <Input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar (ex.: trilha, cobrança, WhatsApp, IA...)"
+            placeholder="Buscar (ex.: curso, cobrança, WhatsApp, IA...)"
             className="pl-9"
           />
         </div>
