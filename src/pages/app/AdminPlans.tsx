@@ -73,7 +73,7 @@ const MODULES: Array<{ key: keyof Plan; label: string; help?: string }> = [
   { key: "allowGoogleCalendar", label: "Google Calendar (sync)" },
   { key: "allowScheduling", label: "Agenda pública (Calendly-like)" },
   { key: "allowMentorBilling", label: "Cobrança de mentorados (Asaas)" },
-  { key: "allowTrails", label: "Trilhas de conteúdo / cursos" },
+  { key: "allowTrails", label: "Academy — Cursos ilimitados" },
   { key: "allowCommunity", label: "Comunidade (feed de membros)" },
   { key: "allowAdvancedAnalytics", label: "Analytics avançado (MRR/LTV)" },
   { key: "allowAutomations", label: "Automações (gatilhos)" },

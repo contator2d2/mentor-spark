@@ -56,7 +56,7 @@ const categories: Category[] = [
   {
     name: "Conteúdo",
     features: [
-      { icon: BookOpen, title: "Trilhas / Cursos", desc: "Área de membros estilo Netflix, com acesso por grupo." },
+      { icon: BookOpen, title: "Academy — Cursos EAD", desc: "Área de membros estilo Netflix. Cursos ilimitados com venda direta, sem intermediários." },
       { icon: MessagesSquare, title: "Comunidade", desc: "Feed interno com posts, reações e gamificação." },
       { icon: Gamepad2, title: "Quizzes ao Vivo", desc: "Estilo Kahoot para aulas e eventos presenciais." },
     ],
@@ -89,13 +89,13 @@ const plans = [
   {
     name: "Starter", price: "R$ 89,90", period: "/mês",
     desc: "Para mentores começando a organizar a operação.",
-    features: ["Funil de leads", "Agenda pública", "Prontuário básico", "1 trilha de conteúdo", "Suporte por e-mail"],
+    features: ["Funil de leads", "Agenda pública", "Prontuário básico", "1 curso na Academy", "Suporte por e-mail"],
     highlight: false,
   },
   {
     name: "Pro", price: "R$ 199,90", period: "/mês",
     desc: "Para quem já entrega e quer escalar com método.",
-    features: ["Tudo do Starter", "IA nativa em reuniões e testes", "Trilhas ilimitadas", "Central de Demandas", "Cobranças recorrentes", "Automações e integrações"],
+    features: ["Tudo do Starter", "IA nativa em reuniões e testes", "Academy com cursos ilimitados", "Central de Demandas", "Cobranças recorrentes", "Automações e integrações"],
     highlight: true,
   },
   {
@@ -314,7 +314,7 @@ export default function Landing() {
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-2 mb-4">
-                {["Trilhas", "Reuniões", "Comunidade"].map((t) => (
+                {["Academy", "Reuniões", "Comunidade"].map((t) => (
                   <div key={t} className="p-3 rounded-lg bg-muted text-center text-xs font-semibold">{t}</div>
                 ))}
               </div>
