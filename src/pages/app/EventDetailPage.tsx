@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Loader2, ArrowLeft, QrCode, Users, ScanLine, Send, ClipboardList, Calendar,
-  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2, Zap
+  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2, Zap, Ticket
 } from "lucide-react";
 import { toast } from "sonner";
 import CheckinScanner from "@/components/events/CheckinScanner";
