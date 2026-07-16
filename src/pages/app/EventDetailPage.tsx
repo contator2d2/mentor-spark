@@ -15,11 +15,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   Loader2, ArrowLeft, QrCode, Users, ScanLine, Send, ClipboardList, Calendar,
-  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2, Zap
+  Sparkles, BarChart3, Copy, Trash2, UserCheck, RefreshCw, Megaphone, Building2, Zap, Ticket
 } from "lucide-react";
 import { toast } from "sonner";
 import CheckinScanner from "@/components/events/CheckinScanner";
 import StartQuizDialog from "@/components/quiz/StartQuizDialog";
+import EventCouponsSection from "@/components/events/EventCouponsSection";
 
 const STATUS_LABELS: Record<string, string> = {
   registered: "Inscrito",
@@ -189,6 +190,7 @@ export default function EventDetailPage() {
           <TabsTrigger value="registrations"><Users className="h-3 w-3 mr-1" />Inscritos</TabsTrigger>
           <TabsTrigger value="actions"><Send className="h-3 w-3 mr-1" />Ações</TabsTrigger>
           <TabsTrigger value="nps"><BarChart3 className="h-3 w-3 mr-1" />NPS</TabsTrigger>
+          <TabsTrigger value="coupons"><Ticket className="h-3 w-3 mr-1" />Cupons</TabsTrigger>
           <TabsTrigger value="history"><ClipboardList className="h-3 w-3 mr-1" />Histórico</TabsTrigger>
         </TabsList>
 
@@ -311,6 +313,10 @@ export default function EventDetailPage() {
               </Card>
             </>
           )}
+        </TabsContent>
+
+        <TabsContent value="coupons" className="space-y-2">
+          {event && <EventCouponsSection eventId={event.id} />}
         </TabsContent>
 
         <TabsContent value="history" className="space-y-2">

@@ -10,6 +10,7 @@ import { CaptureEvent } from '../../entities/capture-event.entity';
 import { EventTicketTier } from '../../entities/event-ticket-tier.entity';
 import { EventRegistration, RegistrationPaymentStatus } from '../../entities/event-registration.entity';
 import { EventPayment, EventPaymentStatus } from '../../entities/event-payment.entity';
+import { EventCouponsService, CouponApplicationResult } from './event-coupons.service';
 
 /**
  * Serviço de pagamentos para eventos.
@@ -27,6 +28,7 @@ export class EventPaymentsService {
     @InjectRepository(EventRegistration) private regs: Repository<EventRegistration>,
     @InjectRepository(EventPayment) private payments: Repository<EventPayment>,
     @InjectRepository(CaptureEvent) private events: Repository<CaptureEvent>,
+    private couponsSvc: EventCouponsService,
   ) {}
 
   // ==================== Config (mentor) ====================
@@ -117,18 +119,34 @@ export class EventPaymentsService {
     event: CaptureEvent;
     tier: EventTicketTier;
     payerCpfCnpj?: string;
+    coupon?: CouponApplicationResult | null;
   }) {
-    const { registration, event, tier } = opts;
+    const { registration, event, tier, coupon } = opts;
     if (!event.paymentProviderId) {
       throw new BadRequestException('Este evento não tem provedor de pagamento configurado.');
     }
-    if (tier.priceCents <= 0) {
+
+    const originalCents = tier.priceCents;
+    const discountCents = coupon?.discountCents || 0;
+    const finalCents = Math.max(0, originalCents - discountCents);
+
+    if (finalCents <= 0) {
       // grátis — marca como pago automaticamente
       await this.regs.update(registration.id, {
         paymentStatus: RegistrationPaymentStatus.PAID,
         amountPaidCents: 0,
         paidAt: new Date(),
       });
+      // se cupom 100% de desconto, registra o resgate
+      if (coupon) {
+        await this.couponsSvc.recordRedemption({
+          couponId: coupon.coupon.id,
+          registrationId: registration.id,
+          email: registration.email,
+          cpfCnpj: opts.payerCpfCnpj,
+          discountCents,
+        }).catch(() => null);
+      }
       return { free: true };
     }
 
@@ -152,7 +170,10 @@ export class EventPaymentsService {
       mentorId: event.mentorId,
       tierId: tier.id,
       providerType: provider.type,
-      amountCents: tier.priceCents,
+      amountCents: finalCents,
+      originalAmountCents: originalCents,
+      discountCents,
+      couponId: coupon?.coupon.id,
       currency: tier.currency,
       status: EventPaymentStatus.PENDING,
     });
@@ -160,13 +181,13 @@ export class EventPaymentsService {
     try {
       switch (provider.type) {
         case PaymentProviderType.ASAAS:
-          await this.checkoutAsaas(provider, payment, registration, event, tier, opts.payerCpfCnpj);
+          await this.checkoutAsaas(provider, payment, registration, event, tier, opts.payerCpfCnpj, finalCents);
           break;
         case PaymentProviderType.MERCADO_PAGO:
-          await this.checkoutMercadoPago(provider, payment, registration, event, tier);
+          await this.checkoutMercadoPago(provider, payment, registration, event, tier, finalCents);
           break;
         case PaymentProviderType.STRIPE:
-          await this.checkoutStripe(provider, payment, registration, event, tier);
+          await this.checkoutStripe(provider, payment, registration, event, tier, finalCents);
           break;
         case PaymentProviderType.MANUAL:
           payment.checkoutUrl = provider.manualCheckoutUrl || null;
@@ -204,6 +225,7 @@ export class EventPaymentsService {
     event: CaptureEvent,
     tier: EventTicketTier,
     cpfCnpj?: string,
+    finalCents?: number,
   ) {
     const baseUrl = provider.environment === 'production'
       ? 'https://api.asaas.com/v3'
@@ -230,15 +252,16 @@ export class EventPaymentsService {
 
     // 2. cria cobrança PIX
     const dueDate = new Date(Date.now() + 3 * 24 * 3600 * 1000).toISOString().slice(0, 10);
+    const value = ((finalCents ?? tier.priceCents) / 100);
     const charge = await fetch(`${baseUrl}/payments`, {
       method: 'POST',
       headers,
       body: JSON.stringify({
         customer: customer.id,
         billingType: 'PIX',
-        value: tier.priceCents / 100,
+        value,
         dueDate,
-        description: `${event.name} — ${tier.name}`,
+        description: `${event.name} — ${tier.name}${payment.discountCents ? ' (cupom aplicado)' : ''}`,
         externalReference: payment.id,
       }),
     }).then((r) => r.json());
@@ -266,6 +289,7 @@ export class EventPaymentsService {
     reg: EventRegistration,
     event: CaptureEvent,
     tier: EventTicketTier,
+    finalCents?: number,
   ) {
     // Cria preference (Checkout Pro)
     const pref = await fetch('https://api.mercadopago.com/checkout/preferences', {
@@ -279,7 +303,7 @@ export class EventPaymentsService {
           {
             title: `${event.name} — ${tier.name}`,
             quantity: 1,
-            unit_price: tier.priceCents / 100,
+            unit_price: (finalCents ?? tier.priceCents) / 100,
             currency_id: tier.currency,
           },
         ],
@@ -307,6 +331,7 @@ export class EventPaymentsService {
     reg: EventRegistration,
     event: CaptureEvent,
     tier: EventTicketTier,
+    finalCents?: number,
   ) {
     const params = new URLSearchParams();
     params.append('mode', 'payment');
@@ -316,7 +341,7 @@ export class EventPaymentsService {
     params.append('client_reference_id', payment.id);
     params.append('line_items[0][quantity]', '1');
     params.append('line_items[0][price_data][currency]', tier.currency.toLowerCase());
-    params.append('line_items[0][price_data][unit_amount]', String(tier.priceCents));
+    params.append('line_items[0][price_data][unit_amount]', String(finalCents ?? tier.priceCents));
     params.append('line_items[0][price_data][product_data][name]', `${event.name} — ${tier.name}`);
     params.append('metadata[paymentId]', payment.id);
     params.append('metadata[registrationId]', reg.id);
@@ -425,6 +450,19 @@ export class EventPaymentsService {
     });
     if (payment.tierId) {
       await this.tiers.increment({ id: payment.tierId } as any, 'sold', 1);
+    }
+    // registra resgate do cupom (idempotente)
+    if (payment.couponId) {
+      const reg = await this.regs.findOne({ where: { id: payment.registrationId } });
+      if (reg) {
+        await this.couponsSvc.recordRedemption({
+          couponId: payment.couponId,
+          registrationId: payment.registrationId,
+          paymentId: payment.id,
+          email: reg.email,
+          discountCents: payment.discountCents || 0,
+        }).catch(() => null);
+      }
     }
   }
 
