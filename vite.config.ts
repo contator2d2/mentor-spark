@@ -13,6 +13,11 @@ import { defineConfig } from "vite";
         changeOrigin: true,
         secure: true,
       },
+      "/uploads": {
+        target: process.env.VITE_API_PROXY_TARGET || "https://blaster-mentorflor-backend.isyhhh.easypanel.host",
+        changeOrigin: true,
+        secure: true,
+      },
       "/__l5e": {
         target:
           process.env.VITE_ASSETS_PROXY_TARGET ||
