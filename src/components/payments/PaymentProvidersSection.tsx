@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle, Copy, Webhook, Pencil } from "lucide-react";
+import { CreditCard, Loader2, Plus, Trash2, CheckCircle2, AlertCircle, Copy, Webhook, Pencil, PlayCircle } from "lucide-react";
 import { toast } from "sonner";
 
 interface Provider {
@@ -110,6 +110,31 @@ export default function PaymentProvidersSection() {
 
   const webhookUrl = `${window.location.origin}/api/public/event-payments/webhook/asaas`;
 
+  const [testingId, setTestingId] = useState<string | null>(null);
+  async function testWebhook(p: Provider) {
+    setTestingId(p.id);
+    try {
+      // 1. GET ping — Asaas usa isto ao validar a URL
+      const pingRes = await fetch(webhookUrl, { method: "GET" });
+      if (!pingRes.ok) throw new Error(`GET retornou ${pingRes.status}`);
+      // 2. POST com token — simula o que o Asaas envia
+      const postRes = await fetch(webhookUrl + "/test", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "asaas-access-token": p.metadata?.webhookToken || "",
+        },
+        body: JSON.stringify({ token: p.metadata?.webhookToken }),
+      });
+      if (!postRes.ok) throw new Error(`POST retornou ${postRes.status}`);
+      toast.success("Webhook acessível ✓ — agora clique em 'Reativar' no painel Asaas.");
+    } catch (e: any) {
+      toast.error("Falha ao testar: " + e.message);
+    } finally {
+      setTestingId(null);
+    }
+  }
+
   if (loading) return <Loader2 className="h-5 w-5 animate-spin text-primary" />;
 
   return (
@@ -197,6 +222,17 @@ export default function PaymentProvidersSection() {
                     <li>Eventos: marque <b>PAYMENT_CONFIRMED, PAYMENT_RECEIVED, PAYMENT_REFUNDED, PAYMENT_DELETED</b>.</li>
                     <li>Salve. Pronto — as inscrições serão confirmadas automaticamente ao receber o pagamento.</li>
                   </ol>
+                  <div className="pt-2 border-t border-border/60 mt-2 space-y-2">
+                    <Button size="sm" variant="secondary" className="w-full" onClick={() => testWebhook(p)} disabled={testingId === p.id}>
+                      {testingId === p.id ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-2" /> : <PlayCircle className="h-3.5 w-3.5 mr-2" />}
+                      Testar webhook
+                    </Button>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      <b>Status "Interrompido" no Asaas?</b> Isso significa que houve alguma falha temporária de rede em um envio anterior.
+                      Basta clicar em <b>"Reativar"</b> (ou <b>"Ativar sincronização"</b>) no painel do Asaas — a URL continua correta.
+                      Se persistir, use o botão "Testar webhook" acima para confirmar que a URL responde.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
