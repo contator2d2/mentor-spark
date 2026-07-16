@@ -112,8 +112,9 @@ export class PublicEventPaymentsController {
   constructor(private svc: EventPaymentsService, private couponsSvc: EventCouponsService) {}
 
   @Post('webhook/asaas')
-  asaas(@Body() body: any) {
-    return this.svc.handleAsaasWebhook(body);
+  asaas(@Body() body: any, @Req() req: Request) {
+    const token = (req.headers['asaas-access-token'] || req.headers['asaas-token'] || '') as string;
+    return this.svc.handleAsaasWebhook(body, token);
   }
 
   @Post('webhook/mercado_pago')
