@@ -8,7 +8,7 @@ import {
   Calendar, MessageSquare, Zap, CheckCircle2, Check, TrendingUp,
   Target, Layers, FileText, QrCode, Video, BookOpen, MessagesSquare,
   Gamepad2, ListChecks, Workflow, CreditCard, FileSignature, Palette,
-  Globe, Bot, LineChart,
+  Globe, Bot, LineChart, PlayCircle, DollarSign, Infinity as InfinityIcon,
 } from "lucide-react";
 import {
   Accordion,
@@ -128,6 +128,7 @@ export default function Landing() {
           </div>
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
             <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+            <a href="#academy" className="text-muted-foreground hover:text-foreground transition-colors">Academy</a>
             <a href="#whitelabel" className="text-muted-foreground hover:text-foreground transition-colors">White-label</a>
             <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Clientes</a>
             <a href="#planos" className="text-muted-foreground hover:text-foreground transition-colors">Planos</a>
@@ -327,6 +328,80 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* ============ ACADEMY ============ */}
+      <section id="academy" className="py-24 relative overflow-hidden border-b border-border/40">
+        <div className="absolute top-0 left-0 w-1/2 h-1/2 bg-primary/5 blur-[120px] rounded-full" />
+        <div className="absolute bottom-0 right-0 w-1/3 h-1/3 bg-accent/10 blur-[120px] rounded-full" />
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="text-center mb-14 max-w-3xl mx-auto">
+            <Badge className="mb-4 bg-primary/10 text-primary border-primary/20 hover:bg-primary/10">
+              <PlayCircle className="h-3 w-3 mr-1" /> Academy — EAD com sua marca
+            </Badge>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
+              Sua <span className="text-gradient">escola online</span> dentro da plataforma.
+            </h2>
+            <p className="text-muted-foreground text-lg">
+              Lance cursos em vídeo, monte módulos e aulas, venda direto para seus alunos e faça upsell — <strong className="text-foreground">sem intermediários e sem taxa de plataforma de cursos</strong>.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-10 items-center mb-16">
+            <div className="order-2 lg:order-1 space-y-5">
+              {[
+                { icon: InfinityIcon, t: "Cursos ilimitados", d: "Crie quantos cursos quiser. Estrutura Curso → Módulos → Aulas com vídeos, materiais e progresso." },
+                { icon: DollarSign, t: "Venda direta, 0% intermediário", d: "Cobre em PIX, cartão recorrente ou avulso. O dinheiro cai na sua conta — sem Hotmart, Kiwify ou Eduzz no meio." },
+                { icon: TrendingUp, t: "Upsell individual por aula", d: "Libere aulas ou módulos extras como upsell dentro do próprio curso. Aumente ticket sem trocar de ferramenta." },
+                { icon: Video, t: "Player estilo Netflix", d: "Experiência de área de membros premium, com sua marca no white-label. Alunos assistem no celular como PWA." },
+              ].map((f) => (
+                <div key={f.t} className="flex gap-4">
+                  <div className="h-11 w-11 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <f.icon className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg mb-1">{f.t}</div>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{f.d}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="order-1 lg:order-2 relative">
+              <div className="absolute -inset-6 bg-primary/15 blur-3xl rounded-full" />
+              <Card className="relative p-4 glass-card border-primary/20 shadow-elegant">
+                <div className="rounded-lg overflow-hidden bg-black aspect-video relative mb-3 flex items-center justify-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/40 via-accent/30 to-background/20" />
+                  <div className="relative h-16 w-16 rounded-full bg-background/90 flex items-center justify-center shadow-glow">
+                    <PlayCircle className="h-10 w-10 text-primary" />
+                  </div>
+                  <div className="absolute bottom-3 left-3 right-3 text-primary-foreground">
+                    <div className="text-xs opacity-80">Módulo 2 · Aula 4</div>
+                    <div className="font-bold text-sm">Estratégia de precificação premium</div>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {["Fundamentos", "Prática", "Bônus (upsell)"].map((t, i) => (
+                    <div key={t} className={`p-3 rounded-lg text-xs font-semibold text-center ${i === 2 ? "bg-primary/15 text-primary border border-primary/20" : "bg-muted"}`}>{t}</div>
+                  ))}
+                </div>
+              </Card>
+            </div>
+          </div>
+
+          <div className="grid sm:grid-cols-3 gap-4 max-w-4xl mx-auto">
+            {[
+              { k: "0%", v: "de taxa de plataforma de cursos" },
+              { k: "∞", v: "cursos, módulos e aulas" },
+              { k: "PIX", v: "e recorrência direto na sua conta" },
+            ].map((s) => (
+              <Card key={s.v} className="p-6 text-center glass-card border-primary/10">
+                <div className="font-display text-3xl font-bold text-gradient mb-1">{s.k}</div>
+                <div className="text-sm text-muted-foreground">{s.v}</div>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ============ PROVA SOCIAL ============ */}
       <section id="depoimentos" className="py-24 bg-muted/30">
         <div className="max-w-7xl mx-auto px-6">
@@ -341,12 +416,12 @@ export default function Landing() {
               { name: "Esney Menezes", role: "Mentoria de Negócios", photo: esneyPhoto.url },
             ].map((c) => (
               <Card key={c.name} className="overflow-hidden glass-card border-primary/10 group">
-                <div className="aspect-[4/5] overflow-hidden bg-muted">
+                <div className="aspect-[4/3] overflow-hidden bg-muted">
                   <img
                     src={c.photo}
                     alt={c.name}
                     loading="lazy"
-                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    className="h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   />
                 </div>
                 <div className="p-5">
@@ -467,6 +542,7 @@ export default function Landing() {
               <div className="font-semibold text-sm mb-3">Produto</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#recursos" className="hover:text-foreground">Recursos</a></li>
+                <li><a href="#academy" className="hover:text-foreground">Academy</a></li>
                 <li><a href="#whitelabel" className="hover:text-foreground">White-label</a></li>
                 <li><a href="#planos" className="hover:text-foreground">Planos</a></li>
               </ul>
