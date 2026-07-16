@@ -361,7 +361,14 @@ export class EventPaymentsService {
   }
 
   // ==================== Webhooks ====================
-  async handleAsaasWebhook(body: any) {
+  async handleAsaasWebhook(body: any, receivedToken?: string) {
+    // Validação opcional do token do webhook (configurado no painel Asaas).
+    // Se ASAAS_WEBHOOK_TOKEN estiver definido no ambiente, exige match.
+    const expected = process.env.ASAAS_WEBHOOK_TOKEN;
+    if (expected && receivedToken !== expected) {
+      this.logger.warn(`Asaas webhook token inválido`);
+      return { ok: false, error: 'invalid token' };
+    }
     // Eventos: PAYMENT_CONFIRMED, PAYMENT_RECEIVED
     const eventType = body?.event;
     const ext = body?.payment?.id;
