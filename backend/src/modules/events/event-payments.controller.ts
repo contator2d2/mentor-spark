@@ -3,12 +3,13 @@ import { Request } from 'express';
 import { Auth } from '../auth/auth.decorators';
 import { TenantId } from '../auth/current-user.decorator';
 import { EventPaymentsService } from './event-payments.service';
+import { EventCouponsService } from './event-coupons.service';
 import { PaymentProviderType, PaymentProviderStatus } from '../../entities/mentor-payment-provider.entity';
 
 /** Endpoints autenticados (mentor): config de provedores + lotes. */
 @Controller('event-payments')
 export class EventPaymentsController {
-  constructor(private svc: EventPaymentsService) {}
+  constructor(private svc: EventPaymentsService, private couponsSvc: EventCouponsService) {}
 
   // ===== Provedores =====
   @Auth('mentor', 'super_admin')
@@ -78,12 +79,37 @@ export class EventPaymentsController {
   markPaid(@TenantId() mentorId: string, @Param('paymentId') paymentId: string) {
     return this.svc.markPaymentManually(mentorId, paymentId);
   }
+
+  // ===== Cupons =====
+  @Auth('mentor', 'super_admin')
+  @Get('events/:eventId/coupons')
+  listCoupons(@Param('eventId') eventId: string) {
+    return this.couponsSvc.list(eventId);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Post('events/:eventId/coupons')
+  createCoupon(@TenantId() mentorId: string, @Param('eventId') eventId: string, @Body() dto: any) {
+    return this.couponsSvc.create(mentorId, eventId, dto);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Put('coupons/:id')
+  updateCoupon(@Param('id') id: string, @Body() dto: any) {
+    return this.couponsSvc.update(id, dto);
+  }
+
+  @Auth('mentor', 'super_admin')
+  @Delete('coupons/:id')
+  deleteCoupon(@Param('id') id: string) {
+    return this.couponsSvc.remove(id);
+  }
 }
 
 /** Endpoints públicos: webhooks e status. */
 @Controller('public/event-payments')
 export class PublicEventPaymentsController {
-  constructor(private svc: EventPaymentsService) {}
+  constructor(private svc: EventPaymentsService, private couponsSvc: EventCouponsService) {}
 
   @Post('webhook/asaas')
   asaas(@Body() body: any) {
@@ -105,5 +131,29 @@ export class PublicEventPaymentsController {
     return this.svc['regs']
       .findOne({ where: { ticketCode } })
       .then((reg) => (reg ? this.svc.getPaymentsForRegistration(reg.id) : []));
+  }
+
+  /** Valida cupom em tempo real (usado no formulário público antes de submeter). */
+  @Post('coupons/validate')
+  async validateCoupon(@Body() dto: { eventId: string; code: string; tierId: string; email: string; cpfCnpj?: string }) {
+    const tier = await this.svc['tiers'].findOne({ where: { id: dto.tierId } });
+    if (!tier) return { valid: false, message: 'Lote inválido' };
+    try {
+      const r = await this.couponsSvc.validateAndApply(dto.eventId, dto.code, tier, {
+        email: dto.email,
+        cpfCnpj: dto.cpfCnpj,
+      });
+      return {
+        valid: true,
+        code: r.coupon.code,
+        discountType: r.coupon.discountType,
+        discountValue: r.coupon.discountValue,
+        discountCents: r.discountCents,
+        originalCents: r.originalCents,
+        finalCents: r.finalCents,
+      };
+    } catch (e: any) {
+      return { valid: false, message: e.message };
+    }
   }
 }
