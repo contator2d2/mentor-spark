@@ -17,6 +17,9 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+import amandaPhoto from "@/assets/amanda-cristina.png.asset.json";
+import esneyPhoto from "@/assets/esney-menezes.png.asset.json";
+
 const WHATSAPP_URL = "https://wa.me/5517991308048?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20o%20Mentor%20Glee-go.";
 
 const replaces = [
@@ -334,14 +337,22 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 max-w-3xl mx-auto">
             {[
-              { name: "Dra. Amanda Cristina", initial: "A" },
-              { name: "Esney Menezes", initial: "E" },
+              { name: "Dra. Amanda Cristina", role: "Mentoria Jurídica", photo: amandaPhoto.url },
+              { name: "Esney Menezes", role: "Mentoria de Negócios", photo: esneyPhoto.url },
             ].map((c) => (
-              <Card key={c.name} className="p-6 glass-card border-primary/10 flex items-center gap-4">
-                <div className="h-12 w-12 rounded-full bg-gradient-primary flex items-center justify-center font-bold text-primary-foreground text-lg shrink-0">
-                  {c.initial}
+              <Card key={c.name} className="overflow-hidden glass-card border-primary/10 group">
+                <div className="aspect-[4/5] overflow-hidden bg-muted">
+                  <img
+                    src={c.photo}
+                    alt={c.name}
+                    loading="lazy"
+                    className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
                 </div>
-                <div className="font-display font-bold text-lg">{c.name}</div>
+                <div className="p-5">
+                  <div className="font-display font-bold text-lg">{c.name}</div>
+                  <div className="text-sm text-muted-foreground">{c.role}</div>
+                </div>
               </Card>
             ))}
           </div>
