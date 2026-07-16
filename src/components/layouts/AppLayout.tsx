@@ -66,6 +66,7 @@ const NAV: NavItem[] = [
    { to: "/app/tasks", label: "Tarefas", icon: CheckSquare, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/billing", label: "Cobranças", icon: DollarSign, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"], feature: "allowMentorBilling" },
    { to: "/app/trails", label: "Academy", icon: GraduationCap, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"], feature: "allowTrails" },
+   { to: "/app/sales-pages", label: "Páginas de Venda", icon: Sparkles, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor"] },
    { to: "/app/access-groups", label: "Grupos de Acesso", icon: Users, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"] },
    { to: "/app/community", label: "Comunidade", icon: Users, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"], feature: "allowCommunity" },
    { to: "/app/analytics", label: "Analytics", icon: Sparkles, roles: ["mentor", "super_admin", "mentor_team", "admin", "editor", "attendant"], feature: "allowAdvancedAnalytics" },
