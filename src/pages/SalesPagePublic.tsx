@@ -97,62 +97,94 @@ export default function SalesPagePublic() {
 
   return (
     <div className="min-h-screen bg-background text-foreground" style={primary ? { ["--primary" as any]: primary } : {}}>
-      {/* Header */}
-      <header className="border-b border-border/40 bg-background/80 backdrop-blur sticky top-0 z-40">
+      {/* Header (dark premium) */}
+      <header className="sticky top-0 z-40 backdrop-blur bg-[#0a0a0a]/80 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {mentor.brandLogoUrl ? (
               <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-8 w-8 rounded-lg object-cover" />
             ) : (
-              <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-primary" />
+              <div className="h-8 w-8 rounded-lg bg-[#c9a84c]/15 flex items-center justify-center">
+                <Sparkles className="h-4 w-4 text-[#c9a84c]" />
               </div>
             )}
-            <div className="font-bold">{mentor.brandName || "Mentoria"}</div>
+            <div className="font-bold text-white">{mentor.brandName || "Mentoria"}</div>
           </div>
-          <Button onClick={() => setCheckoutOpen(true)} className="bg-primary hover:opacity-90">{page.ctaText}</Button>
+          <Button
+            onClick={() => setCheckoutOpen(true)}
+            className="bg-[#c9a84c] hover:bg-[#d4b662] text-[#0a0a0a] font-semibold border-0 shadow-[0_8px_24px_-8px_rgba(201,168,76,0.5)]"
+          >
+            {page.ctaText}
+          </Button>
         </div>
       </header>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border/40">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent" />
-        <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-10 items-center">
-          <div>
+      {/* Hero — Premium Dark */}
+      <section className="relative overflow-hidden bg-[#0a0a0a] text-white">
+        {/* Golden radial halo behind subject */}
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(60% 60% at 78% 55%, rgba(201,168,76,0.28) 0%, rgba(201,168,76,0.08) 35%, rgba(10,10,10,0) 70%)",
+          }}
+        />
+        {/* Subtle vignette on the left for text legibility */}
+        <div className="pointer-events-none absolute inset-y-0 left-0 w-2/3 bg-gradient-to-r from-black/80 via-black/40 to-transparent" />
+
+        <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28 grid lg:grid-cols-2 gap-10 items-center">
+          <div className="relative z-10">
             {page.badges?.[0] && (
-              <Badge variant="outline" className="mb-4 border-primary/30 text-primary bg-primary/5">
-                {page.badges[0]}
-              </Badge>
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
+                <Sparkles className="h-3 w-3" /> {page.badges[0]}
+              </div>
             )}
-            <h1 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-4">
+            <h1
+              className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white"
+              style={{ fontFamily: "'Playfair Display', 'DM Serif Display', Georgia, serif" }}
+            >
               {page.headline || page.title}
             </h1>
             {page.subheadline && (
-              <p className="text-lg text-muted-foreground mb-6 max-w-xl">{page.subheadline}</p>
+              <p className="text-lg md:text-xl mb-6 max-w-xl leading-snug font-medium text-[#e8c97a]">
+                {page.subheadline}
+              </p>
             )}
-            <div className="flex flex-wrap items-center gap-3 mb-6">
+            {page.description && (
+              <p className="text-base md:text-lg text-white/70 mb-8 max-w-xl leading-relaxed">
+                {page.description.split("\n")[0]}
+              </p>
+            )}
+            <div className="flex flex-wrap items-baseline gap-3 mb-8">
               {page.originalPriceCents ? (
-                <span className="text-muted-foreground line-through">{money(page.originalPriceCents)}</span>
+                <span className="text-white/40 line-through">{money(page.originalPriceCents)}</span>
               ) : null}
-              <span className="font-display text-3xl md:text-4xl font-bold text-primary">{money(page.priceCents)}</span>
+              <span className="font-display text-4xl md:text-5xl font-bold text-[#e8c97a]">
+                {money(page.priceCents)}
+              </span>
               {page.maxInstallments > 1 && (
-                <span className="text-sm text-muted-foreground">
+                <span className="text-sm text-white/60">
                   ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
                 </span>
               )}
             </div>
-            <Button size="lg" onClick={() => setCheckoutOpen(true)} className="bg-primary hover:opacity-90 h-12 px-8 shadow-lg">
+            <Button
+              size="lg"
+              onClick={() => setCheckoutOpen(true)}
+              className="bg-[#c9a84c] hover:bg-[#d4b662] text-[#0a0a0a] font-bold h-14 px-10 text-base rounded-md border-0 shadow-[0_16px_40px_-12px_rgba(201,168,76,0.6)] transition-transform hover:-translate-y-0.5"
+            >
               {page.ctaText}
             </Button>
             {page.guaranteeText && (
-              <div className="mt-4 flex items-center gap-2 text-sm text-muted-foreground">
-                <ShieldCheck className="h-4 w-4 text-primary" /> {page.guaranteeText}
+              <div className="mt-5 flex items-center gap-2 text-sm text-white/70">
+                <ShieldCheck className="h-4 w-4 text-[#c9a84c]" /> {page.guaranteeText}
               </div>
             )}
           </div>
+
           <div className="relative">
             {page.videoUrl ? (
-              <div className="aspect-video rounded-xl overflow-hidden bg-muted shadow-elegant">
+              <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-black/50 ring-1 ring-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
                 <iframe
                   src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
                   className="w-full h-full"
@@ -160,10 +192,23 @@ export default function SalesPagePublic() {
                 />
               </div>
             ) : page.heroImageUrl ? (
-              <img src={page.heroImageUrl} alt={page.title} className="rounded-xl shadow-elegant w-full aspect-video object-cover" />
+              <div className="relative">
+                {/* Fade image edges into the dark background */}
+                <img
+                  src={page.heroImageUrl}
+                  alt={page.title}
+                  className="w-full h-[520px] object-cover object-center rounded-2xl"
+                  style={{
+                    WebkitMaskImage:
+                      "radial-gradient(ellipse at 60% 50%, #000 55%, transparent 92%)",
+                    maskImage:
+                      "radial-gradient(ellipse at 60% 50%, #000 55%, transparent 92%)",
+                  }}
+                />
+              </div>
             ) : (
-              <div className="aspect-video rounded-xl bg-gradient-to-br from-primary/20 to-accent/10 flex items-center justify-center">
-                <Sparkles className="h-16 w-16 text-primary/40" />
+              <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#c9a84c]/20 to-transparent flex items-center justify-center ring-1 ring-white/5">
+                <Sparkles className="h-16 w-16 text-[#c9a84c]/40" />
               </div>
             )}
           </div>
