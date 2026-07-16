@@ -65,13 +65,13 @@ export default function EventCouponsSection({ eventId }: { eventId: string }) {
     setLoading(true);
     try {
       const [cs, ts] = await Promise.all([
-        api.get(`/event-payments/events/${eventId}/coupons`),
-        api.get(`/event-payments/events/${eventId}/tiers`),
+        api(`/event-payments/events/${eventId}/coupons`),
+        api(`/event-payments/events/${eventId}/tiers`),
       ]);
-      setCoupons(cs.data || []);
-      setTiers(ts.data || []);
+      setCoupons(cs || []);
+      setTiers(ts || []);
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Erro ao carregar cupons");
+      toast.error(e?.message || "Erro ao carregar cupons");
     } finally {
       setLoading(false);
     }
@@ -124,16 +124,16 @@ export default function EventCouponsSection({ eventId }: { eventId: string }) {
         payload.discountValue = editing.discountValue;
       }
       if (editing) {
-        await api.put(`/event-payments/coupons/${editing.id}`, payload);
+        await api(`/event-payments/coupons/${editing.id}`, { method: "PUT", body: payload });
         toast.success("Cupom atualizado");
       } else {
-        await api.post(`/event-payments/events/${eventId}/coupons`, payload);
+        await api(`/event-payments/events/${eventId}/coupons`, { method: "POST", body: payload });
         toast.success("Cupom criado");
       }
       setOpen(false);
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Erro ao salvar");
+      toast.error(e?.message || "Erro ao salvar");
     } finally {
       setSaving(false);
     }
@@ -142,11 +142,11 @@ export default function EventCouponsSection({ eventId }: { eventId: string }) {
   async function remove(c: Coupon) {
     if (!confirm(`Excluir cupom ${c.code}?`)) return;
     try {
-      await api.delete(`/event-payments/coupons/${c.id}`);
+      await api(`/event-payments/coupons/${c.id}`, { method: "DELETE" });
       toast.success("Cupom excluído");
       load();
     } catch (e: any) {
-      toast.error(e?.response?.data?.message || "Erro");
+      toast.error(e?.message || "Erro");
     }
   }
 
