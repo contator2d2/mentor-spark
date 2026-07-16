@@ -128,6 +128,7 @@ export default function Landing() {
           </div>
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium">
             <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+            <a href="#academy" className="text-muted-foreground hover:text-foreground transition-colors">Academy</a>
             <a href="#whitelabel" className="text-muted-foreground hover:text-foreground transition-colors">White-label</a>
             <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Clientes</a>
             <a href="#planos" className="text-muted-foreground hover:text-foreground transition-colors">Planos</a>
@@ -541,6 +542,7 @@ export default function Landing() {
               <div className="font-semibold text-sm mb-3">Produto</div>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#recursos" className="hover:text-foreground">Recursos</a></li>
+                <li><a href="#academy" className="hover:text-foreground">Academy</a></li>
                 <li><a href="#whitelabel" className="hover:text-foreground">White-label</a></li>
                 <li><a href="#planos" className="hover:text-foreground">Planos</a></li>
               </ul>
