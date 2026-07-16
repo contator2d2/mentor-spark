@@ -17,7 +17,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { LeadForm } from "@/components/landing/LeadForm";
+const WHATSAPP_URL = "https://wa.me/5517991308048?text=Ol%C3%A1%21%20Quero%20saber%20mais%20sobre%20a%20Gleego.";
 
 const replaces = [
   "WhatsApp",
@@ -82,27 +82,21 @@ const categories: Category[] = [
   },
 ];
 
-const testimonials = [
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento do cliente sobre como a plataforma transformou a operação da mentoria.]", initial: "A" },
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento focado em ganho de tempo e centralização de ferramentas.]", initial: "B" },
-  { name: "[Nome do Cliente]", role: "[Cargo / Nicho]", quote: "[Depoimento sobre retenção, escala e profissionalismo.]", initial: "C" },
-];
-
 const plans = [
   {
-    name: "Starter", price: "[preço]", period: "/mês",
+    name: "Starter", price: "R$ 89,90", period: "/mês",
     desc: "Para mentores começando a organizar a operação.",
     features: ["Funil de leads", "Agenda pública", "Prontuário básico", "1 trilha de conteúdo", "Suporte por e-mail"],
     highlight: false,
   },
   {
-    name: "Pro", price: "[preço]", period: "/mês",
+    name: "Pro", price: "R$ 199,90", period: "/mês",
     desc: "Para quem já entrega e quer escalar com método.",
     features: ["Tudo do Starter", "IA nativa em reuniões e testes", "Trilhas ilimitadas", "Central de Demandas", "Cobranças recorrentes", "Automações e integrações"],
     highlight: true,
   },
   {
-    name: "White-label", price: "[preço]", period: "",
+    name: "White-label", price: "R$ 399,99", period: "/mês",
     desc: "Marca própria, domínio próprio, sem menção à plataforma.",
     features: ["Tudo do Pro", "Domínio + branding 100% seus", "Multi-mentor / time", "Onboarding dedicado", "SLA e suporte prioritário"],
     highlight: false,
