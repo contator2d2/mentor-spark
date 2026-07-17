@@ -427,16 +427,98 @@ export default function SalesPageEditorPage() {
             </Card>
 
             <Card className="p-6 space-y-3">
-              <h3 className="font-bold">Sobre o mentor</h3>
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <h3 className="font-bold">Mentores / Palestrantes</h3>
+                <Button variant="outline" size="sm" onClick={() => {
+                  const about = page.about || {};
+                  const existing = about.people && about.people.length > 0
+                    ? about.people
+                    : (about.name || about.bio || about.role || about.photoUrl)
+                      ? [{ name: about.name, role: about.role, bio: about.bio, photoUrl: about.photoUrl }]
+                      : [];
+                  const people = [...existing, { name: "", role: "", bio: "", photoUrl: "" }];
+                  patch({ about: { ...about, people, columns: about.columns || (people.length > 1 ? 2 : 1) } });
+                }}>
+                  <Plus className="h-4 w-4 mr-1" />Adicionar palestrante
+                </Button>
+              </div>
+
               <div className="grid md:grid-cols-2 gap-3">
-                <div><Label>Nome</Label><Input value={page.about?.name || ""} onChange={(e) => patch({ about: { ...(page.about || {}), name: e.target.value } })} /></div>
-                <div><Label>Função / cargo</Label><Input value={page.about?.role || ""} onChange={(e) => patch({ about: { ...(page.about || {}), role: e.target.value } })} placeholder="Especialista em IA aplicada" /></div>
+                <div>
+                  <Label>Título da seção</Label>
+                  <Input
+                    value={page.about?.sectionTitle || ""}
+                    placeholder="Sobre / Palestrantes / Quem ministra"
+                    onChange={(e) => patch({ about: { ...(page.about || {}), sectionTitle: e.target.value } })}
+                  />
+                </div>
+                {(page.about?.people?.length || 0) > 1 && (
+                  <div>
+                    <Label>Colunas no desktop</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={4}
+                      value={page.about?.columns ?? 2}
+                      onChange={(e) => {
+                        const n = Math.max(1, Math.min(4, Number(e.target.value) || 1));
+                        patch({ about: { ...(page.about || {}), columns: n } });
+                      }}
+                    />
+                  </div>
+                )}
               </div>
-              <div>
-                <Label>Bio</Label>
-                <Textarea rows={4} value={page.about?.bio || ""} onChange={(e) => patch({ about: { ...(page.about || {}), bio: e.target.value } })} />
-              </div>
-              <ImageUploadField label="Foto do mentor" value={page.about?.photoUrl} onChange={(url) => patch({ about: { ...(page.about || {}), photoUrl: url } })} aspect="1/1" />
+
+              {(page.about?.people?.length || 0) === 0 ? (
+                <>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div><Label>Nome</Label><Input value={page.about?.name || ""} onChange={(e) => patch({ about: { ...(page.about || {}), name: e.target.value } })} /></div>
+                    <div><Label>Função / cargo</Label><Input value={page.about?.role || ""} onChange={(e) => patch({ about: { ...(page.about || {}), role: e.target.value } })} placeholder="Especialista em IA aplicada" /></div>
+                  </div>
+                  <div>
+                    <Label>Bio</Label>
+                    <Textarea rows={4} value={page.about?.bio || ""} onChange={(e) => patch({ about: { ...(page.about || {}), bio: e.target.value } })} />
+                  </div>
+                  <ImageUploadField label="Foto do mentor" value={page.about?.photoUrl} onChange={(url) => patch({ about: { ...(page.about || {}), photoUrl: url } })} aspect="1/1" />
+                </>
+              ) : (
+                <div className="space-y-4">
+                  {(page.about?.people || []).map((p, i) => (
+                    <div key={i} className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                      <div className="flex justify-between items-center">
+                        <div className="text-sm font-semibold text-muted-foreground">Palestrante #{i + 1}</div>
+                        <Button variant="ghost" size="sm" onClick={() => {
+                          const people = (page.about?.people || []).filter((_, j) => j !== i);
+                          patch({ about: { ...(page.about || {}), people } });
+                        }}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-3">
+                        <div><Label>Nome</Label><Input value={p.name || ""} onChange={(e) => {
+                          const people = [...(page.about?.people || [])]; people[i] = { ...p, name: e.target.value };
+                          patch({ about: { ...(page.about || {}), people } });
+                        }} /></div>
+                        <div><Label>Função / cargo</Label><Input value={p.role || ""} placeholder="Palestrante / Mentor / CEO" onChange={(e) => {
+                          const people = [...(page.about?.people || [])]; people[i] = { ...p, role: e.target.value };
+                          patch({ about: { ...(page.about || {}), people } });
+                        }} /></div>
+                      </div>
+                      <div>
+                        <Label>Bio</Label>
+                        <Textarea rows={3} value={p.bio || ""} onChange={(e) => {
+                          const people = [...(page.about?.people || [])]; people[i] = { ...p, bio: e.target.value };
+                          patch({ about: { ...(page.about || {}), people } });
+                        }} />
+                      </div>
+                      <ImageUploadField label="Foto" value={p.photoUrl} onChange={(url) => {
+                        const people = [...(page.about?.people || [])]; people[i] = { ...p, photoUrl: url };
+                        patch({ about: { ...(page.about || {}), people } });
+                      }} aspect="1/1" />
+                    </div>
+                  ))}
+                </div>
+              )}
             </Card>
 
             <Card className="p-6 space-y-3">
