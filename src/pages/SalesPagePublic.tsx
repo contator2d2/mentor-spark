@@ -50,6 +50,9 @@ type Payload = {
       primaryColor?: string;
       accentColor?: string;
       bgColor?: string;
+      heroStyle?: "split" | "background";
+      heroFocus?: string;
+      heroOverlay?: number;
     };
     forWho?: string[];
     notForWho?: string[];
