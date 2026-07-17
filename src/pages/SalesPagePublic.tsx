@@ -260,20 +260,35 @@ export default function SalesPagePublic() {
             {mentor.brandLogoUrl ? (
               <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-8 w-8 rounded-lg object-cover" />
             ) : (
-              <div className="h-8 w-8 rounded-lg bg-[#c9a84c]/15 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-[#c9a84c]" />
+              <div
+                className="h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                style={{ background: `${primaryHex}22`, color: primaryHex, boxShadow: `0 0 20px -4px ${primaryHex}66` }}
+              >
+                {(mentor.brandName || "M").charAt(0).toUpperCase()}
               </div>
             )}
             <div className="font-bold text-white">{mentor.brandName || "Mentoria"}</div>
           </div>
           <Button
             onClick={() => setCheckoutOpen(true)}
-            className="bg-[#c9a84c] hover:bg-[#d4b662] text-[#0a0a0a] font-semibold border-0 shadow-[0_8px_24px_-8px_rgba(201,168,76,0.5)]"
+            className="font-semibold border-0 transition-transform hover:-translate-y-0.5"
+            style={{ background: primaryHex, color: isDark ? "#0a0a0a" : "#fff", boxShadow: `0 8px 30px -8px ${primaryHex}` }}
           >
             {page.ctaText}
           </Button>
         </div>
       </header>
+
+      {/* Countdown */}
+      {page.countdown?.enabled && page.countdown?.endsAt && (
+        <CountdownBar
+          endsAt={page.countdown.endsAt}
+          label={page.countdown.label}
+          primary={primaryHex}
+          accent={accentHex}
+          hideWhenExpired={page.countdown.hideWhenExpired}
+        />
+      )}
 
       {/* Hero — Premium Dark */}
       {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
