@@ -42,6 +42,12 @@ export interface SalesPageAbout {
   role?: string;
   bio?: string;
   photoUrl?: string;
+  /** Título da seção (ex: "Sobre", "Palestrantes", "Quem ministra") */
+  sectionTitle?: string;
+  /** Nº de colunas no desktop quando há múltiplos palestrantes (1..4) */
+  columns?: number;
+  /** Múltiplos palestrantes/mentores. Se vazio, usa os campos legados acima. */
+  people?: Array<{ name?: string; role?: string; bio?: string; photoUrl?: string }>;
 }
 
 export interface SalesPageEventInfo {
