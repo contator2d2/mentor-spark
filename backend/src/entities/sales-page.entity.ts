@@ -57,6 +57,13 @@ export interface SalesPageEventInfo {
   extra?: string;     // "Credenciamento a partir das 8h30"
 }
 
+export interface SalesPageCountdown {
+  enabled?: boolean;
+  endsAt?: string;   // ISO date-time — quando a oferta termina
+  label?: string;    // rótulo curto ("Oferta termina em", "Turma fecha em")
+  hideWhenExpired?: boolean;
+}
+
 export interface SalesPageCoupon {
   code: string;                       // sempre em MAIÚSCULAS
   description?: string;
