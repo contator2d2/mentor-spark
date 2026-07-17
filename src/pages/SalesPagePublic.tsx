@@ -307,9 +307,7 @@ export default function SalesPagePublic() {
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
           <div className="max-w-2xl">
             {page.badges?.[0] && (
-              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primaryHex} accent={accentHex}>{page.badges[0]}</BadgePill>
             )}
             <h1
               className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
@@ -371,9 +369,7 @@ export default function SalesPagePublic() {
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28 grid lg:grid-cols-2 gap-10 items-center">
           <div className="relative z-10">
             {page.badges?.[0] && (
-              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primaryHex} accent={accentHex}>{page.badges[0]}</BadgePill>
             )}
             <h1
               className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white"
@@ -604,12 +600,7 @@ function LongFormLayout({
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
           <div className="max-w-2xl">
             {page.badges?.[0] && (
-              <div
-                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
-                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
-              >
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primary} accent={accent}>{page.badges[0]}</BadgePill>
             )}
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]" style={{ color: text }}>
               {page.headline || page.title}
@@ -642,12 +633,7 @@ function LongFormLayout({
         <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
           <div>
             {page.badges?.[0] && (
-              <div
-                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
-                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
-              >
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primary} accent={accent}>{page.badges[0]}</BadgePill>
             )}
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6" style={{ color: text }}>
               {page.headline || page.title}
