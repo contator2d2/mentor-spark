@@ -211,6 +211,10 @@ export class SalesPage {
   @Column({ type: 'text', nullable: true })
   urgencyText?: string;
 
+  /** Contagem regressiva opcional (ativada pelo mentor no editor). */
+  @Column({ type: 'jsonb', nullable: true })
+  countdown?: SalesPageCountdown;
+
   /** Cupons de desconto do produto (mentor gerencia no editor). */
   @Column({ type: 'jsonb', default: '[]' })
   coupons: SalesPageCoupon[];
