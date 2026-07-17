@@ -552,26 +552,74 @@ function LongFormLayout({
         </section>
       )}
 
-      {/* Sobre o mentor */}
-      {(page.about?.bio || page.about?.name) && (
-        <section className="py-16 md:py-24">
-          <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[240px_1fr] gap-10 items-center">
-            {page.about?.photoUrl ? (
-              <img src={page.about.photoUrl} alt={page.about?.name || ""} className="w-full aspect-square object-cover rounded-2xl" />
-            ) : (
-              <div className="w-full aspect-square rounded-2xl flex items-center justify-center" style={{ background: surface }}>
-                <Users className="h-16 w-16" style={{ color: primary }} />
+      {/* Sobre o mentor / Palestrantes */}
+      {(() => {
+        const about = page.about;
+        if (!about) return null;
+        const people = about.people && about.people.length > 0
+          ? about.people
+          : (about.name || about.bio || about.role || about.photoUrl)
+            ? [{ name: about.name, role: about.role, bio: about.bio, photoUrl: about.photoUrl }]
+            : [];
+        if (people.length === 0) return null;
+        const sectionTitle = about.sectionTitle || (people.length > 1 ? "Palestrantes" : "Sobre");
+        const cols = Math.max(1, Math.min(4, about.columns || (people.length > 1 ? Math.min(people.length, 3) : 1)));
+        const gridCols: Record<number, string> = {
+          1: "md:grid-cols-1",
+          2: "md:grid-cols-2",
+          3: "md:grid-cols-3",
+          4: "md:grid-cols-4",
+        };
+
+        // Layout single = hero style; múltiplos = grid de cards
+        if (people.length === 1) {
+          const p = people[0];
+          return (
+            <section className="py-16 md:py-24">
+              <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[240px_1fr] gap-10 items-center">
+                {p.photoUrl ? (
+                  <img src={p.photoUrl} alt={p.name || ""} className="w-full aspect-square object-cover rounded-2xl" />
+                ) : (
+                  <div className="w-full aspect-square rounded-2xl flex items-center justify-center" style={{ background: surface }}>
+                    <Users className="h-16 w-16" style={{ color: primary }} />
+                  </div>
+                )}
+                <div>
+                  <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>{sectionTitle}</div>
+                  <h2 className="font-display text-3xl md:text-4xl font-bold mb-1" style={{ color: text }}>{p.name || mentor.brandName}</h2>
+                  {p.role && <div className="text-lg mb-4" style={{ color: accent }}>{p.role}</div>}
+                  {p.bio && <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: muted }}>{p.bio}</p>}
+                </div>
               </div>
-            )}
-            <div>
-              <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Sobre</div>
-              <h2 className="font-display text-3xl md:text-4xl font-bold mb-1" style={{ color: text }}>{page.about?.name || mentor.brandName}</h2>
-              {page.about?.role && <div className="text-lg mb-4" style={{ color: accent }}>{page.about.role}</div>}
-              {page.about?.bio && <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: muted }}>{page.about.bio}</p>}
+            </section>
+          );
+        }
+
+        return (
+          <section className="py-16 md:py-24">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-xs uppercase tracking-widest mb-3 text-center" style={{ color: soft }}>{sectionTitle}</div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-10 text-center" style={{ color: text }}>Quem ministra</h2>
+              <div className={`grid grid-cols-1 ${gridCols[cols]} gap-6`}>
+                {people.map((p, i) => (
+                  <div key={i} className="rounded-2xl p-6 flex flex-col items-center text-center" style={{ background: surface }}>
+                    {p.photoUrl ? (
+                      <img src={p.photoUrl} alt={p.name || ""} className="w-32 h-32 object-cover rounded-full mb-4" />
+                    ) : (
+                      <div className="w-32 h-32 rounded-full flex items-center justify-center mb-4" style={{ background: primary + "22" }}>
+                        <Users className="h-10 w-10" style={{ color: primary }} />
+                      </div>
+                    )}
+                    {p.name && <div className="font-display text-xl font-bold" style={{ color: text }}>{p.name}</div>}
+                    {p.role && <div className="text-sm mb-3 mt-1" style={{ color: accent }}>{p.role}</div>}
+                    {p.bio && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: muted }}>{p.bio}</p>}
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-      )}
+          </section>
+        );
+      })()}
 
       {/* Urgência + Oferta / Preço */}
       <section className="py-20 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${primary}22, ${accent}11)` }}>
