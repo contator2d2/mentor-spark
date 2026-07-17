@@ -137,7 +137,7 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Link to="/login"><Button variant="ghost" size="sm">Entrar</Button></Link>
-            <a href="#cta"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Testar Grátis</Button></a>
+            <a href="#cta"><Button size="sm" className="bg-gradient-primary hover:opacity-90 shadow-glow">Assinar agora</Button></a>
           </div>
         </div>
       </header>
@@ -163,7 +163,7 @@ export default function Landing() {
             <div className="flex flex-wrap gap-3 mb-8">
               <a href="#cta">
                 <Button size="lg" className="bg-gradient-primary hover:opacity-90 shadow-glow h-12 px-8 group font-bold">
-                  Testar Grátis <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  Quero assinar <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </a>
               <a href="#cta">
@@ -173,7 +173,7 @@ export default function Landing() {
               </a>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm text-muted-foreground font-medium">
-              {["Sem cartão de crédito", "Setup em minutos", "Suporte em português"].map((t) => (
+              {["Ative em minutos", "Cancele quando quiser", "Suporte em português"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" /> {t}</span>
               ))}
             </div>
@@ -439,7 +439,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-14">
             <Badge variant="outline" className="mb-4">Planos</Badge>
-            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Comece grátis. Escale quando quiser.</h2>
+            <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">Escolha seu plano. Escale quando quiser.</h2>
             <p className="text-muted-foreground text-lg">Sem cartão de crédito no teste. Cancele a qualquer momento.</p>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
@@ -483,7 +483,7 @@ export default function Landing() {
         <div className="absolute inset-0 bg-grid opacity-10" />
         <div className="relative max-w-4xl mx-auto px-6 text-center">
           <Badge variant="outline" className="mb-6 bg-primary/5 border-primary/20 text-primary">
-            <LineChart className="h-3 w-3 mr-1" /> Comece grátis, sem cartão de crédito
+            <LineChart className="h-3 w-3 mr-1" /> Ative sua conta em minutos, cancele quando quiser
           </Badge>
           <h2 className="font-display text-4xl md:text-5xl font-bold mb-6">
             Pronto para operar sua mentoria como uma <span className="text-gradient">empresa de verdade</span>?
