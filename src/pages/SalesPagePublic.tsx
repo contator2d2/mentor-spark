@@ -54,7 +54,12 @@ type Payload = {
     forWho?: string[];
     notForWho?: string[];
     agenda?: { time?: string; title: string; text?: string }[];
-    about?: { name?: string; role?: string; bio?: string; photoUrl?: string };
+    about?: {
+      name?: string; role?: string; bio?: string; photoUrl?: string;
+      sectionTitle?: string;
+      columns?: number;
+      people?: Array<{ name?: string; role?: string; bio?: string; photoUrl?: string }>;
+    };
     eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
     urgencyText?: string;
   };
