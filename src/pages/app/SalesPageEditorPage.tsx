@@ -19,6 +19,19 @@ type Feature = { icon?: string; title: string; text?: string };
 type Faq = { q: string; a: string };
 type Testimonial = { name: string; role?: string; quote: string; avatarUrl?: string };
 type AgendaItem = { time?: string; title: string; text?: string };
+type Coupon = {
+  code: string;
+  description?: string;
+  discountType: "percent" | "fixed";
+  discountValue: number;
+  maxUses?: number | null;
+  usedCount?: number;
+  usedEmails?: string[];
+  oneUsePerPerson?: boolean;
+  isActive?: boolean;
+  startsAt?: string | null;
+  endsAt?: string | null;
+};
 type Theme = {
   colorSource?: "brand" | "custom";
   mode?: "light" | "dark";
@@ -61,6 +74,7 @@ type SalesPage = {
   about?: { name?: string; role?: string; bio?: string; photoUrl?: string };
   eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
   urgencyText?: string;
+  coupons?: Coupon[];
 };
 
 type Provider = { id: string; type: string; label?: string; environment: string; hasApiKey: boolean };
