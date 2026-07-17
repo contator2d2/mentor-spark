@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ShieldCheck, Sparkles, Target, TrendingUp, Zap, BookOpen, Clock, Users,
-  Loader2, Copy, QrCode, CreditCard,
+  Loader2, Copy, QrCode, CreditCard, Ticket, Check,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -661,6 +661,40 @@ function CheckoutDialog({
 
   const [pix, setPix] = useState<{ payload?: string; qrImage?: string } | null>(null);
 
+  const [couponCode, setCouponCode] = useState("");
+  const [coupon, setCoupon] = useState<{
+    valid: boolean; code?: string; discountCents?: number; finalCents?: number; message?: string;
+  } | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  const finalCents = coupon?.valid ? (coupon.finalCents ?? page.priceCents) : page.priceCents;
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    if (!email) { toast.error("Informe o e-mail antes de aplicar o cupom"); return; }
+    setValidatingCoupon(true);
+    try {
+      const r = await fetch(
+        `${API_BASE}/public/sales-pages/${mentorSlug}/${pageSlug}/validate-coupon`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: couponCode.trim(), email }),
+        },
+      );
+      const data = await r.json();
+      setCoupon(data);
+      if (data.valid) toast.success(`Cupom aplicado! -${money(data.discountCents || 0)}`);
+      else toast.error(data.message || "Cupom inválido");
+    } catch (e: any) {
+      toast.error("Erro ao validar cupom");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const removeCoupon = () => { setCoupon(null); setCouponCode(""); };
+
   const submit = async () => {
     if (!name || !email || !cpfCnpj) { toast.error("Preencha nome, e-mail e CPF/CNPJ"); return; }
     if (method === "CREDIT_CARD" && (!cardNumber || !cardHolder || !cardExp || !cardCcv || !postalCode || !addressNumber)) {
@@ -672,6 +706,7 @@ function CheckoutDialog({
       const body: any = {
         name, email, cpfCnpj, phone, billingType: method,
       };
+      if (coupon?.valid && couponCode) body.couponCode = couponCode.trim();
       if (method === "CREDIT_CARD") {
         body.installments = installments;
         body.creditCard = {
@@ -710,7 +745,7 @@ function CheckoutDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(page.priceCents)}`}</DialogTitle>
+          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(finalCents)}`}</DialogTitle>
         </DialogHeader>
 
         {step === "form" && (
@@ -783,7 +818,7 @@ function CheckoutDialog({
                       >
                         {Array.from({ length: page.maxInstallments }, (_, i) => i + 1).map((n) => (
                           <option key={n} value={n}>
-                            {n}x de {money(Math.floor(page.priceCents / n))} {n === 1 ? "(à vista)" : ""}
+                            {n}x de {money(Math.floor(finalCents / n))} {n === 1 ? "(à vista)" : ""}
                           </option>
                         ))}
                       </select>
@@ -793,9 +828,60 @@ function CheckoutDialog({
               )}
             </div>
 
+            {/* Cupom */}
+            <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
+              <Label className="flex items-center gap-2 text-sm">
+                <Ticket className="h-4 w-4" /> Cupom de desconto
+              </Label>
+              {coupon?.valid ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-600 text-sm">
+                    <Check className="h-4 w-4" />
+                    <span className="font-mono font-semibold">{coupon.code}</span>
+                    <span className="text-muted-foreground">-{money(coupon.discountCents || 0)}</span>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={removeCoupon}>Remover</Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Digite o código"
+                    className="font-mono uppercase"
+                  />
+                  <Button
+                    type="button" variant="outline"
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                  >
+                    {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Resumo */}
+            <div className="rounded-lg border p-3 space-y-1 text-sm bg-background/40">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Subtotal</span>
+                <span>{money(page.priceCents)}</span>
+              </div>
+              {coupon?.valid && (
+                <div className="flex justify-between text-emerald-600">
+                  <span>Desconto ({coupon.code})</span>
+                  <span>-{money(coupon.discountCents || 0)}</span>
+                </div>
+              )}
+              <div className="flex justify-between font-bold pt-1 border-t">
+                <span>Total</span>
+                <span>{money(finalCents)}</span>
+              </div>
+            </div>
+
             <Button onClick={submit} disabled={loading} className="w-full bg-primary hover:opacity-90">
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(page.priceCents)}`}
+              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(finalCents)}`}
             </Button>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3" /> Processado com segurança pela Asaas
