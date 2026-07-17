@@ -686,6 +686,131 @@ export default function SalesPageEditorPage() {
                 <li>O valor cai direto na sua conta Asaas — 0% de intermediário da plataforma.</li>
               </ul>
             </div>
+
+            {/* Cupons de desconto */}
+            <div className="pt-4 border-t">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="font-bold">Cupons de desconto</h3>
+                  <p className="text-xs text-muted-foreground">
+                    O cliente digita o código no checkout. Percentual (1–100) ou valor fixo em centavos.
+                  </p>
+                </div>
+                <Button
+                  size="sm" variant="outline"
+                  onClick={() =>
+                    patch({
+                      coupons: [
+                        ...(page.coupons || []),
+                        {
+                          code: "",
+                          discountType: "percent",
+                          discountValue: 10,
+                          isActive: true,
+                          oneUsePerPerson: true,
+                        },
+                      ],
+                    })
+                  }
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Cupom
+                </Button>
+              </div>
+
+              {(page.coupons || []).length === 0 ? (
+                <div className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
+                  Nenhum cupom criado.
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {(page.coupons || []).map((c, i) => {
+                    const upd = (u: Partial<Coupon>) => {
+                      const list = [...(page.coupons || [])];
+                      list[i] = { ...list[i], ...u };
+                      patch({ coupons: list });
+                    };
+                    const remove = () => {
+                      const list = [...(page.coupons || [])];
+                      list.splice(i, 1);
+                      patch({ coupons: list });
+                    };
+                    return (
+                      <div key={i} className="rounded-lg border p-3 space-y-2 bg-muted/20">
+                        <div className="grid sm:grid-cols-[1fr_140px_120px_auto] gap-2 items-end">
+                          <div>
+                            <Label className="text-xs">Código</Label>
+                            <Input
+                              value={c.code}
+                              onChange={(e) => upd({ code: e.target.value.toUpperCase() })}
+                              placeholder="EX: LANCAMENTO20"
+                              className="font-mono uppercase"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Tipo</Label>
+                            <Select
+                              value={c.discountType}
+                              onValueChange={(v: any) => upd({ discountType: v })}
+                            >
+                              <SelectTrigger><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="percent">Percentual (%)</SelectItem>
+                                <SelectItem value="fixed">Valor fixo (centavos)</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <Label className="text-xs">
+                              {c.discountType === "percent" ? "% desconto" : "Centavos"}
+                            </Label>
+                            <Input
+                              type="number"
+                              value={c.discountValue}
+                              onChange={(e) => upd({ discountValue: parseInt(e.target.value) || 0 })}
+                            />
+                          </div>
+                          <Button variant="ghost" size="icon" onClick={remove} className="text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="grid sm:grid-cols-3 gap-2">
+                          <div>
+                            <Label className="text-xs">Máx. usos (vazio = ilimitado)</Label>
+                            <Input
+                              type="number"
+                              value={c.maxUses ?? ""}
+                              onChange={(e) =>
+                                upd({ maxUses: e.target.value ? parseInt(e.target.value) : null })
+                              }
+                            />
+                          </div>
+                          <div className="flex items-center gap-2 pt-5">
+                            <Switch
+                              checked={c.oneUsePerPerson !== false}
+                              onCheckedChange={(v) => upd({ oneUsePerPerson: v })}
+                            />
+                            <Label className="text-xs">1 uso por e-mail</Label>
+                          </div>
+                          <div className="flex items-center gap-2 pt-5">
+                            <Switch
+                              checked={c.isActive !== false}
+                              onCheckedChange={(v) => upd({ isActive: v })}
+                            />
+                            <Label className="text-xs">Ativo</Label>
+                          </div>
+                        </div>
+                        {(c.usedCount || 0) > 0 && (
+                          <div className="text-xs text-muted-foreground">
+                            Usos: <b>{c.usedCount}</b>
+                            {c.maxUses ? ` / ${c.maxUses}` : ""}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </Card>
         </TabsContent>
       </Tabs>
