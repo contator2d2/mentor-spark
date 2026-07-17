@@ -137,7 +137,7 @@ export default function SalesPageEditorPage() {
       setGenerating(true);
       const g = await api<any>("/sales-pages/generate", {
         method: "POST",
-        body: { briefing, audience, priceHint, productType: page?.productType },
+        body: { briefing, audience, priceHint, productType: page?.productType, template: page?.template || "classic" },
       });
       patch({
         title: g.title || page?.title,
@@ -150,6 +150,14 @@ export default function SalesPageEditorPage() {
         ctaText: g.ctaText || page?.ctaText,
         faqs: g.faqs || [],
         seo: g.seo,
+        ...(page?.template === "long_form" ? {
+          forWho: g.forWho || [],
+          notForWho: g.notForWho || [],
+          agenda: g.agenda || [],
+          about: g.about || page?.about,
+          eventInfo: g.eventInfo || page?.eventInfo,
+          urgencyText: g.urgencyText || "",
+        } : {}),
       });
       toast.success("Copy gerada! Revise e salve.");
     } catch (e: any) {

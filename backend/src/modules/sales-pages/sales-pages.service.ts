@@ -122,10 +122,21 @@ export class SalesPagesService {
     priceHint?: string;
     productType?: SalesPageProductType;
     tone?: string;
+    template?: 'classic' | 'long_form';
   }) {
     if (!dto.briefing || dto.briefing.trim().length < 10) {
       throw new BadRequestException('Descreva melhor o produto (mínimo 10 caracteres).');
     }
+
+    const isLong = dto.template === 'long_form';
+
+    const longExtra = `,
+  "forWho": string[] (5 a 7 itens curtos começando com "Você" — para quem O produto É indicado),
+  "notForWho": string[] (3 a 4 itens curtos — para quem NÃO é indicado),
+  "agenda": [{"time": string, "title": string, "text": string}] (5 a 8 blocos com horário/etapa e descrição curta — se for evento use horários "9h", "10h30" etc; se for curso use "Módulo 1", "Módulo 2"…),
+  "about": {"name": string, "role": string, "bio": string} (mentor — se não souber, deixe placeholders coerentes com o briefing),
+  "eventInfo": {"date": string, "time": string, "location": string, "extra": string} (só se o briefing indicar evento/imersão presencial; caso contrário deixe strings vazias),
+  "urgencyText": string (frase curta de escassez, ex: "Lote 1 esgota em 48h · Vagas limitadas")`;
 
     const system = `Você é copywriter de páginas de vendas de alta conversão para mentores e infoprodutores brasileiros.
 Gere APENAS um JSON válido, sem markdown, no formato exato:
@@ -139,7 +150,7 @@ Gere APENAS um JSON válido, sem markdown, no formato exato:
   "guaranteeText": string (frase de garantia curta),
   "ctaText": string (texto do botão, até 30 chars, ação clara),
   "faqs": [{"q": string, "a": string}] (4 perguntas objetivas com respostas curtas),
-  "seo": {"title": string (até 60 chars), "description": string (até 155 chars)}
+  "seo": {"title": string (até 60 chars), "description": string (até 155 chars)}${isLong ? longExtra : ''}
 }
 Português do Brasil. Tom: ${dto.tone || 'profissional, próximo, sem clichês vazios'}.`;
 
@@ -197,6 +208,25 @@ Gere o JSON agora.`;
         title: String(parsed?.seo?.title || parsed.title || '').slice(0, 70),
         description: String(parsed?.seo?.description || '').slice(0, 165),
       },
+      forWho: Array.isArray(parsed.forWho) ? parsed.forWho.slice(0, 10).map((s: any) => String(s).slice(0, 240)) : [],
+      notForWho: Array.isArray(parsed.notForWho) ? parsed.notForWho.slice(0, 8).map((s: any) => String(s).slice(0, 240)) : [],
+      agenda: Array.isArray(parsed.agenda) ? parsed.agenda.slice(0, 12).map((a: any) => ({
+        time: String(a?.time || '').slice(0, 40),
+        title: String(a?.title || '').slice(0, 120),
+        text: String(a?.text || '').slice(0, 300),
+      })) : [],
+      about: parsed.about && typeof parsed.about === 'object' ? {
+        name: String(parsed.about.name || '').slice(0, 100),
+        role: String(parsed.about.role || '').slice(0, 120),
+        bio: String(parsed.about.bio || '').slice(0, 1200),
+      } : undefined,
+      eventInfo: parsed.eventInfo && typeof parsed.eventInfo === 'object' ? {
+        date: String(parsed.eventInfo.date || '').slice(0, 80),
+        time: String(parsed.eventInfo.time || '').slice(0, 80),
+        location: String(parsed.eventInfo.location || '').slice(0, 160),
+        extra: String(parsed.eventInfo.extra || '').slice(0, 160),
+      } : undefined,
+      urgencyText: String(parsed.urgencyText || '').slice(0, 200),
     };
   }
 
