@@ -43,6 +43,20 @@ type Payload = {
     priceCents: number; currency: string; originalPriceCents?: number;
     maxInstallments: number; paymentMode: "one_time" | "subscription";
     seo?: { title?: string; description?: string };
+    template?: "classic" | "long_form";
+    theme?: {
+      colorSource?: "brand" | "custom";
+      mode?: "light" | "dark";
+      primaryColor?: string;
+      accentColor?: string;
+      bgColor?: string;
+    };
+    forWho?: string[];
+    notForWho?: string[];
+    agenda?: { time?: string; title: string; text?: string }[];
+    about?: { name?: string; role?: string; bio?: string; photoUrl?: string };
+    eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
+    urgencyText?: string;
   };
 };
 
@@ -93,10 +107,44 @@ export default function SalesPagePublic() {
   if (!data) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="h-6 w-6 animate-spin" /></div>;
 
   const { mentor, page } = data;
-  const primary = mentor.brandPrimaryColor || undefined;
+
+  // ===== Resolve cores (brand vs custom) =====
+  const src = page.theme?.colorSource || "brand";
+  const primaryHex = src === "custom"
+    ? (page.theme?.primaryColor || "#c9a84c")
+    : (mentor.brandPrimaryColor || "#c9a84c");
+  const accentHex = src === "custom"
+    ? (page.theme?.accentColor || primaryHex)
+    : (mentor.brandAccentColor || primaryHex);
+  const bgHex = src === "custom" ? (page.theme?.bgColor || "#0a0a0a") : "#0a0a0a";
+  const mode: "light" | "dark" = src === "custom" ? (page.theme?.mode || "dark") : "dark";
+  const isDark = mode === "dark";
+  const textColor = isDark ? "#ffffff" : "#0a0a0a";
+  const mutedText = isDark ? "rgba(255,255,255,0.72)" : "rgba(10,10,10,0.7)";
+  const softText = isDark ? "rgba(255,255,255,0.55)" : "rgba(10,10,10,0.55)";
+  const borderCol = isDark ? "rgba(255,255,255,0.08)" : "rgba(10,10,10,0.08)";
+
+  const openCheckout = () => setCheckoutOpen(true);
+
+  const template = page.template || "classic";
+
+  if (template === "long_form") {
+    return (
+      <LongFormLayout
+        mentor={mentor}
+        page={page}
+        colors={{ primary: primaryHex, accent: accentHex, bg: bgHex, text: textColor, muted: mutedText, soft: softText, border: borderCol, isDark }}
+        onCta={openCheckout}
+        mentorSlug={mentorSlug!}
+        pageSlug={pageSlug!}
+        checkoutOpen={checkoutOpen}
+        setCheckoutOpen={setCheckoutOpen}
+      />
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-background text-foreground" style={primary ? { ["--primary" as any]: primary } : {}}>
+    <div className="min-h-screen bg-background text-foreground">
       {/* Header (dark premium) */}
       <header className="sticky top-0 z-40 backdrop-blur bg-[#0a0a0a]/80 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
