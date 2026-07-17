@@ -79,6 +79,13 @@ export class SalesPagesService {
       theme: dto.theme,
       seo: dto.seo,
       published: false,
+      template: (dto as any).template || 'classic',
+      forWho: (dto as any).forWho || [],
+      notForWho: (dto as any).notForWho || [],
+      agenda: (dto as any).agenda || [],
+      about: (dto as any).about,
+      eventInfo: (dto as any).eventInfo,
+      urgencyText: (dto as any).urgencyText,
     });
     return this.pages.save(p);
   }
@@ -94,6 +101,7 @@ export class SalesPagesService {
       'guaranteeText', 'ctaText', 'priceCents', 'currency', 'originalPriceCents',
       'maxInstallments', 'paymentMode', 'subscriptionCycle', 'paymentProviderId',
       'theme', 'seo', 'published',
+      'template', 'forWho', 'notForWho', 'agenda', 'about', 'eventInfo', 'urgencyText',
     ];
     for (const k of editable) {
       if (dto[k] !== undefined) (p as any)[k] = dto[k];
