@@ -38,6 +38,9 @@ type Theme = {
   primaryColor?: string;
   accentColor?: string;
   bgColor?: string;
+  heroStyle?: "split" | "background";
+  heroFocus?: string;
+  heroOverlay?: number;
 };
 
 type SalesPage = {
