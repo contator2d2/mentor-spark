@@ -18,6 +18,14 @@ import { useAuth } from "@/contexts/AuthContext";
 type Feature = { icon?: string; title: string; text?: string };
 type Faq = { q: string; a: string };
 type Testimonial = { name: string; role?: string; quote: string; avatarUrl?: string };
+type AgendaItem = { time?: string; title: string; text?: string };
+type Theme = {
+  colorSource?: "brand" | "custom";
+  mode?: "light" | "dark";
+  primaryColor?: string;
+  accentColor?: string;
+  bgColor?: string;
+};
 
 type SalesPage = {
   id: string;
@@ -45,6 +53,14 @@ type SalesPage = {
   paymentProviderId?: string | null;
   published: boolean;
   seo?: { title?: string; description?: string; ogImage?: string };
+  template?: "classic" | "long_form";
+  theme?: Theme;
+  forWho?: string[];
+  notForWho?: string[];
+  agenda?: AgendaItem[];
+  about?: { name?: string; role?: string; bio?: string; photoUrl?: string };
+  eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
+  urgencyText?: string;
 };
 
 type Provider = { id: string; type: string; label?: string; environment: string; hasApiKey: boolean };
@@ -192,11 +208,214 @@ export default function SalesPageEditorPage() {
       <Tabs defaultValue="ai" className="space-y-4">
         <TabsList>
           <TabsTrigger value="ai"><Sparkles className="h-3 w-3 mr-1" />Gerar com IA</TabsTrigger>
+          <TabsTrigger value="design">Design</TabsTrigger>
           <TabsTrigger value="content">Conteúdo</TabsTrigger>
+          {page.template === "long_form" && (
+            <TabsTrigger value="longform">Versão completa</TabsTrigger>
+          )}
           <TabsTrigger value="offer">Oferta</TabsTrigger>
           <TabsTrigger value="faq">FAQ</TabsTrigger>
           <TabsTrigger value="checkout">Checkout</TabsTrigger>
         </TabsList>
+
+        {/* ===== Design ===== */}
+        <TabsContent value="design" className="space-y-4">
+          <Card className="p-6 space-y-4">
+            <div>
+              <h3 className="font-bold mb-1">Modelo da página</h3>
+              <p className="text-sm text-muted-foreground mb-3">Escolha um layout base. Você ainda pode ajustar cores e conteúdo.</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  { id: "classic", title: "Clássico premium", desc: "Hero dark elegante com foto/vídeo + benefícios + FAQ. Ideal para mentorias, cursos e ebooks." },
+                  { id: "long_form", title: "Versão completa (imersão)", desc: "Longa e persuasiva: hero, para quem é/não é, agenda, sobre o mentor, urgência e múltiplos CTAs. Ideal para eventos e imersões." },
+                ].map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => patch({ template: t.id as any })}
+                    className={`text-left rounded-lg border-2 p-4 transition-all ${
+                      (page.template || "classic") === t.id
+                        ? "border-primary bg-primary/5 shadow-glow"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="font-bold mb-1">{t.title}</div>
+                    <div className="text-xs text-muted-foreground">{t.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div>
+              <h3 className="font-bold mb-1">Cores da página</h3>
+              <p className="text-sm text-muted-foreground mb-3">Use as cores da sua marca ou personalize só nesta página.</p>
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { id: "brand", label: "Seguir minha marca", desc: "Usa as cores do seu whitelabel." },
+                  { id: "custom", label: "Personalizar", desc: "Define cores só para esta página." },
+                ].map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => patch({ theme: { ...(page.theme || {}), colorSource: o.id as any } })}
+                    className={`text-left rounded-lg border-2 p-4 transition-all ${
+                      (page.theme?.colorSource || "brand") === o.id
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="font-semibold text-sm mb-0.5">{o.label}</div>
+                    <div className="text-xs text-muted-foreground">{o.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(page.theme?.colorSource || "brand") === "custom" && (
+              <div className="grid md:grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <Label>Modo</Label>
+                  <Select
+                    value={page.theme?.mode || "dark"}
+                    onValueChange={(v: any) => patch({ theme: { ...(page.theme || {}), mode: v } })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="dark">Escuro</SelectItem>
+                      <SelectItem value="light">Claro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cor primária (botões / destaques)</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.primaryColor || "#c9a84c"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), primaryColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.primaryColor || ""}
+                      placeholder="#c9a84c"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), primaryColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Cor de acento (títulos)</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.accentColor || "#e8c97a"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), accentColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.accentColor || ""}
+                      placeholder="#e8c97a"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), accentColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Cor de fundo</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.bgColor || "#0a0a0a"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), bgColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.bgColor || ""}
+                      placeholder="#0a0a0a"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), bgColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+          </Card>
+        </TabsContent>
+
+        {/* ===== Long form fields ===== */}
+        {page.template === "long_form" && (
+          <TabsContent value="longform" className="space-y-4">
+            <Card className="p-6 space-y-3">
+              <h3 className="font-bold">Informações do evento (opcional)</h3>
+              <p className="text-xs text-muted-foreground">Aparece em destaque abaixo do hero (para imersões, workshops, eventos).</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div><Label>Data</Label><Input value={page.eventInfo?.date || ""} onChange={(e) => patch({ eventInfo: { ...(page.eventInfo || {}), date: e.target.value } })} placeholder="19 de Agosto de 2026" /></div>
+                <div><Label>Horário</Label><Input value={page.eventInfo?.time || ""} onChange={(e) => patch({ eventInfo: { ...(page.eventInfo || {}), time: e.target.value } })} placeholder="9h às 17h" /></div>
+                <div><Label>Local</Label><Input value={page.eventInfo?.location || ""} onChange={(e) => patch({ eventInfo: { ...(page.eventInfo || {}), location: e.target.value } })} placeholder="Espaço NWB — Barueri, SP" /></div>
+                <div><Label>Extra</Label><Input value={page.eventInfo?.extra || ""} onChange={(e) => patch({ eventInfo: { ...(page.eventInfo || {}), extra: e.target.value } })} placeholder="Credenciamento às 8h30" /></div>
+              </div>
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold">Esse evento é pra você se…</h3>
+                <Button variant="outline" size="sm" onClick={() => patch({ forWho: [...(page.forWho || []), ""] })}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              </div>
+              {(page.forWho || []).map((v, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input value={v} onChange={(e) => { const arr = [...(page.forWho || [])]; arr[i] = e.target.value; patch({ forWho: arr }); }} placeholder="Você é empresário e quer aumentar produtividade…" />
+                  <Button variant="ghost" size="sm" onClick={() => patch({ forWho: (page.forWho || []).filter((_, j) => j !== i) })}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold">NÃO é pra você se…</h3>
+                <Button variant="outline" size="sm" onClick={() => patch({ notForWho: [...(page.notForWho || []), ""] })}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              </div>
+              {(page.notForWho || []).map((v, i) => (
+                <div key={i} className="flex gap-2">
+                  <Input value={v} onChange={(e) => { const arr = [...(page.notForWho || [])]; arr[i] = e.target.value; patch({ notForWho: arr }); }} placeholder="Você busca teoria e não quer botar a mão na massa…" />
+                  <Button variant="ghost" size="sm" onClick={() => patch({ notForWho: (page.notForWho || []).filter((_, j) => j !== i) })}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold">Agenda / Programação</h3>
+                <Button variant="outline" size="sm" onClick={() => patch({ agenda: [...(page.agenda || []), { title: "", text: "" }] })}><Plus className="h-4 w-4 mr-1" />Adicionar</Button>
+              </div>
+              {(page.agenda || []).map((a, i) => (
+                <div key={i} className="grid md:grid-cols-[110px_1fr_2fr_auto] gap-2">
+                  <Input value={a.time || ""} placeholder="9h" onChange={(e) => { const arr = [...(page.agenda || [])]; arr[i] = { ...a, time: e.target.value }; patch({ agenda: arr }); }} />
+                  <Input value={a.title} placeholder="Título" onChange={(e) => { const arr = [...(page.agenda || [])]; arr[i] = { ...a, title: e.target.value }; patch({ agenda: arr }); }} />
+                  <Input value={a.text || ""} placeholder="Descrição curta" onChange={(e) => { const arr = [...(page.agenda || [])]; arr[i] = { ...a, text: e.target.value }; patch({ agenda: arr }); }} />
+                  <Button variant="ghost" size="sm" onClick={() => patch({ agenda: (page.agenda || []).filter((_, j) => j !== i) })}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+                </div>
+              ))}
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <h3 className="font-bold">Sobre o mentor</h3>
+              <div className="grid md:grid-cols-2 gap-3">
+                <div><Label>Nome</Label><Input value={page.about?.name || ""} onChange={(e) => patch({ about: { ...(page.about || {}), name: e.target.value } })} /></div>
+                <div><Label>Função / cargo</Label><Input value={page.about?.role || ""} onChange={(e) => patch({ about: { ...(page.about || {}), role: e.target.value } })} placeholder="Especialista em IA aplicada" /></div>
+              </div>
+              <div>
+                <Label>Bio</Label>
+                <Textarea rows={4} value={page.about?.bio || ""} onChange={(e) => patch({ about: { ...(page.about || {}), bio: e.target.value } })} />
+              </div>
+              <ImageUploadField label="Foto do mentor" value={page.about?.photoUrl} onChange={(url) => patch({ about: { ...(page.about || {}), photoUrl: url } })} aspect="1/1" />
+            </Card>
+
+            <Card className="p-6 space-y-3">
+              <h3 className="font-bold">Urgência / escassez</h3>
+              <Textarea rows={2} value={page.urgencyText || ""} onChange={(e) => patch({ urgencyText: e.target.value })} placeholder="Lote 1 esgota em 48h · Vagas limitadas" />
+            </Card>
+          </TabsContent>
+        )}
+
 
         {/* ===== IA ===== */}
         <TabsContent value="ai">

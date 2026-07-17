@@ -31,6 +31,37 @@ export interface SalesPageTestimonial {
   avatarUrl?: string;
 }
 
+export interface SalesPageAgendaItem {
+  time?: string;
+  title: string;
+  text?: string;
+}
+
+export interface SalesPageAbout {
+  name?: string;
+  role?: string;
+  bio?: string;
+  photoUrl?: string;
+}
+
+export interface SalesPageEventInfo {
+  date?: string;      // "19 de Agosto de 2026"
+  time?: string;      // "9h às 17h"
+  location?: string;  // "Espaço NWB — Barueri, SP"
+  extra?: string;     // "Credenciamento a partir das 8h30"
+}
+
+export interface SalesPageTheme {
+  colorSource?: 'brand' | 'custom';
+  mode?: 'light' | 'dark';
+  primaryColor?: string;
+  accentColor?: string;
+  bgColor?: string;
+  fontFamily?: string;
+}
+
+export type SalesPageTemplate = 'classic' | 'long_form';
+
 /**
  * Página de vendas 1 produto = 1 página, publicada em /p/:mentorSlug/:pageSlug.
  * Checkout transparente Asaas usa o MentorPaymentProvider vinculado.
@@ -122,7 +153,30 @@ export class SalesPage {
   published: boolean;
 
   @Column({ type: 'jsonb', nullable: true })
-  theme?: { primaryColor?: string; accentColor?: string; bgColor?: string };
+  theme?: SalesPageTheme;
+
+  /** Layout visual: 'classic' (hero premium) | 'long_form' (imersão completa) */
+  @Column({ default: 'classic' })
+  template: SalesPageTemplate;
+
+  // ---- Campos para versão "long_form" (opcionais) ----
+  @Column({ type: 'jsonb', default: '[]' })
+  forWho: string[];
+
+  @Column({ type: 'jsonb', default: '[]' })
+  notForWho: string[];
+
+  @Column({ type: 'jsonb', default: '[]' })
+  agenda: SalesPageAgendaItem[];
+
+  @Column({ type: 'jsonb', nullable: true })
+  about?: SalesPageAbout;
+
+  @Column({ type: 'jsonb', nullable: true })
+  eventInfo?: SalesPageEventInfo;
+
+  @Column({ type: 'text', nullable: true })
+  urgencyText?: string;
 
   @Column({ type: 'jsonb', nullable: true })
   seo?: { title?: string; description?: string; ogImage?: string };
