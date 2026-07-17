@@ -51,6 +51,20 @@ export interface SalesPageEventInfo {
   extra?: string;     // "Credenciamento a partir das 8h30"
 }
 
+export interface SalesPageCoupon {
+  code: string;                       // sempre em MAIÚSCULAS
+  description?: string;
+  discountType: 'percent' | 'fixed';
+  discountValue: number;              // percent 1..100 OU centavos abatidos
+  maxUses?: number | null;            // null/undefined = ilimitado
+  usedCount?: number;                 // incrementado no checkout OK
+  usedEmails?: string[];              // p/ oneUsePerPerson
+  oneUsePerPerson?: boolean;
+  isActive?: boolean;
+  startsAt?: string | null;           // ISO
+  endsAt?: string | null;             // ISO
+}
+
 export interface SalesPageTheme {
   colorSource?: 'brand' | 'custom';
   mode?: 'light' | 'dark';
@@ -177,6 +191,10 @@ export class SalesPage {
 
   @Column({ type: 'text', nullable: true })
   urgencyText?: string;
+
+  /** Cupons de desconto do produto (mentor gerencia no editor). */
+  @Column({ type: 'jsonb', default: '[]' })
+  coupons: SalesPageCoupon[];
 
   @Column({ type: 'jsonb', nullable: true })
   seo?: { title?: string; description?: string; ogImage?: string };
