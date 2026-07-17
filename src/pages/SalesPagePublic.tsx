@@ -470,6 +470,55 @@ function LongFormLayout({
       </header>
 
       {/* HERO */}
+      {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
+      <section className="relative overflow-hidden min-h-[85vh] flex items-center">
+        <img
+          src={page.heroImageUrl}
+          alt={page.title}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: page.theme?.heroFocus || "center" }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(90deg, ${bg}${Math.round((page.theme?.heroOverlay ?? 0.7) * 255).toString(16).padStart(2,'0')} 0%, ${bg}99 45%, ${bg}22 100%)` }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(50% 60% at 85% 50%, ${primary}33 0%, transparent 70%)` }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
+          <div className="max-w-2xl">
+            {page.badges?.[0] && (
+              <div
+                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
+                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
+              >
+                <Sparkles className="h-3 w-3" /> {page.badges[0]}
+              </div>
+            )}
+            <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]" style={{ color: text }}>
+              {page.headline || page.title}
+            </h1>
+            {page.subheadline && (
+              <p className="text-lg md:text-2xl mb-6 max-w-xl leading-snug font-medium" style={{ color: accent }}>
+                {page.subheadline}
+              </p>
+            )}
+            {page.description && (
+              <p className="text-base md:text-lg mb-8 max-w-xl leading-relaxed" style={{ color: muted }}>
+                {page.description.split("\n")[0]}
+              </p>
+            )}
+            <CtaBtn />
+            {page.guaranteeText && (
+              <div className="mt-5 flex items-center gap-2 text-sm" style={{ color: muted }}>
+                <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+      ) : (
       <section className="relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0"
@@ -523,6 +572,7 @@ function LongFormLayout({
           </div>
         </div>
       </section>
+      )}
 
       {/* Event info strip */}
       {(page.eventInfo?.date || page.eventInfo?.time || page.eventInfo?.location) && (
