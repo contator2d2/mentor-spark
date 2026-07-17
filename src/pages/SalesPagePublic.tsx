@@ -348,6 +348,292 @@ export default function SalesPagePublic() {
   );
 }
 
+// ================= LONG FORM (versão completa) =================
+function LongFormLayout({
+  mentor, page, colors, onCta, mentorSlug, pageSlug, checkoutOpen, setCheckoutOpen,
+}: {
+  mentor: Payload["mentor"];
+  page: Payload["page"];
+  colors: { primary: string; accent: string; bg: string; text: string; muted: string; soft: string; border: string; isDark: boolean };
+  onCta: () => void;
+  mentorSlug: string;
+  pageSlug: string;
+  checkoutOpen: boolean;
+  setCheckoutOpen: (o: boolean) => void;
+}) {
+  const { primary, accent, bg, text, muted, soft, border, isDark } = colors;
+  const surface = isDark ? "rgba(255,255,255,0.04)" : "rgba(10,10,10,0.03)";
+  const surfaceStrong = isDark ? "rgba(255,255,255,0.06)" : "rgba(10,10,10,0.05)";
+
+  const CtaBtn = ({ size = "lg", label }: { size?: "lg" | "default"; label?: string }) => (
+    <Button
+      size={size}
+      onClick={onCta}
+      className="font-bold border-0 shadow-lg transition-transform hover:-translate-y-0.5"
+      style={{ background: primary, color: isDark ? "#0a0a0a" : "#fff", height: size === "lg" ? 56 : 44, paddingInline: 32 }}
+    >
+      {label || page.ctaText}
+    </Button>
+  );
+
+  return (
+    <div style={{ background: bg, color: text }} className="min-h-screen">
+      {/* Header */}
+      <header
+        className="sticky top-0 z-40 backdrop-blur"
+        style={{ background: `${bg}cc`, borderBottom: `1px solid ${border}` }}
+      >
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {mentor.brandLogoUrl ? (
+              <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-9 w-auto object-contain" />
+            ) : (
+              <div className="font-bold" style={{ color: text }}>{mentor.brandName || "Mentoria"}</div>
+            )}
+          </div>
+          <CtaBtn size="default" />
+        </div>
+      </header>
+
+      {/* HERO */}
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(60% 60% at 78% 40%, ${primary}33 0%, ${primary}11 35%, transparent 70%)` }}
+        />
+        <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
+          <div>
+            {page.badges?.[0] && (
+              <div
+                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
+                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
+              >
+                <Sparkles className="h-3 w-3" /> {page.badges[0]}
+              </div>
+            )}
+            <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6" style={{ color: text }}>
+              {page.headline || page.title}
+            </h1>
+            {page.subheadline && (
+              <p className="text-lg md:text-2xl mb-6 max-w-xl leading-snug font-medium" style={{ color: accent }}>
+                {page.subheadline}
+              </p>
+            )}
+            {page.description && (
+              <p className="text-base md:text-lg mb-8 max-w-xl leading-relaxed" style={{ color: muted }}>
+                {page.description.split("\n")[0]}
+              </p>
+            )}
+            <CtaBtn />
+            {page.guaranteeText && (
+              <div className="mt-5 flex items-center gap-2 text-sm" style={{ color: muted }}>
+                <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+              </div>
+            )}
+          </div>
+          <div className="relative">
+            {page.videoUrl ? (
+              <div className="aspect-video rounded-2xl overflow-hidden" style={{ background: surface, boxShadow: `0 40px 80px -20px ${primary}55` }}>
+                <iframe
+                  src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
+                  className="w-full h-full" allowFullScreen
+                />
+              </div>
+            ) : page.heroImageUrl ? (
+              <img src={page.heroImageUrl} alt={page.title} className="w-full h-[520px] object-cover rounded-2xl" />
+            ) : (
+              <div className="aspect-[4/5] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}22, transparent)` }}>
+                <Sparkles className="h-16 w-16" style={{ color: `${primary}66` }} />
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Event info strip */}
+      {(page.eventInfo?.date || page.eventInfo?.time || page.eventInfo?.location) && (
+        <section className="py-10" style={{ borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}`, background: surface }}>
+          <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-4 gap-6 text-center">
+            {page.eventInfo?.date && (
+              <div><div className="text-xs uppercase tracking-widest mb-1" style={{ color: soft }}>Data</div><div className="font-bold text-lg" style={{ color: text }}>{page.eventInfo.date}</div></div>
+            )}
+            {page.eventInfo?.time && (
+              <div><div className="text-xs uppercase tracking-widest mb-1" style={{ color: soft }}>Horário</div><div className="font-bold text-lg" style={{ color: text }}>{page.eventInfo.time}</div></div>
+            )}
+            {page.eventInfo?.location && (
+              <div><div className="text-xs uppercase tracking-widest mb-1" style={{ color: soft }}>Local</div><div className="font-bold text-lg" style={{ color: text }}>{page.eventInfo.location}</div></div>
+            )}
+            {page.eventInfo?.extra && (
+              <div><div className="text-xs uppercase tracking-widest mb-1" style={{ color: soft }}>Detalhe</div><div className="font-bold text-lg" style={{ color: text }}>{page.eventInfo.extra}</div></div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Para quem é */}
+      {(page.forWho?.length || 0) > 0 && (
+        <section className="py-16 md:py-20">
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: text }}>Esse conteúdo é pra você se…</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {page.forWho!.map((item, i) => (
+                <div key={i} className="flex gap-3 items-start p-5 rounded-xl" style={{ background: surface, border: `1px solid ${border}` }}>
+                  <CheckCircle2 className="h-5 w-5 shrink-0 mt-0.5" style={{ color: primary }} />
+                  <div style={{ color: muted }}>{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Não é pra você */}
+      {(page.notForWho?.length || 0) > 0 && (
+        <section className="py-16" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+          <div className="max-w-4xl mx-auto px-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: text }}>NÃO é pra você se…</h2>
+            <div className="grid md:grid-cols-2 gap-4">
+              {page.notForWho!.map((item, i) => (
+                <div key={i} className="flex gap-3 items-start p-5 rounded-xl" style={{ background: surfaceStrong, border: `1px solid ${border}` }}>
+                  <div className="h-5 w-5 shrink-0 rounded-full flex items-center justify-center mt-0.5" style={{ background: `${isDark ? "#ef4444" : "#dc2626"}22`, color: "#ef4444" }}>✕</div>
+                  <div style={{ color: muted }}>{item}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Features / o que você recebe */}
+      {(page.features?.length || 0) > 0 && (
+        <section className="py-16 md:py-24">
+          <div className="max-w-5xl mx-auto px-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-12" style={{ color: text }}>O que você vai receber</h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {page.features.map((f, i) => {
+                const Icon = ICONS[f.icon || "sparkles"] || Sparkles;
+                return (
+                  <div key={i} className="p-6 rounded-2xl" style={{ background: surface, border: `1px solid ${border}` }}>
+                    <div className="h-11 w-11 rounded-lg flex items-center justify-center mb-4" style={{ background: `${primary}22` }}>
+                      <Icon className="h-5 w-5" style={{ color: primary }} />
+                    </div>
+                    <div className="font-bold mb-1" style={{ color: text }}>{f.title}</div>
+                    {f.text && <p className="text-sm leading-relaxed" style={{ color: muted }}>{f.text}</p>}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Agenda */}
+      {(page.agenda?.length || 0) > 0 && (
+        <section className="py-16 md:py-20" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: text }}>Programação</h2>
+            <div className="space-y-3">
+              {page.agenda!.map((a, i) => (
+                <div key={i} className="grid grid-cols-[80px_1fr] gap-4 p-5 rounded-xl" style={{ background: surfaceStrong, border: `1px solid ${border}` }}>
+                  <div className="font-bold" style={{ color: primary }}>{a.time || `#${i + 1}`}</div>
+                  <div>
+                    <div className="font-bold" style={{ color: text }}>{a.title}</div>
+                    {a.text && <div className="text-sm mt-1" style={{ color: muted }}>{a.text}</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Sobre o mentor */}
+      {(page.about?.bio || page.about?.name) && (
+        <section className="py-16 md:py-24">
+          <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[240px_1fr] gap-10 items-center">
+            {page.about?.photoUrl ? (
+              <img src={page.about.photoUrl} alt={page.about?.name || ""} className="w-full aspect-square object-cover rounded-2xl" />
+            ) : (
+              <div className="w-full aspect-square rounded-2xl flex items-center justify-center" style={{ background: surface }}>
+                <Users className="h-16 w-16" style={{ color: primary }} />
+              </div>
+            )}
+            <div>
+              <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Sobre</div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold mb-1" style={{ color: text }}>{page.about?.name || mentor.brandName}</h2>
+              {page.about?.role && <div className="text-lg mb-4" style={{ color: accent }}>{page.about.role}</div>}
+              {page.about?.bio && <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: muted }}>{page.about.bio}</p>}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Urgência + Oferta / Preço */}
+      <section className="py-20 relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${primary}22, ${accent}11)` }}>
+        <div className="max-w-3xl mx-auto px-6 text-center relative">
+          {page.urgencyText && (
+            <div className="inline-block mb-6 px-4 py-2 rounded-full text-xs font-semibold uppercase tracking-wider" style={{ background: primary, color: isDark ? "#0a0a0a" : "#fff" }}>
+              ⚡ {page.urgencyText}
+            </div>
+          )}
+          <h2 className="font-display text-3xl md:text-5xl font-bold mb-4" style={{ color: text }}>{page.title}</h2>
+          <div className="flex items-center justify-center gap-3 mb-6 flex-wrap">
+            {page.originalPriceCents ? (
+              <span className="line-through text-lg" style={{ color: soft }}>{money(page.originalPriceCents)}</span>
+            ) : null}
+            <span className="font-display text-4xl md:text-5xl font-bold" style={{ color: accent }}>{money(page.priceCents)}</span>
+            {page.maxInstallments > 1 && (
+              <span className="text-sm" style={{ color: muted }}>
+                ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+              </span>
+            )}
+          </div>
+          {(page.badges?.length || 0) > 0 && (
+            <div className="flex justify-center flex-wrap gap-2 mb-8">
+              {page.badges.map((b, i) => (
+                <span key={i} className="text-xs font-medium px-3 py-1 rounded-full flex items-center gap-1"
+                  style={{ background: `${primary}1a`, color: accent, border: `1px solid ${primary}44` }}>
+                  <CheckCircle2 className="h-3 w-3" /> {b}
+                </span>
+              ))}
+            </div>
+          )}
+          <CtaBtn />
+          {page.guaranteeText && (
+            <div className="mt-5 flex items-center justify-center gap-2 text-sm" style={{ color: muted }}>
+              <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      {(page.faqs?.length || 0) > 0 && (
+        <section className="py-16 md:py-20">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="text-center font-display text-3xl md:text-4xl font-bold mb-8" style={{ color: text }}>Perguntas frequentes</h2>
+            <Accordion type="single" collapsible className="space-y-2">
+              {page.faqs.map((f, i) => (
+                <AccordionItem key={i} value={`f-${i}`} className="rounded-lg px-4"
+                  style={{ background: surface, border: `1px solid ${border}` }}>
+                  <AccordionTrigger className="text-left font-semibold py-4" style={{ color: text }}>{f.q}</AccordionTrigger>
+                  <AccordionContent className="pb-4" style={{ color: muted }}>{f.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+      )}
+
+      <footer className="py-8 text-center text-xs" style={{ borderTop: `1px solid ${border}`, color: soft }}>
+        © {new Date().getFullYear()} {mentor.brandName || "Mentoria"} — Compra segura processada por Asaas.
+      </footer>
+
+      <CheckoutDialog open={checkoutOpen} onClose={() => setCheckoutOpen(false)} mentorSlug={mentorSlug} pageSlug={pageSlug} page={page} />
+    </div>
+  );
+}
+
 // ================= CHECKOUT =================
 function CheckoutDialog({
   open, onClose, mentorSlug, pageSlug, page,
