@@ -580,6 +580,16 @@ function LongFormLayout({
         </div>
       </header>
 
+      {page.countdown?.enabled && page.countdown?.endsAt && (
+        <CountdownBar
+          endsAt={page.countdown.endsAt}
+          label={page.countdown.label}
+          primary={primary}
+          accent={accent}
+          hideWhenExpired={page.countdown.hideWhenExpired}
+        />
+      )}
+
       {/* HERO */}
       {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
