@@ -66,4 +66,13 @@ export class PublicSalesPagesController {
   ) {
     return this.svc.checkout(mentorSlug, pageSlug, dto);
   }
+
+  @Post(':mentorSlug/:pageSlug/validate-coupon')
+  validateCoupon(
+    @Param('mentorSlug') mentorSlug: string,
+    @Param('pageSlug') pageSlug: string,
+    @Body() dto: { code: string; email?: string },
+  ) {
+    return this.svc.validateCoupon(mentorSlug, pageSlug, dto);
+  }
 }

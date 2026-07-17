@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
   SalesPage, SalesPagePaymentMode, SalesPageProductType,
+  SalesPageCoupon,
 } from '../../entities/sales-page.entity';
 import { User, UserStatus } from '../../entities/user.entity';
 import { MentorPaymentProvider, PaymentProviderType } from '../../entities/mentor-payment-provider.entity';
@@ -102,6 +103,7 @@ export class SalesPagesService {
       'maxInstallments', 'paymentMode', 'subscriptionCycle', 'paymentProviderId',
       'theme', 'seo', 'published',
       'template', 'forWho', 'notForWho', 'agenda', 'about', 'eventInfo', 'urgencyText',
+      'coupons',
     ];
     for (const k of editable) {
       if (dto[k] !== undefined) (p as any)[k] = dto[k];
@@ -236,6 +238,9 @@ Gere o JSON agora.`;
     if (!m) throw new NotFoundException('Mentor não encontrado');
     const p = await this.pages.findOne({ where: { mentorId: m.id, slug: pageSlug, published: true } });
     if (!p) throw new NotFoundException('Página não encontrada ou não publicada');
+    // Não exporta a lista completa de cupons publicamente (usuário digita o código).
+    const publicPage: any = { ...p };
+    delete publicPage.coupons;
     return {
       mentor: {
         id: m.id,
@@ -245,8 +250,79 @@ Gere o JSON agora.`;
         brandPrimaryColor: m.brandPrimaryColor,
         brandAccentColor: m.brandAccentColor,
       },
-      page: p,
+      page: publicPage,
     };
+  }
+
+  // ==================== Cupons ====================
+  /** Encontra cupom por código (case-insensitive) sem checar regras. */
+  private findCoupon(page: SalesPage, code: string): SalesPageCoupon | null {
+    const c = (code || '').trim().toUpperCase();
+    if (!c) return null;
+    const list = Array.isArray(page.coupons) ? page.coupons : [];
+    return list.find((x) => (x.code || '').toUpperCase() === c) || null;
+  }
+
+  /** Aplica cupom e retorna centavos abatidos + finais. Lança BadRequest se inválido. */
+  private applyCoupon(
+    page: SalesPage,
+    priceCents: number,
+    code: string,
+    email: string,
+  ): { coupon: SalesPageCoupon; discountCents: number; finalCents: number } {
+    const coupon = this.findCoupon(page, code);
+    if (!coupon) throw new BadRequestException('Cupom não encontrado.');
+    if (coupon.isActive === false) throw new BadRequestException('Cupom inativo.');
+    const now = Date.now();
+    if (coupon.startsAt && new Date(coupon.startsAt).getTime() > now) {
+      throw new BadRequestException('Cupom ainda não está válido.');
+    }
+    if (coupon.endsAt && new Date(coupon.endsAt).getTime() < now) {
+      throw new BadRequestException('Cupom expirado.');
+    }
+    if (coupon.maxUses && (coupon.usedCount || 0) >= coupon.maxUses) {
+      throw new BadRequestException('Cupom esgotado.');
+    }
+    if (coupon.oneUsePerPerson && email) {
+      const used = (coupon.usedEmails || []).map((x) => (x || '').toLowerCase());
+      if (used.includes(email.trim().toLowerCase())) {
+        throw new BadRequestException('Você já usou este cupom.');
+      }
+    }
+    let discountCents = 0;
+    if (coupon.discountType === 'percent') {
+      const pct = Math.max(0, Math.min(100, coupon.discountValue || 0));
+      discountCents = Math.floor((priceCents * pct) / 100);
+    } else {
+      discountCents = Math.max(0, Math.floor(coupon.discountValue || 0));
+    }
+    if (discountCents > priceCents) discountCents = priceCents;
+    const finalCents = Math.max(0, priceCents - discountCents);
+    return { coupon, discountCents, finalCents };
+  }
+
+  /** Endpoint público: valida cupom e retorna preview do desconto. */
+  async validateCoupon(mentorSlug: string, pageSlug: string, dto: { code: string; email?: string }) {
+    const m = await this.users.findOne({ where: { slug: mentorSlug, status: UserStatus.ACTIVE } });
+    if (!m) throw new NotFoundException('Mentor não encontrado');
+    const page = await this.pages.findOne({ where: { mentorId: m.id, slug: pageSlug, published: true } });
+    if (!page) throw new NotFoundException('Página não encontrada');
+    try {
+      const { coupon, discountCents, finalCents } = this.applyCoupon(
+        page, page.priceCents, dto.code, dto.email || '',
+      );
+      return {
+        valid: true,
+        code: coupon.code,
+        discountType: coupon.discountType,
+        discountValue: coupon.discountValue,
+        discountCents,
+        originalCents: page.priceCents,
+        finalCents,
+      };
+    } catch (e: any) {
+      return { valid: false, message: e?.message || 'Cupom inválido' };
+    }
   }
 
   // ==================== Checkout transparente Asaas ====================
@@ -275,17 +351,36 @@ Gere o JSON agora.`;
         phone?: string;
       };
       installments?: number;
+      couponCode?: string;
     },
   ) {
     if (!dto?.name || !dto?.email || !dto?.cpfCnpj) {
       throw new BadRequestException('Nome, e-mail e CPF/CNPJ são obrigatórios.');
     }
-    const { mentor, page } = await this.publicBySlug(mentorSlug, pageSlug);
+    // Carrega direto (com cupons) — publicBySlug esconde a lista.
+    const mentor = await this.users.findOne({ where: { slug: mentorSlug, status: UserStatus.ACTIVE } });
+    if (!mentor) throw new NotFoundException('Mentor não encontrado');
+    const page = await this.pages.findOne({ where: { mentorId: mentor.id, slug: pageSlug, published: true } });
+    if (!page) throw new NotFoundException('Página não encontrada');
     if (!page.paymentProviderId) {
       throw new BadRequestException('Página sem provedor de pagamento configurado.');
     }
     if (!page.priceCents || page.priceCents < 100) {
       throw new BadRequestException('Preço inválido.');
+    }
+
+    // Aplica cupom (se houver) — reduz o valor cobrado no Asaas.
+    let appliedCoupon: SalesPageCoupon | null = null;
+    let discountCents = 0;
+    let chargeCents = page.priceCents;
+    if (dto.couponCode && dto.couponCode.trim()) {
+      const res = this.applyCoupon(page, page.priceCents, dto.couponCode, dto.email);
+      appliedCoupon = res.coupon;
+      discountCents = res.discountCents;
+      chargeCents = res.finalCents;
+      if (chargeCents < 100) {
+        throw new BadRequestException('Valor final após desconto é menor que R$ 1,00.');
+      }
     }
 
     // Carrega provider com apiKey
@@ -326,7 +421,7 @@ Gere o JSON agora.`;
       throw new BadRequestException(customer?.errors?.[0]?.description || 'Falha ao criar cliente Asaas.');
     }
 
-    const value = page.priceCents / 100;
+    const value = chargeCents / 100;
     const description = `${page.title} — ${mentor.brandName || 'Compra'}`;
 
     // 2. Cobrança
@@ -381,6 +476,29 @@ Gere o JSON agora.`;
 
     const chargeId = charge.id || charge.installment;
 
+    // Marca uso do cupom (best-effort). Se der erro persistente, seguimos com a cobrança criada.
+    if (appliedCoupon) {
+      try {
+        const idx = (page.coupons || []).findIndex(
+          (c) => (c.code || '').toUpperCase() === appliedCoupon!.code.toUpperCase(),
+        );
+        if (idx >= 0) {
+          const list = [...(page.coupons || [])];
+          const cur = { ...list[idx] };
+          cur.usedCount = (cur.usedCount || 0) + 1;
+          if (cur.oneUsePerPerson) {
+            const emails = new Set([...(cur.usedEmails || []).map((x) => x.toLowerCase()), dto.email.toLowerCase()]);
+            cur.usedEmails = Array.from(emails);
+          }
+          list[idx] = cur;
+          page.coupons = list;
+          await this.pages.save(page);
+        }
+      } catch (e: any) {
+        this.logger.warn(`Falha ao atualizar uso do cupom: ${e?.message}`);
+      }
+    }
+
     // 3. Se PIX → busca QR
     let pix: { payload?: string; qrImage?: string } | null = null;
     if (dto.billingType === 'PIX') {
@@ -401,6 +519,9 @@ Gere o JSON agora.`;
       status: charge.status || 'PENDING',
       billingType: dto.billingType,
       value,
+      originalValue: page.priceCents / 100,
+      discountValue: discountCents / 100,
+      couponCode: appliedCoupon?.code || null,
       invoiceUrl: charge.invoiceUrl || null,
       bankSlipUrl: charge.bankSlipUrl || null,
       pix,
