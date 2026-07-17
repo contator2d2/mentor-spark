@@ -65,8 +65,108 @@ type Payload = {
     };
     eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
     urgencyText?: string;
+    countdown?: {
+      enabled?: boolean;
+      endsAt?: string;
+      label?: string;
+      hideWhenExpired?: boolean;
+    };
   };
 };
+
+// ============= Badge pill sem ícone de IA — glow na cor da marca =============
+function BadgePill({ children, primary, accent }: { children: React.ReactNode; primary: string; accent: string }) {
+  return (
+    <div
+      className="inline-flex items-center gap-2 mb-6 px-3.5 py-1.5 rounded-full text-xs font-semibold tracking-widest uppercase animate-fade-in"
+      style={{
+        border: `1px solid ${primary}66`,
+        background: `linear-gradient(90deg, ${primary}22, ${primary}0d)`,
+        color: accent,
+        boxShadow: `0 0 24px -6px ${primary}80, inset 0 0 12px -6px ${primary}55`,
+      }}
+    >
+      <span
+        className="relative inline-flex h-2 w-2 rounded-full"
+        style={{ background: primary, boxShadow: `0 0 10px 2px ${primary}` }}
+      >
+        <span
+          className="absolute inset-0 rounded-full animate-ping"
+          style={{ background: primary, opacity: 0.6 }}
+        />
+      </span>
+      {children}
+    </div>
+  );
+}
+
+// ============= Countdown =============
+function CountdownBar({
+  endsAt, label, primary, accent, hideWhenExpired,
+}: { endsAt: string; label?: string; primary: string; accent: string; hideWhenExpired?: boolean }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const end = new Date(endsAt).getTime();
+  const diff = Math.max(0, end - now);
+  const expired = diff === 0;
+  if (expired && hideWhenExpired) return null;
+
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const pad = (n: number) => String(n).padStart(2, "0");
+
+  const Unit = ({ v, lbl }: { v: string; lbl: string }) => (
+    <div className="flex flex-col items-center min-w-[52px] md:min-w-[68px]">
+      <div
+        className="font-display font-bold text-2xl md:text-3xl leading-none tabular-nums"
+        style={{ color: accent, textShadow: `0 0 20px ${primary}80` }}
+      >
+        {v}
+      </div>
+      <div className="text-[10px] md:text-[11px] uppercase tracking-widest mt-1 opacity-70">{lbl}</div>
+    </div>
+  );
+
+  return (
+    <div
+      className="relative z-30 w-full border-b animate-fade-in"
+      style={{
+        background: `linear-gradient(90deg, ${primary}14, ${primary}22, ${primary}14)`,
+        borderColor: `${primary}44`,
+        boxShadow: `inset 0 -1px 0 ${primary}55, 0 6px 24px -12px ${primary}80`,
+      }}
+    >
+      <div className="max-w-6xl mx-auto px-6 py-3 flex flex-col md:flex-row items-center justify-center gap-3 md:gap-6 text-white">
+        <div
+          className="text-xs md:text-sm uppercase tracking-widest font-semibold flex items-center gap-2"
+          style={{ color: accent }}
+        >
+          <span
+            className="inline-flex h-2 w-2 rounded-full animate-pulse"
+            style={{ background: primary, boxShadow: `0 0 10px 2px ${primary}` }}
+          />
+          {expired ? "Oferta encerrada" : (label || "A oferta termina em")}
+        </div>
+        {!expired && (
+          <div className="flex items-center gap-2 md:gap-3">
+            <Unit v={pad(d)} lbl="dias" />
+            <div className="opacity-40 font-bold text-xl">:</div>
+            <Unit v={pad(h)} lbl="horas" />
+            <div className="opacity-40 font-bold text-xl">:</div>
+            <Unit v={pad(m)} lbl="min" />
+            <div className="opacity-40 font-bold text-xl">:</div>
+            <Unit v={pad(s)} lbl="seg" />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function money(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -160,20 +260,35 @@ export default function SalesPagePublic() {
             {mentor.brandLogoUrl ? (
               <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-8 w-8 rounded-lg object-cover" />
             ) : (
-              <div className="h-8 w-8 rounded-lg bg-[#c9a84c]/15 flex items-center justify-center">
-                <Sparkles className="h-4 w-4 text-[#c9a84c]" />
+              <div
+                className="h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                style={{ background: `${primaryHex}22`, color: primaryHex, boxShadow: `0 0 20px -4px ${primaryHex}66` }}
+              >
+                {(mentor.brandName || "M").charAt(0).toUpperCase()}
               </div>
             )}
             <div className="font-bold text-white">{mentor.brandName || "Mentoria"}</div>
           </div>
           <Button
             onClick={() => setCheckoutOpen(true)}
-            className="bg-[#c9a84c] hover:bg-[#d4b662] text-[#0a0a0a] font-semibold border-0 shadow-[0_8px_24px_-8px_rgba(201,168,76,0.5)]"
+            className="font-semibold border-0 transition-transform hover:-translate-y-0.5"
+            style={{ background: primaryHex, color: isDark ? "#0a0a0a" : "#fff", boxShadow: `0 8px 30px -8px ${primaryHex}` }}
           >
             {page.ctaText}
           </Button>
         </div>
       </header>
+
+      {/* Countdown */}
+      {page.countdown?.enabled && page.countdown?.endsAt && (
+        <CountdownBar
+          endsAt={page.countdown.endsAt}
+          label={page.countdown.label}
+          primary={primaryHex}
+          accent={accentHex}
+          hideWhenExpired={page.countdown.hideWhenExpired}
+        />
+      )}
 
       {/* Hero — Premium Dark */}
       {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
@@ -192,9 +307,7 @@ export default function SalesPagePublic() {
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
           <div className="max-w-2xl">
             {page.badges?.[0] && (
-              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primaryHex} accent={accentHex}>{page.badges[0]}</BadgePill>
             )}
             <h1
               className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
@@ -256,9 +369,7 @@ export default function SalesPagePublic() {
         <div className="relative max-w-6xl mx-auto px-6 py-20 md:py-28 grid lg:grid-cols-2 gap-10 items-center">
           <div className="relative z-10">
             {page.badges?.[0] && (
-              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primaryHex} accent={accentHex}>{page.badges[0]}</BadgePill>
             )}
             <h1
               className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white"
@@ -329,7 +440,7 @@ export default function SalesPagePublic() {
               </div>
             ) : (
               <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#c9a84c]/20 to-transparent flex items-center justify-center ring-1 ring-white/5">
-                <Sparkles className="h-16 w-16 text-[#c9a84c]/40" />
+                <div className="h-32 w-32 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${primaryHex}66, transparent 70%)` }} />
               </div>
             )}
           </div>
@@ -469,6 +580,16 @@ function LongFormLayout({
         </div>
       </header>
 
+      {page.countdown?.enabled && page.countdown?.endsAt && (
+        <CountdownBar
+          endsAt={page.countdown.endsAt}
+          label={page.countdown.label}
+          primary={primary}
+          accent={accent}
+          hideWhenExpired={page.countdown.hideWhenExpired}
+        />
+      )}
+
       {/* HERO */}
       {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
       <section className="relative overflow-hidden min-h-[85vh] flex items-center">
@@ -489,12 +610,7 @@ function LongFormLayout({
         <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
           <div className="max-w-2xl">
             {page.badges?.[0] && (
-              <div
-                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
-                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
-              >
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primary} accent={accent}>{page.badges[0]}</BadgePill>
             )}
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]" style={{ color: text }}>
               {page.headline || page.title}
@@ -527,12 +643,7 @@ function LongFormLayout({
         <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-12 items-center">
           <div>
             {page.badges?.[0] && (
-              <div
-                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
-                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
-              >
-                <Sparkles className="h-3 w-3" /> {page.badges[0]}
-              </div>
+              <BadgePill primary={primary} accent={accent}>{page.badges[0]}</BadgePill>
             )}
             <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6" style={{ color: text }}>
               {page.headline || page.title}
@@ -566,7 +677,7 @@ function LongFormLayout({
               <img src={page.heroImageUrl} alt={page.title} className="w-full h-[520px] object-cover rounded-2xl" />
             ) : (
               <div className="aspect-[4/5] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}22, transparent)` }}>
-                <Sparkles className="h-16 w-16" style={{ color: `${primary}66` }} />
+                <div className="h-32 w-32 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${primary}66, transparent 70%)` }} />
               </div>
             )}
           </div>

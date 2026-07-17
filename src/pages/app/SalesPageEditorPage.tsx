@@ -85,6 +85,7 @@ type SalesPage = {
   };
   eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
   urgencyText?: string;
+  countdown?: { enabled?: boolean; endsAt?: string; label?: string; hideWhenExpired?: boolean };
   coupons?: Coupon[];
 };
 
@@ -772,6 +773,55 @@ export default function SalesPageEditorPage() {
               <Label>Texto do botão (CTA)</Label>
               <Input value={page.ctaText} onChange={(e) => patch({ ctaText: e.target.value })} />
             </div>
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h3 className="font-bold mb-1">Contagem regressiva</h3>
+                <p className="text-sm text-muted-foreground">Cria um cronômetro no topo da página para gerar urgência. Você pode ativar ou desativar a qualquer momento.</p>
+              </div>
+              <label className="inline-flex items-center gap-2 cursor-pointer shrink-0">
+                <input
+                  type="checkbox"
+                  className="h-5 w-5 accent-primary"
+                  checked={!!page.countdown?.enabled}
+                  onChange={(e) => patch({ countdown: { ...(page.countdown || {}), enabled: e.target.checked } })}
+                />
+                <span className="text-sm font-medium">{page.countdown?.enabled ? "Ativa" : "Desativada"}</span>
+              </label>
+            </div>
+            {page.countdown?.enabled && (
+              <div className="grid md:grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <Label>Termina em</Label>
+                  <Input
+                    type="datetime-local"
+                    value={page.countdown?.endsAt ? page.countdown.endsAt.slice(0, 16) : ""}
+                    onChange={(e) => patch({ countdown: { ...(page.countdown || {}), endsAt: e.target.value ? new Date(e.target.value).toISOString() : "" } })}
+                  />
+                </div>
+                <div>
+                  <Label>Rótulo</Label>
+                  <Input
+                    value={page.countdown?.label || ""}
+                    placeholder="A oferta termina em"
+                    onChange={(e) => patch({ countdown: { ...(page.countdown || {}), label: e.target.value } })}
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="inline-flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-primary"
+                      checked={!!page.countdown?.hideWhenExpired}
+                      onChange={(e) => patch({ countdown: { ...(page.countdown || {}), hideWhenExpired: e.target.checked } })}
+                    />
+                    <span className="text-sm">Esconder o cronômetro quando expirar</span>
+                  </label>
+                </div>
+              </div>
+            )}
           </Card>
         </TabsContent>
 

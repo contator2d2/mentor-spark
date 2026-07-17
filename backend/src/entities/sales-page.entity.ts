@@ -57,6 +57,13 @@ export interface SalesPageEventInfo {
   extra?: string;     // "Credenciamento a partir das 8h30"
 }
 
+export interface SalesPageCountdown {
+  enabled?: boolean;
+  endsAt?: string;   // ISO date-time — quando a oferta termina
+  label?: string;    // rótulo curto ("Oferta termina em", "Turma fecha em")
+  hideWhenExpired?: boolean;
+}
+
 export interface SalesPageCoupon {
   code: string;                       // sempre em MAIÚSCULAS
   description?: string;
@@ -203,6 +210,10 @@ export class SalesPage {
 
   @Column({ type: 'text', nullable: true })
   urgencyText?: string;
+
+  /** Contagem regressiva opcional (ativada pelo mentor no editor). */
+  @Column({ type: 'jsonb', nullable: true })
+  countdown?: SalesPageCountdown;
 
   /** Cupons de desconto do produto (mentor gerencia no editor). */
   @Column({ type: 'jsonb', default: '[]' })
