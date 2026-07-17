@@ -71,7 +71,15 @@ type SalesPage = {
   forWho?: string[];
   notForWho?: string[];
   agenda?: AgendaItem[];
-  about?: { name?: string; role?: string; bio?: string; photoUrl?: string };
+  about?: {
+    name?: string;
+    role?: string;
+    bio?: string;
+    photoUrl?: string;
+    sectionTitle?: string;
+    columns?: number;
+    people?: Array<{ name?: string; role?: string; bio?: string; photoUrl?: string }>;
+  };
   eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
   urgencyText?: string;
   coupons?: Coupon[];
