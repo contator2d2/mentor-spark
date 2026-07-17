@@ -38,6 +38,9 @@ type Theme = {
   primaryColor?: string;
   accentColor?: string;
   bgColor?: string;
+  heroStyle?: "split" | "background";
+  heroFocus?: string;
+  heroOverlay?: number;
 };
 
 type SalesPage = {
@@ -365,6 +368,67 @@ export default function SalesPageEditorPage() {
                       onChange={(e) => patch({ theme: { ...(page.theme || {}), bgColor: e.target.value } })}
                     />
                   </div>
+                </div>
+              </div>
+            )}
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div>
+              <h3 className="font-bold mb-1">Estilo do hero</h3>
+              <p className="text-sm text-muted-foreground mb-3">Como a imagem principal aparece no topo da página.</p>
+              <div className="grid md:grid-cols-2 gap-3">
+                {[
+                  { id: "split", title: "Texto + imagem lado a lado", desc: "Layout dividido: texto à esquerda, foto/vídeo à direita." },
+                  { id: "background", title: "Imagem de fundo completa", desc: "Imagem grande ocupa todo o hero, com o texto sobreposto à esquerda." },
+                ].map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    onClick={() => patch({ theme: { ...(page.theme || {}), heroStyle: o.id as any } })}
+                    className={`text-left rounded-lg border-2 p-4 transition-all ${
+                      (page.theme?.heroStyle || "split") === o.id
+                        ? "border-primary bg-primary/5 shadow-glow"
+                        : "border-border hover:border-primary/40"
+                    }`}
+                  >
+                    <div className="font-semibold text-sm mb-1">{o.title}</div>
+                    <div className="text-xs text-muted-foreground">{o.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {(page.theme?.heroStyle || "split") === "background" && (
+              <div className="grid md:grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <Label>Foco da imagem</Label>
+                  <Select
+                    value={page.theme?.heroFocus || "center"}
+                    onValueChange={(v) => patch({ theme: { ...(page.theme || {}), heroFocus: v } })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="center">Centralizada</SelectItem>
+                      <SelectItem value="right">Direita (rosto/pessoa à direita)</SelectItem>
+                      <SelectItem value="left">Esquerda</SelectItem>
+                      <SelectItem value="top">Topo</SelectItem>
+                      <SelectItem value="bottom">Base</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">Escolha para onde a imagem se alinha. Use "Direita" para fotos de pessoa em pé.</p>
+                </div>
+                <div>
+                  <Label>Escurecimento sobre a imagem</Label>
+                  <Input
+                    type="range"
+                    min={0}
+                    max={90}
+                    step={5}
+                    value={Math.round(((page.theme?.heroOverlay ?? 0.6)) * 100)}
+                    onChange={(e) => patch({ theme: { ...(page.theme || {}), heroOverlay: Number(e.target.value) / 100 } })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Ajusta o contraste do texto sobre a imagem (0% = imagem limpa, 90% = quase preto).</p>
                 </div>
               </div>
             )}

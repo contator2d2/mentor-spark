@@ -50,6 +50,9 @@ type Payload = {
       primaryColor?: string;
       accentColor?: string;
       bgColor?: string;
+      heroStyle?: "split" | "background";
+      heroFocus?: string;
+      heroOverlay?: number;
     };
     forWho?: string[];
     notForWho?: string[];
@@ -173,6 +176,71 @@ export default function SalesPagePublic() {
       </header>
 
       {/* Hero — Premium Dark */}
+      {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
+      <section className="relative overflow-hidden bg-[#0a0a0a] text-white min-h-[80vh] flex items-center">
+        <img
+          src={page.heroImageUrl}
+          alt={page.title}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: page.theme?.heroFocus || "center" }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(90deg, rgba(10,10,10,${page.theme?.heroOverlay ?? 0.75}) 0%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.7}) 45%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.2}) 100%)` }}
+        />
+        <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 60% at 85% 50%, rgba(201,168,76,0.25) 0%, transparent 70%)" }} />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
+          <div className="max-w-2xl">
+            {page.badges?.[0] && (
+              <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full border border-[#c9a84c]/40 bg-[#c9a84c]/10 text-[#e8c97a] text-xs font-medium tracking-wide uppercase">
+                <Sparkles className="h-3 w-3" /> {page.badges[0]}
+              </div>
+            )}
+            <h1
+              className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 text-white drop-shadow-[0_4px_20px_rgba(0,0,0,0.6)]"
+              style={{ fontFamily: "'Playfair Display', 'DM Serif Display', Georgia, serif" }}
+            >
+              {page.headline || page.title}
+            </h1>
+            {page.subheadline && (
+              <p className="text-lg md:text-xl mb-6 max-w-xl leading-snug font-medium text-[#e8c97a]">
+                {page.subheadline}
+              </p>
+            )}
+            {page.description && (
+              <p className="text-base md:text-lg text-white/80 mb-8 max-w-xl leading-relaxed">
+                {page.description.split("\n")[0]}
+              </p>
+            )}
+            <div className="flex flex-wrap items-baseline gap-3 mb-8">
+              {page.originalPriceCents ? (
+                <span className="text-white/50 line-through">{money(page.originalPriceCents)}</span>
+              ) : null}
+              <span className="font-display text-4xl md:text-5xl font-bold text-[#e8c97a]">
+                {money(page.priceCents)}
+              </span>
+              {page.maxInstallments > 1 && (
+                <span className="text-sm text-white/70">
+                  ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                </span>
+              )}
+            </div>
+            <Button
+              size="lg"
+              onClick={() => setCheckoutOpen(true)}
+              className="bg-[#c9a84c] hover:bg-[#d4b662] text-[#0a0a0a] font-bold h-14 px-10 text-base rounded-md border-0 shadow-[0_16px_40px_-12px_rgba(201,168,76,0.7)] transition-transform hover:-translate-y-0.5"
+            >
+              {page.ctaText}
+            </Button>
+            {page.guaranteeText && (
+              <div className="mt-5 flex items-center gap-2 text-sm text-white/80">
+                <ShieldCheck className="h-4 w-4 text-[#c9a84c]" /> {page.guaranteeText}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+      ) : (
       <section className="relative overflow-hidden bg-[#0a0a0a] text-white">
         {/* Golden radial halo behind subject */}
         <div
@@ -267,6 +335,7 @@ export default function SalesPagePublic() {
           </div>
         </div>
       </section>
+      )}
 
       {/* Description */}
       {page.description && (
@@ -401,6 +470,55 @@ function LongFormLayout({
       </header>
 
       {/* HERO */}
+      {(page.theme?.heroStyle === "background" && page.heroImageUrl) ? (
+      <section className="relative overflow-hidden min-h-[85vh] flex items-center">
+        <img
+          src={page.heroImageUrl}
+          alt={page.title}
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ objectPosition: page.theme?.heroFocus || "center" }}
+        />
+        <div
+          className="absolute inset-0"
+          style={{ background: `linear-gradient(90deg, ${bg}${Math.round((page.theme?.heroOverlay ?? 0.7) * 255).toString(16).padStart(2,'0')} 0%, ${bg}99 45%, ${bg}22 100%)` }}
+        />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(50% 60% at 85% 50%, ${primary}33 0%, transparent 70%)` }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto px-6 py-20 md:py-28 w-full">
+          <div className="max-w-2xl">
+            {page.badges?.[0] && (
+              <div
+                className="inline-flex items-center gap-2 mb-6 px-3 py-1 rounded-full text-xs font-medium tracking-wide uppercase"
+                style={{ border: `1px solid ${primary}66`, background: `${primary}1a`, color: accent }}
+              >
+                <Sparkles className="h-3 w-3" /> {page.badges[0]}
+              </div>
+            )}
+            <h1 className="font-display text-4xl md:text-6xl font-bold leading-[1.05] tracking-tight mb-6 drop-shadow-[0_4px_20px_rgba(0,0,0,0.5)]" style={{ color: text }}>
+              {page.headline || page.title}
+            </h1>
+            {page.subheadline && (
+              <p className="text-lg md:text-2xl mb-6 max-w-xl leading-snug font-medium" style={{ color: accent }}>
+                {page.subheadline}
+              </p>
+            )}
+            {page.description && (
+              <p className="text-base md:text-lg mb-8 max-w-xl leading-relaxed" style={{ color: muted }}>
+                {page.description.split("\n")[0]}
+              </p>
+            )}
+            <CtaBtn />
+            {page.guaranteeText && (
+              <div className="mt-5 flex items-center gap-2 text-sm" style={{ color: muted }}>
+                <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+      ) : (
       <section className="relative overflow-hidden">
         <div
           className="pointer-events-none absolute inset-0"
@@ -454,6 +572,7 @@ function LongFormLayout({
           </div>
         </div>
       </section>
+      )}
 
       {/* Event info strip */}
       {(page.eventInfo?.date || page.eventInfo?.time || page.eventInfo?.location) && (
