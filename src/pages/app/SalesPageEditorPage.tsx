@@ -85,6 +85,7 @@ type SalesPage = {
   };
   eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
   urgencyText?: string;
+  countdown?: { enabled?: boolean; endsAt?: string; label?: string; hideWhenExpired?: boolean };
   coupons?: Coupon[];
 };
 
