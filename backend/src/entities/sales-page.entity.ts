@@ -78,6 +78,12 @@ export interface SalesPageTheme {
   accentColor?: string;
   bgColor?: string;
   fontFamily?: string;
+  /** Estilo visual do hero: split (texto + imagem lado a lado) ou background (imagem de fundo full-bleed com texto sobreposto) */
+  heroStyle?: 'split' | 'background';
+  /** Posição de foco da imagem de fundo (ex: 'center', 'right', '70% 40%') */
+  heroFocus?: string;
+  /** Intensidade do overlay escuro sobre a imagem de fundo (0..1). Default 0.6 */
+  heroOverlay?: number;
 }
 
 export type SalesPageTemplate = 'classic' | 'long_form';
