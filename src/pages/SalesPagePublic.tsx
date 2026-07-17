@@ -440,7 +440,7 @@ export default function SalesPagePublic() {
               </div>
             ) : (
               <div className="aspect-[4/5] rounded-2xl bg-gradient-to-br from-[#c9a84c]/20 to-transparent flex items-center justify-center ring-1 ring-white/5">
-                <Sparkles className="h-16 w-16 text-[#c9a84c]/40" />
+                <div className="h-32 w-32 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${primaryHex}66, transparent 70%)` }} />
               </div>
             )}
           </div>
@@ -667,7 +667,7 @@ function LongFormLayout({
               <img src={page.heroImageUrl} alt={page.title} className="w-full h-[520px] object-cover rounded-2xl" />
             ) : (
               <div className="aspect-[4/5] rounded-2xl flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}22, transparent)` }}>
-                <Sparkles className="h-16 w-16" style={{ color: `${primary}66` }} />
+                <div className="h-32 w-32 rounded-full animate-pulse" style={{ background: `radial-gradient(circle, ${primary}66, transparent 70%)` }} />
               </div>
             )}
           </div>
