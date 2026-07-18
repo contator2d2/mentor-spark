@@ -68,6 +68,7 @@ type Payload = {
     badges: string[]; guaranteeText?: string; ctaText: string;
     priceCents: number; currency: string; originalPriceCents?: number;
     maxInstallments: number; paymentMode: "one_time" | "subscription";
+    installmentInterestRate?: number;
     seo?: { title?: string; description?: string };
     template?: "classic" | "long_form" | "immersion";
     theme?: {
@@ -395,7 +396,11 @@ export default function SalesPagePublic() {
           style={{ objectPosition: page.theme?.heroFocus || "center" }}
         />
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 md:hidden"
+          style={{ background: `linear-gradient(180deg, rgba(10,10,10,0.75) 0%, rgba(10,10,10,0.4) 50%, rgba(10,10,10,0.9) 100%)` }}
+        />
+        <div
+          className="hidden md:block absolute inset-0"
           style={{ background: `linear-gradient(90deg, rgba(10,10,10,${page.theme?.heroOverlay ?? 0.75}) 0%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.7}) 45%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.2}) 100%)` }}
         />
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 60% at 85% 50%, rgba(201,168,76,0.25) 0%, transparent 70%)" }} />
@@ -688,8 +693,13 @@ function LongFormLayout({
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: page.theme?.heroFocus || "center" }}
         />
+        {/* Mobile: gradiente vertical suave (imagem visível). Desktop: gradiente horizontal. */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 md:hidden"
+          style={{ background: `linear-gradient(180deg, ${bg}cc 0%, ${bg}80 50%, ${bg}f0 100%)` }}
+        />
+        <div
+          className="hidden md:block absolute inset-0"
           style={{ background: `linear-gradient(90deg, ${bg}${Math.round((page.theme?.heroOverlay ?? 0.7) * 255).toString(16).padStart(2,'0')} 0%, ${bg}99 45%, ${bg}22 100%)` }}
         />
         <div
@@ -1298,35 +1308,46 @@ function ImmersionLayout({
             return (
               <section
                 key={i}
-                className="relative w-full overflow-hidden min-h-[520px] md:min-h-[620px] flex items-center"
+                className="relative w-full overflow-hidden md:min-h-[620px] md:flex md:items-center"
               >
-                {/* Imagem de fundo full-bleed */}
+                {/* MOBILE: imagem no topo em bloco separado (visível) */}
+                {s.imageUrl && (
+                  <div className="md:hidden w-full">
+                    <img
+                      src={s.imageUrl}
+                      alt={s.title || ""}
+                      className="w-full aspect-[4/3] object-cover"
+                      style={{ boxShadow: `0 20px 60px -20px ${primary}66` }}
+                    />
+                  </div>
+                )}
+                {/* DESKTOP: Imagem de fundo full-bleed */}
                 {s.imageUrl && (
                   <img
                     src={s.imageUrl}
                     alt={s.title || ""}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="hidden md:block absolute inset-0 w-full h-full object-cover"
                     style={{ objectPosition: imgRight ? "right center" : "left center" }}
                   />
                 )}
-                {/* Gradiente escuro do lado do texto -> transparente do lado da imagem */}
+                {/* DESKTOP: Gradiente escuro do lado do texto -> transparente do lado da imagem */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="hidden md:block absolute inset-0 pointer-events-none"
                   style={{
                     background: imgRight
                       ? `linear-gradient(to right, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`
                       : `linear-gradient(to left, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`,
                   }}
                 />
-                {/* Glow sutil na cor da marca */}
+                {/* DESKTOP: Glow sutil na cor da marca */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="hidden md:block absolute inset-0 pointer-events-none"
                   style={{
                     background: `radial-gradient(50% 60% at ${imgRight ? "20%" : "80%"} 50%, ${primary}22 0%, transparent 70%)`,
                   }}
                 />
                 {/* Conteúdo de texto sobreposto */}
-                <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-24">
+                <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 lg:px-20 py-10 md:py-24">
                   <div className={`max-w-xl ${imgRight ? "" : "md:ml-auto"}`}>
                     {textBlock}
                   </div>
@@ -1681,6 +1702,22 @@ function CheckoutDialog({
 
   const finalCents = coupon?.valid ? (coupon.finalCents ?? page.priceCents) : page.priceCents;
 
+  // Cálculo de parcelamento com juros (Tabela Price). Rate=0 => sem juros.
+  const interestRate = Number(page.installmentInterestRate || 0) / 100;
+  const computeInstallment = (n: number) => {
+    if (n <= 1 || interestRate <= 0) {
+      return { perInstallment: Math.round(finalCents / n), total: finalCents, hasInterest: false };
+    }
+    const pv = finalCents;
+    const pmt = pv * (interestRate * Math.pow(1 + interestRate, n)) / (Math.pow(1 + interestRate, n) - 1);
+    const perInstallment = Math.round(pmt);
+    return { perInstallment, total: perInstallment * n, hasInterest: true };
+  };
+  const currentInstallment = computeInstallment(installments);
+  const displayTotal = method === "CREDIT_CARD" && installments > 1
+    ? currentInstallment.total
+    : finalCents;
+
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     if (!email) { toast.error("Informe o e-mail antes de aplicar o cupom"); return; }
@@ -1757,14 +1794,14 @@ function CheckoutDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(finalCents)}`}</DialogTitle>
+          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(displayTotal)}`}</DialogTitle>
         </DialogHeader>
 
         {step === "form" && (
           <div className="space-y-4">
             <Tabs value={method} onValueChange={(v: any) => setMethod(v)}>
               <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX</TabsTrigger>
+                <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX <span className="ml-1 text-[10px] opacity-70">sem juros</span></TabsTrigger>
                 <TabsTrigger value="CREDIT_CARD"><CreditCard className="h-4 w-4 mr-2" />Cartão</TabsTrigger>
               </TabsList>
             </Tabs>
@@ -1828,12 +1865,24 @@ function CheckoutDialog({
                         value={installments}
                         onChange={(e) => setInstallments(parseInt(e.target.value))}
                       >
-                        {Array.from({ length: page.maxInstallments }, (_, i) => i + 1).map((n) => (
-                          <option key={n} value={n}>
-                            {n}x de {money(Math.floor(finalCents / n))} {n === 1 ? "(à vista)" : ""}
-                          </option>
-                        ))}
+                        {Array.from({ length: page.maxInstallments }, (_, i) => i + 1).map((n) => {
+                          const inst = computeInstallment(n);
+                          if (n === 1) {
+                            return <option key={n} value={n}>À vista — {money(inst.perInstallment)} (sem juros)</option>;
+                          }
+                          return (
+                            <option key={n} value={n}>
+                              {n}x de {money(inst.perInstallment)}
+                              {inst.hasInterest ? ` — total ${money(inst.total)} (com juros)` : " (sem juros)"}
+                            </option>
+                          );
+                        })}
                       </select>
+                      {installments > 1 && currentInstallment.hasInterest && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Juros de {(interestRate * 100).toFixed(2).replace(".", ",")}% a.m. repassados pela Asaas. Total: {money(currentInstallment.total)}.
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
@@ -1885,15 +1934,27 @@ function CheckoutDialog({
                   <span>-{money(coupon.discountCents || 0)}</span>
                 </div>
               )}
+              {method === "CREDIT_CARD" && installments > 1 && currentInstallment.hasInterest && (
+                <div className="flex justify-between text-amber-600">
+                  <span>Juros ({installments}x)</span>
+                  <span>+{money(currentInstallment.total - finalCents)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold pt-1 border-t">
                 <span>Total</span>
-                <span>{money(finalCents)}</span>
+                <span>{money(displayTotal)}</span>
               </div>
+              {method === "PIX" && (
+                <div className="text-xs text-emerald-600 pt-1">✓ PIX à vista — sem juros</div>
+              )}
+              {method === "CREDIT_CARD" && installments === 1 && (
+                <div className="text-xs text-emerald-600 pt-1">✓ Cartão à vista — sem juros</div>
+              )}
             </div>
 
             <Button onClick={submit} disabled={loading} className="w-full bg-primary hover:opacity-90">
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(finalCents)}`}
+              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(displayTotal)}`}
             </Button>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3" /> Processado com segurança pela Asaas

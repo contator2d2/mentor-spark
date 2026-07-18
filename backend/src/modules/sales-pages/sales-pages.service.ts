@@ -104,6 +104,7 @@ export class SalesPagesService {
       'theme', 'seo', 'published',
       'template', 'forWho', 'notForWho', 'agenda', 'about', 'eventInfo', 'urgencyText',
       'coupons', 'countdown', 'gallery', 'showcase',
+      'installmentInterestRate' as any,
     ];
     for (const k of editable) {
       if (dto[k] !== undefined) (p as any)[k] = dto[k];
@@ -440,7 +441,15 @@ Gere o JSON agora.`;
       }
       chargePayload.installmentCount = Math.max(1, Math.min(dto.installments || 1, page.maxInstallments));
       if (chargePayload.installmentCount > 1) {
-        chargePayload.totalValue = value;
+        // Juros repassados ao cliente (Tabela Price). Se rate=0, mantém sem juros.
+        const rate = Number((page as any).installmentInterestRate || 0) / 100;
+        const n = chargePayload.installmentCount;
+        let totalValue = value;
+        if (rate > 0) {
+          const pmt = value * (rate * Math.pow(1 + rate, n)) / (Math.pow(1 + rate, n) - 1);
+          totalValue = Math.round(pmt * n * 100) / 100;
+        }
+        chargePayload.totalValue = totalValue;
         delete chargePayload.value;
       }
       chargePayload.creditCard = {

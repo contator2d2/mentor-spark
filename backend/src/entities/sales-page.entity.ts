@@ -185,6 +185,14 @@ export class SalesPage {
   @Column({ type: 'int', default: 1 })
   maxInstallments: number;
 
+  /**
+   * Taxa de juros mensal (% a.m.) aplicada quando o cliente parcela em 2x+.
+   * 0 = sem juros (mentor absorve). >0 = juros repassados ao cliente
+   * (calculados via Tabela Price / PMT).
+   */
+  @Column({ type: 'numeric', precision: 6, scale: 2, default: 0 })
+  installmentInterestRate: number;
+
   @Column({ type: 'enum', enum: SalesPagePaymentMode, default: SalesPagePaymentMode.ONE_TIME })
   paymentMode: SalesPagePaymentMode;
 
