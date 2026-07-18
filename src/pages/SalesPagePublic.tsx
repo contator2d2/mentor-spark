@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ShieldCheck, Sparkles, Target, TrendingUp, Zap, BookOpen, Clock, Users,
-  Loader2, Copy, QrCode, CreditCard, Ticket, Check,
+  Loader2, Copy, QrCode, CreditCard, Ticket, Check, Calendar, MapPin, UserCheck, AlertCircle, XCircle, PlayCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,7 +43,7 @@ type Payload = {
     priceCents: number; currency: string; originalPriceCents?: number;
     maxInstallments: number; paymentMode: "one_time" | "subscription";
     seo?: { title?: string; description?: string };
-    template?: "classic" | "long_form";
+    template?: "classic" | "long_form" | "immersion";
     theme?: {
       colorSource?: "brand" | "custom";
       mode?: "light" | "dark";
@@ -235,6 +235,21 @@ export default function SalesPagePublic() {
   const openCheckout = () => setCheckoutOpen(true);
 
   const template = page.template || "classic";
+
+  if (template === "immersion") {
+    return (
+      <ImmersionLayout
+        mentor={mentor}
+        page={page}
+        colors={{ primary: primaryHex, accent: accentHex, bg: bgHex, text: textColor, muted: mutedText, soft: softText, border: borderCol, isDark }}
+        onCta={openCheckout}
+        mentorSlug={mentorSlug!}
+        pageSlug={pageSlug!}
+        checkoutOpen={checkoutOpen}
+        setCheckoutOpen={setCheckoutOpen}
+      />
+    );
+  }
 
   if (template === "long_form") {
     return (
@@ -910,6 +925,476 @@ function LongFormLayout({
 
       <footer className="py-8 text-center text-xs" style={{ borderTop: `1px solid ${border}`, color: soft }}>
         © {new Date().getFullYear()} {mentor.brandName || "Mentoria"} — Compra segura processada por Asaas.
+      </footer>
+
+      <CheckoutDialog open={checkoutOpen} onClose={() => setCheckoutOpen(false)} mentorSlug={mentorSlug} pageSlug={pageSlug} page={page} />
+    </div>
+  );
+}
+
+// ================= IMMERSION (evento presencial — estrutura estilo "Alavanca IA") =================
+function ImmersionLayout({
+  mentor, page, colors, onCta, mentorSlug, pageSlug, checkoutOpen, setCheckoutOpen,
+}: {
+  mentor: Payload["mentor"];
+  page: Payload["page"];
+  colors: { primary: string; accent: string; bg: string; text: string; muted: string; soft: string; border: string; isDark: boolean };
+  onCta: () => void;
+  mentorSlug: string;
+  pageSlug: string;
+  checkoutOpen: boolean;
+  setCheckoutOpen: (o: boolean) => void;
+}) {
+  const { primary, accent, bg, text, muted, soft, border, isDark } = colors;
+  const surface = isDark ? "rgba(255,255,255,0.04)" : "rgba(10,10,10,0.03)";
+  const surfaceStrong = isDark ? "rgba(255,255,255,0.07)" : "rgba(10,10,10,0.05)";
+  const cardBg = isDark ? "rgba(255,255,255,0.03)" : "#ffffff";
+
+  const Cta = ({ label, size = "lg" }: { label?: string; size?: "lg" | "default" }) => (
+    <Button
+      size={size}
+      onClick={onCta}
+      className="font-bold border-0 uppercase tracking-wide transition-transform hover:-translate-y-0.5"
+      style={{
+        background: `linear-gradient(90deg, ${primary}, ${accent})`,
+        color: isDark ? "#0a0a0a" : "#ffffff",
+        height: size === "lg" ? 60 : 46,
+        paddingInline: 36,
+        boxShadow: `0 20px 40px -12px ${primary}80`,
+      }}
+    >
+      {label || page.ctaText}
+    </Button>
+  );
+
+  const infoItems = [
+    page.eventInfo?.date && { icon: Calendar, label: page.eventInfo.date },
+    page.eventInfo?.time && { icon: Clock, label: page.eventInfo.time },
+    page.eventInfo?.location && { icon: MapPin, label: page.eventInfo.location },
+    page.eventInfo?.extra && { icon: UserCheck, label: page.eventInfo.extra },
+  ].filter(Boolean) as { icon: any; label: string }[];
+
+  const videoEmbed = page.videoUrl
+    ? page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
+    : null;
+
+  return (
+    <div style={{ background: bg, color: text }} className="min-h-screen">
+      {/* Header */}
+      <header
+        className="sticky top-0 z-40 backdrop-blur"
+        style={{ background: `${bg}cc`, borderBottom: `1px solid ${border}` }}
+      >
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+          {mentor.brandLogoUrl ? (
+            <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-9 w-auto object-contain" />
+          ) : (
+            <div className="font-bold text-lg" style={{ color: text }}>{mentor.brandName || "Mentoria"}</div>
+          )}
+          <Cta size="default" />
+        </div>
+      </header>
+
+      {page.countdown?.enabled && page.countdown?.endsAt && (
+        <CountdownBar
+          endsAt={page.countdown.endsAt}
+          label={page.countdown.label}
+          primary={primary}
+          accent={accent}
+          hideWhenExpired={page.countdown.hideWhenExpired}
+        />
+      )}
+
+      {/* HERO — texto à esquerda, vídeo/imagem à direita */}
+      <section className="relative overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{ background: `radial-gradient(60% 60% at 85% 30%, ${primary}22 0%, ${primary}0a 40%, transparent 75%)` }}
+        />
+        <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-10 items-center">
+          <div>
+            {mentor.brandLogoUrl && (
+              <img src={mentor.brandLogoUrl} alt="" className="h-10 w-auto object-contain mb-8 opacity-95" />
+            )}
+            <h1
+              className="font-display font-black leading-[1.05] tracking-tight mb-6 text-4xl md:text-5xl lg:text-6xl"
+              style={{ color: text }}
+              dangerouslySetInnerHTML={{
+                __html: (page.headline || page.title).replace(
+                  /(Inteligência Artificial|IA|prática|multiplique|multiplicar|acelerar|transformar|dominar)/gi,
+                  (m) => `<span style="color:${primary}">${m}</span>`
+                ),
+              }}
+            />
+            {page.subheadline && (
+              <p className="text-base md:text-lg mb-4 leading-relaxed" style={{ color: muted }}>
+                {page.subheadline}
+              </p>
+            )}
+            {page.description && (
+              <p className="text-base md:text-lg mb-8 leading-relaxed whitespace-pre-line" style={{ color: muted }}>
+                {page.description}
+              </p>
+            )}
+            <Cta />
+            {page.guaranteeText && (
+              <div className="mt-5 flex items-center gap-2 text-sm" style={{ color: muted }}>
+                <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+              </div>
+            )}
+          </div>
+
+          <div className="relative">
+            {videoEmbed ? (
+              <div
+                className="aspect-video rounded-2xl overflow-hidden"
+                style={{ background: surface, boxShadow: `0 40px 100px -20px ${primary}66` }}
+              >
+                <iframe src={videoEmbed} className="w-full h-full" allowFullScreen />
+              </div>
+            ) : page.heroImageUrl ? (
+              <div
+                className="rounded-2xl overflow-hidden aspect-video"
+                style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}
+              >
+                <img src={page.heroImageUrl} alt={page.title} className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div
+                className="aspect-video rounded-2xl flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, ${primary}22, transparent)`, boxShadow: `0 40px 100px -20px ${primary}55` }}
+              >
+                <PlayCircle className="h-20 w-20" style={{ color: primary, opacity: 0.6 }} />
+              </div>
+            )}
+            <div className="mt-4 flex items-center gap-2 text-sm" style={{ color: muted }}>
+              <PlayCircle className="h-4 w-4" style={{ color: primary }} />
+              <span>Assista ao vídeo e entenda como funciona.</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Barra de informações do evento */}
+        {infoItems.length > 0 && (
+          <div className="max-w-6xl mx-auto px-6 pb-10">
+            <div
+              className="rounded-2xl p-5 md:p-6 grid gap-4"
+              style={{
+                background: surface,
+                border: `1px solid ${border}`,
+                gridTemplateColumns: `repeat(${Math.min(infoItems.length, 4)}, minmax(0,1fr))`,
+              }}
+            >
+              {infoItems.map((it, i) => (
+                <div key={i} className={`flex items-center gap-3 ${i > 0 ? "md:pl-4 md:border-l" : ""}`} style={i > 0 ? { borderColor: border } : {}}>
+                  <div className="h-11 w-11 shrink-0 rounded-full flex items-center justify-center" style={{ background: `${primary}1a`, color: primary }}>
+                    <it.icon className="h-5 w-5" />
+                  </div>
+                  <div className="font-semibold text-sm md:text-base leading-tight" style={{ color: text }}>{it.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {page.urgencyText && (
+          <div className="max-w-6xl mx-auto px-6 pb-10">
+            <div className="flex items-center gap-2 text-sm md:text-base" style={{ color: text }}>
+              <AlertCircle className="h-5 w-5" style={{ color: primary }} />
+              <span className="font-semibold" style={{ color: primary }}>Aviso importante:</span>
+              <span style={{ color: muted }}>{page.urgencyText}</span>
+            </div>
+          </div>
+        )}
+      </section>
+
+      {/* PRA VOCÊ / NÃO É PRA VOCÊ — lado a lado */}
+      {((page.forWho?.length || 0) > 0 || (page.notForWho?.length || 0) > 0) && (
+        <section className="py-16 md:py-20" style={{ borderTop: `1px solid ${border}` }}>
+          <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-6">
+            {(page.forWho?.length || 0) > 0 && (
+              <div className="rounded-2xl p-8" style={{ background: surface, border: `1px solid ${border}` }}>
+                <div className="text-sm uppercase tracking-widest mb-2" style={{ color: soft }}>Esse evento</div>
+                <h2 className="font-display text-2xl md:text-3xl font-bold mb-6" style={{ color: text }}>
+                  <span style={{ color: primary }}>Foi feito pra você se…</span>
+                </h2>
+                <ul className="space-y-4">
+                  {page.forWho!.map((it, i) => (
+                    <li key={i} className="flex gap-3">
+                      <CheckCircle2 className="h-5 w-5 shrink-0 mt-1" style={{ color: primary }} />
+                      <span style={{ color: muted }}>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+            {(page.notForWho?.length || 0) > 0 && (
+              <div className="rounded-2xl p-8" style={{ background: surface, border: `1px solid ${border}` }}>
+                <div className="text-sm uppercase tracking-widest mb-2" style={{ color: soft }}>Esse evento</div>
+                <h2 className="font-display text-2xl md:text-3xl font-bold mb-6" style={{ color: text }}>
+                  <span style={{ color: soft }}>Não é pra você se…</span>
+                </h2>
+                <ul className="space-y-4">
+                  {page.notForWho!.map((it, i) => (
+                    <li key={i} className="flex gap-3">
+                      <XCircle className="h-5 w-5 shrink-0 mt-1" style={{ color: "#ef4444" }} />
+                      <span style={{ color: muted }}>{it}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* Manifesto / frase de impacto */}
+      {page.description && (
+        <section className="py-16 md:py-20" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+          <div className="max-w-4xl mx-auto px-6 text-center">
+            <h2 className="font-display text-3xl md:text-4xl font-bold leading-tight" style={{ color: text }}>
+              Não é sobre <span style={{ color: primary }}>aprender</span>.
+              <br />É sobre <span style={{ color: primary }}>colocar em prática</span> dentro do seu negócio.
+            </h2>
+          </div>
+        </section>
+      )}
+
+      {/* PILARES — features numeradas 01, 02, 03… */}
+      {(page.features?.length || 0) > 0 && (
+        <section className="py-16 md:py-24">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-12">
+              <div className="text-sm uppercase tracking-widest mb-2" style={{ color: soft }}>Programa</div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold" style={{ color: text }}>
+                O que você vai aplicar
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 gap-6">
+              {page.features.map((f, i) => {
+                const Icon = ICONS[f.icon || "sparkles"] || Sparkles;
+                return (
+                  <div
+                    key={i}
+                    className="rounded-2xl p-8 relative overflow-hidden transition-transform hover:-translate-y-1"
+                    style={{ background: cardBg, border: `1px solid ${border}`, boxShadow: `0 10px 30px -12px ${primary}22` }}
+                  >
+                    <div
+                      className="absolute -top-4 -right-4 font-display font-black opacity-10 leading-none select-none"
+                      style={{ color: primary, fontSize: 140 }}
+                    >
+                      {String(i + 1).padStart(2, "0")}
+                    </div>
+                    <div className="relative">
+                      <div
+                        className="h-14 w-14 rounded-2xl flex items-center justify-center mb-5"
+                        style={{ background: `${primary}1a`, color: primary, boxShadow: `0 8px 24px -8px ${primary}66` }}
+                      >
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <div className="text-xs uppercase tracking-widest mb-2" style={{ color: primary }}>
+                        Pilar {String(i + 1).padStart(2, "0")}
+                      </div>
+                      <h3 className="font-display text-xl md:text-2xl font-bold mb-3" style={{ color: text }}>{f.title}</h3>
+                      {f.text && <p className="text-sm md:text-base leading-relaxed" style={{ color: muted }}>{f.text}</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* AGENDA / Metodologia */}
+      {(page.agenda?.length || 0) > 0 && (
+        <section className="py-16 md:py-20" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+          <div className="max-w-5xl mx-auto px-6">
+            <div className="text-center mb-10">
+              <h2 className="font-display text-3xl md:text-4xl font-bold" style={{ color: text }}>
+                Você não vai apenas assistir. <span style={{ color: primary }}>Você vai fazer.</span>
+              </h2>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {page.agenda!.map((a, i) => (
+                <div key={i} className="rounded-xl p-6 text-center" style={{ background: cardBg, border: `1px solid ${border}` }}>
+                  <div className="text-xs uppercase tracking-widest mb-2" style={{ color: primary }}>{a.time || `Etapa ${i + 1}`}</div>
+                  <div className="font-bold mb-2" style={{ color: text }}>{a.title}</div>
+                  {a.text && <div className="text-sm leading-relaxed" style={{ color: muted }}>{a.text}</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* SOBRE — quem conduz */}
+      {(() => {
+        const about = page.about;
+        if (!about) return null;
+        const people = about.people && about.people.length > 0
+          ? about.people
+          : (about.name || about.bio || about.role || about.photoUrl)
+            ? [{ name: about.name, role: about.role, bio: about.bio, photoUrl: about.photoUrl }]
+            : [];
+        if (people.length === 0) return null;
+        const sectionTitle = about.sectionTitle || (people.length > 1 ? "Quem vai conduzir" : "Quem vai conduzir essa imersão");
+
+        if (people.length === 1) {
+          const p = people[0];
+          return (
+            <section className="py-16 md:py-24">
+              <div className="max-w-5xl mx-auto px-6 grid md:grid-cols-[280px_1fr] gap-10 items-center">
+                {p.photoUrl ? (
+                  <img src={p.photoUrl} alt={p.name || ""} className="w-full aspect-square object-cover rounded-2xl" style={{ boxShadow: `0 40px 80px -20px ${primary}55` }} />
+                ) : (
+                  <div className="w-full aspect-square rounded-2xl flex items-center justify-center" style={{ background: surface }}>
+                    <Users className="h-16 w-16" style={{ color: primary }} />
+                  </div>
+                )}
+                <div>
+                  <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>{sectionTitle}</div>
+                  <h2 className="font-display text-3xl md:text-4xl font-bold mb-1" style={{ color: text }}>{p.name || mentor.brandName}</h2>
+                  {p.role && <div className="text-lg mb-4" style={{ color: accent }}>{p.role}</div>}
+                  {p.bio && <p className="text-base leading-relaxed whitespace-pre-line" style={{ color: muted }}>{p.bio}</p>}
+                </div>
+              </div>
+            </section>
+          );
+        }
+
+        return (
+          <section className="py-16 md:py-24">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-10">
+                <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>{sectionTitle}</div>
+              </div>
+              <div className={`grid grid-cols-1 md:grid-cols-${Math.min(people.length, 3)} gap-6`}>
+                {people.map((p, i) => (
+                  <div key={i} className="rounded-2xl p-6 text-center" style={{ background: surface }}>
+                    {p.photoUrl ? (
+                      <img src={p.photoUrl} alt={p.name || ""} className="w-32 h-32 mx-auto object-cover rounded-full mb-4" />
+                    ) : (
+                      <div className="w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-4" style={{ background: `${primary}22` }}>
+                        <Users className="h-10 w-10" style={{ color: primary }} />
+                      </div>
+                    )}
+                    {p.name && <div className="font-display text-xl font-bold" style={{ color: text }}>{p.name}</div>}
+                    {p.role && <div className="text-sm mb-3 mt-1" style={{ color: accent }}>{p.role}</div>}
+                    {p.bio && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: muted }}>{p.bio}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        );
+      })()}
+
+      {/* INVESTIMENTO — card grande com todos os detalhes */}
+      <section className="py-16 md:py-24" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+        <div className="max-w-4xl mx-auto px-6">
+          <div className="text-center mb-10">
+            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Garanta seu acesso</div>
+            <h2 className="font-display text-3xl md:text-5xl font-bold" style={{ color: text }}>{page.title}</h2>
+            {page.subheadline && (
+              <p className="mt-3 text-base md:text-lg" style={{ color: muted }}>{page.subheadline}</p>
+            )}
+          </div>
+          <div
+            className="rounded-3xl p-8 md:p-12"
+            style={{
+              background: `linear-gradient(135deg, ${primary}18, ${accent}0a)`,
+              border: `1px solid ${primary}55`,
+              boxShadow: `0 40px 80px -20px ${primary}44`,
+            }}
+          >
+            {infoItems.length > 0 && (
+              <div className="grid md:grid-cols-2 gap-3 mb-8">
+                {infoItems.map((it, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <it.icon className="h-5 w-5 shrink-0" style={{ color: primary }} />
+                    <span className="font-semibold" style={{ color: text }}>{it.label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="text-center border-t pt-8" style={{ borderColor: `${primary}33` }}>
+              <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Investimento</div>
+              <div className="flex items-baseline justify-center gap-3 flex-wrap mb-2">
+                {page.originalPriceCents ? (
+                  <span className="line-through text-lg" style={{ color: soft }}>{money(page.originalPriceCents)}</span>
+                ) : null}
+                <span className="font-display text-5xl md:text-6xl font-black" style={{ color: primary }}>{money(page.priceCents)}</span>
+              </div>
+              {page.maxInstallments > 1 && (
+                <div className="text-sm mb-6" style={{ color: muted }}>
+                  à vista ou parcelado em até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                </div>
+              )}
+
+              {(page.badges?.length || 0) > 0 && (
+                <div className="grid md:grid-cols-2 gap-3 my-8 text-left max-w-xl mx-auto">
+                  {page.badges.map((b, i) => (
+                    <div key={i} className="flex items-start gap-2 text-sm" style={{ color: muted }}>
+                      <CheckCircle2 className="h-4 w-4 mt-0.5 shrink-0" style={{ color: primary }} />
+                      <span>{b}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              <Cta />
+              {page.guaranteeText && (
+                <div className="mt-5 text-sm flex items-center justify-center gap-2" style={{ color: muted }}>
+                  <ShieldCheck className="h-4 w-4" style={{ color: primary }} /> {page.guaranteeText}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      {(page.faqs?.length || 0) > 0 && (
+        <section className="py-16 md:py-24">
+          <div className="max-w-3xl mx-auto px-6">
+            <h2 className="font-display text-3xl md:text-4xl font-bold text-center mb-10" style={{ color: text }}>Perguntas frequentes</h2>
+            <Accordion type="single" collapsible className="w-full">
+              {page.faqs.map((f, i) => (
+                <AccordionItem key={i} value={`item-${i}`} style={{ borderColor: border }}>
+                  <AccordionTrigger className="text-left font-semibold" style={{ color: text }}>{f.q}</AccordionTrigger>
+                  <AccordionContent className="whitespace-pre-line leading-relaxed" style={{ color: muted }}>{f.a}</AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </div>
+        </section>
+      )}
+
+      {/* CTA FINAL */}
+      <section className="py-20 relative overflow-hidden">
+        <div
+          className="absolute inset-0"
+          style={{ background: `radial-gradient(70% 60% at 50% 40%, ${primary}22 0%, transparent 70%)` }}
+        />
+        <div className="relative max-w-3xl mx-auto px-6 text-center">
+          <h2 className="font-display text-3xl md:text-5xl font-bold mb-6 leading-tight" style={{ color: text }}>
+            Reserve sua vaga e comece a <span style={{ color: primary }}>colocar em prática</span>.
+          </h2>
+          <p className="mb-8 text-base md:text-lg" style={{ color: muted }}>
+            {page.eventInfo?.date && `${page.eventInfo.date} · `}
+            {page.eventInfo?.location || "Vagas limitadas"}
+          </p>
+          <Cta />
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-10" style={{ borderTop: `1px solid ${border}` }}>
+        <div className="max-w-6xl mx-auto px-6 text-center text-sm" style={{ color: soft }}>
+          © {new Date().getFullYear()} {mentor.brandName || "Mentoria"} · Todos os direitos reservados
+        </div>
       </footer>
 
       <CheckoutDialog open={checkoutOpen} onClose={() => setCheckoutOpen(false)} mentorSlug={mentorSlug} pageSlug={pageSlug} page={page} />
