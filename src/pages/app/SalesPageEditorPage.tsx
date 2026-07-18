@@ -325,11 +325,6 @@ export default function SalesPageEditorPage() {
             </div>
           </Card>
 
-          <Card className="p-6 space-y-4">
-            <div>
-              <h3 className="font-bold mb-1">Cores da página</h3>
-          </div>
-        </Card>
         <Card className="p-6 space-y-3">
           <div>
             <h3 className="font-bold mb-1">Logo do menu fixo</h3>
@@ -345,7 +340,7 @@ export default function SalesPageEditorPage() {
             />
           </div>
         </Card>
-        <Card className="p-6 space-y-4 hidden">
+        <Card className="p-6 space-y-4">
           <div>
             <h3 className="font-bold mb-1">Cores da página</h3>
               <p className="text-sm text-muted-foreground mb-3">Use as cores da sua marca ou personalize só nesta página.</p>
