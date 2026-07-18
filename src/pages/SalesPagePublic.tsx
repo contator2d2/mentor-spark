@@ -1299,35 +1299,46 @@ function ImmersionLayout({
             return (
               <section
                 key={i}
-                className="relative w-full overflow-hidden min-h-[520px] md:min-h-[620px] flex items-center"
+                className="relative w-full overflow-hidden md:min-h-[620px] md:flex md:items-center"
               >
-                {/* Imagem de fundo full-bleed */}
+                {/* MOBILE: imagem no topo em bloco separado (visível) */}
+                {s.imageUrl && (
+                  <div className="md:hidden w-full">
+                    <img
+                      src={s.imageUrl}
+                      alt={s.title || ""}
+                      className="w-full aspect-[4/3] object-cover"
+                      style={{ boxShadow: `0 20px 60px -20px ${primary}66` }}
+                    />
+                  </div>
+                )}
+                {/* DESKTOP: Imagem de fundo full-bleed */}
                 {s.imageUrl && (
                   <img
                     src={s.imageUrl}
                     alt={s.title || ""}
-                    className="absolute inset-0 w-full h-full object-cover"
+                    className="hidden md:block absolute inset-0 w-full h-full object-cover"
                     style={{ objectPosition: imgRight ? "right center" : "left center" }}
                   />
                 )}
-                {/* Gradiente escuro do lado do texto -> transparente do lado da imagem */}
+                {/* DESKTOP: Gradiente escuro do lado do texto -> transparente do lado da imagem */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="hidden md:block absolute inset-0 pointer-events-none"
                   style={{
                     background: imgRight
                       ? `linear-gradient(to right, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`
                       : `linear-gradient(to left, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`,
                   }}
                 />
-                {/* Glow sutil na cor da marca */}
+                {/* DESKTOP: Glow sutil na cor da marca */}
                 <div
-                  className="absolute inset-0 pointer-events-none"
+                  className="hidden md:block absolute inset-0 pointer-events-none"
                   style={{
                     background: `radial-gradient(50% 60% at ${imgRight ? "20%" : "80%"} 50%, ${primary}22 0%, transparent 70%)`,
                   }}
                 />
                 {/* Conteúdo de texto sobreposto */}
-                <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-24">
+                <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 lg:px-20 py-10 md:py-24">
                   <div className={`max-w-xl ${imgRight ? "" : "md:ml-auto"}`}>
                     {textBlock}
                   </div>
