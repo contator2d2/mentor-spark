@@ -218,6 +218,10 @@ function Column({
    const [availableGroups, setAvailableGroups] = useState<any[]>([]);
    const [loadingGroups, setLoadingGroups] = useState(false);
    const [targetGroup, setTargetGroup] = useState("");
+   // Filtros financeiros (para conciliação Asaas)
+   const [filterCoupon, setFilterCoupon] = useState<string>("all");
+   const [filterPayment, setFilterPayment] = useState<string>("all");
+   const [filterSource, setFilterSource] = useState<string>("all");
    const nav = useNavigate();
    async function loadGroups() {
      setLoadingGroups(true);
@@ -300,8 +304,49 @@ function Column({
     if (!leads) return [];
     let result = leads.filter((l) => view.stages.includes(l.stage));
     if (funnelView === "hot") result = result.filter((l) => l.temperature === "hot");
+    if (filterCoupon !== "all") {
+      if (filterCoupon === "__none__") {
+        result = result.filter((l) => !l.lastPurchaseCouponCode);
+      } else if (filterCoupon === "__any__") {
+        result = result.filter((l) => !!l.lastPurchaseCouponCode);
+      } else {
+        result = result.filter((l) => (l.lastPurchaseCouponCode || "").toUpperCase() === filterCoupon.toUpperCase());
+      }
+    }
+    if (filterPayment !== "all") {
+      result = result.filter((l) => l.lastPurchasePaymentMethod === filterPayment);
+    }
+    if (filterSource !== "all") {
+      if (filterSource === "__salespage__") {
+        result = result.filter((l) => (l.source || "").startsWith("sales_page:"));
+      } else {
+        result = result.filter((l) => (l.source || "") === filterSource);
+      }
+    }
     return result;
-  }, [leads, view, funnelView]);
+  }, [leads, view, funnelView, filterCoupon, filterPayment, filterSource]);
+
+  // Cupons e origens únicos vistos nos leads (para popular selects)
+  const couponOptions = useMemo(() => {
+    const set = new Set<string>();
+    (leads || []).forEach((l) => l.lastPurchaseCouponCode && set.add(l.lastPurchaseCouponCode.toUpperCase()));
+    return Array.from(set).sort();
+  }, [leads]);
+  const sourceOptions = useMemo(() => {
+    const set = new Set<string>();
+    (leads || []).forEach((l) => l.source && set.add(l.source));
+    return Array.from(set).sort();
+  }, [leads]);
+
+  // Totais financeiros da visão atual (para conferência Asaas)
+  const financeStats = useMemo(() => {
+    const withPurchase = filteredLeads.filter((l) => l.lastPurchaseAt);
+    const totalCents = withPurchase.reduce((s, l) => s + (l.lastPurchaseAmountCents || 0), 0);
+    const pix = withPurchase.filter((l) => l.lastPurchasePaymentMethod === "PIX").length;
+    const card = withPurchase.filter((l) => l.lastPurchasePaymentMethod === "CREDIT_CARD").length;
+    const withCoupon = withPurchase.filter((l) => !!l.lastPurchaseCouponCode).length;
+    return { count: withPurchase.length, totalCents, pix, card, withCoupon };
+  }, [filteredLeads]);
 
   const visibleStages = useMemo(
     () => STAGES.filter((s) => view.stages.includes(s.id)),
