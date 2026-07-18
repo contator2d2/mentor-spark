@@ -1914,15 +1914,27 @@ function CheckoutDialog({
                   <span>-{money(coupon.discountCents || 0)}</span>
                 </div>
               )}
+              {method === "CREDIT_CARD" && installments > 1 && currentInstallment.hasInterest && (
+                <div className="flex justify-between text-amber-600">
+                  <span>Juros ({installments}x)</span>
+                  <span>+{money(currentInstallment.total - finalCents)}</span>
+                </div>
+              )}
               <div className="flex justify-between font-bold pt-1 border-t">
                 <span>Total</span>
-                <span>{money(finalCents)}</span>
+                <span>{money(displayTotal)}</span>
               </div>
+              {method === "PIX" && (
+                <div className="text-xs text-emerald-600 pt-1">✓ PIX à vista — sem juros</div>
+              )}
+              {method === "CREDIT_CARD" && installments === 1 && (
+                <div className="text-xs text-emerald-600 pt-1">✓ Cartão à vista — sem juros</div>
+              )}
             </div>
 
             <Button onClick={submit} disabled={loading} className="w-full bg-primary hover:opacity-90">
               {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
-              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(finalCents)}`}
+              {method === "PIX" ? "Gerar PIX" : `Pagar ${money(displayTotal)}`}
             </Button>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3" /> Processado com segurança pela Asaas
