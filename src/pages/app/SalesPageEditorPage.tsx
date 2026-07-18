@@ -437,8 +437,8 @@ export default function SalesPageEditorPage() {
           </Card>
         </TabsContent>
 
-        {/* ===== Long form fields ===== */}
-        {page.template === "long_form" && (
+        {/* ===== Long form fields (compartilhado com Imersão) ===== */}
+        {(page.template === "long_form" || page.template === "immersion") && (
           <TabsContent value="longform" className="space-y-4">
             <Card className="p-6 space-y-3">
               <h3 className="font-bold">Informações do evento (opcional)</h3>
