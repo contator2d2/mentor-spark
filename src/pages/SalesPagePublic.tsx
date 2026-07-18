@@ -1728,17 +1728,19 @@ function CheckoutDialog({
   // implícita a partir do valor exibido para maxInstallments, e usamos essa
   // mesma taxa para as parcelas menores. 1x sempre à vista (sem juros).
   const explicitRate = Number(page.installmentInterestRate || 0) / 100;
+  // A taxa é derivada do PREÇO ORIGINAL (sem cupom) — é a taxa que o mentor
+  // configurou ao definir "12x R$ X". Depois aplicamos essa mesma taxa ao
+  // valor com desconto para calcular parcelas justas quando há cupom.
   const deriveRateFromDisplay = () => {
     const N = page.maxInstallments;
     const pmt = page.installmentDisplayCents || 0;
-    if (!pmt || N <= 1 || finalCents <= 0) return 0;
-    // se pmt*N <= pv, não há juros
-    if (pmt * N <= finalCents) return 0;
-    // Bisseção para achar i em (0, 5)
+    const pv = page.priceCents;
+    if (!pmt || N <= 1 || pv <= 0) return 0;
+    if (pmt * N <= pv) return 0;
     let lo = 0, hi = 5;
     for (let k = 0; k < 80; k++) {
       const mid = (lo + hi) / 2;
-      const calc = finalCents * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
+      const calc = pv * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
       if (calc > pmt) hi = mid; else lo = mid;
     }
     return (lo + hi) / 2;
