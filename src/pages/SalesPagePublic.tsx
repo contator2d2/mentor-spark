@@ -1713,6 +1713,7 @@ function CheckoutDialog({
   const [addressNumber, setAddressNumber] = useState("");
 
   const [pix, setPix] = useState<{ payload?: string; qrImage?: string } | null>(null);
+  const [isFree, setIsFree] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<{
@@ -1810,12 +1811,40 @@ function CheckoutDialog({
     if (!isValidEmail(email)) { toast.error("E-mail inválido"); return; }
     if (!isValidWhats(phone)) { toast.error("WhatsApp inválido — use DDD + número"); return; }
     if (!cpfCnpj.trim()) { toast.error("Informe CPF ou CNPJ"); return; }
+    // Cupom 100% → inscrição gratuita, pula etapa de pagamento e envia direto.
+    if (coupon?.valid && (coupon.finalCents ?? 0) === 0) {
+      submitFree();
+      return;
+    }
     // Pré-popula dados do pagador iguais aos do inscrito.
     if (payerSameAsEnrollee) {
       setPayerName(name); setPayerEmail(email);
       setPayerCpf(cpfCnpj); setPayerPhone(phone);
     }
     setStep("payment");
+  };
+
+  const submitFree = async () => {
+    setLoading(true);
+    try {
+      const body: any = {
+        name, email, cpfCnpj, phone, company, billingType: "PIX",
+        couponCode: couponCode.trim(),
+      };
+      const r = await fetch(`${API_BASE}/public/sales-pages/${mentorSlug}/${pageSlug}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.message || "Falha ao confirmar inscrição");
+      setIsFree(true);
+      setStep("success");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const submit = async () => {
