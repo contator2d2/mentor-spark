@@ -753,12 +753,7 @@ function LongFormLayout({
           </div>
           <div className="relative">
             {page.videoUrl ? (
-              <div className="aspect-video rounded-2xl overflow-hidden" style={{ background: surface, boxShadow: `0 40px 80px -20px ${primary}55` }}>
-                <iframe
-                  src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
-                  className="w-full h-full" allowFullScreen
-                />
-              </div>
+              <VideoPlayer src={page.videoUrl} primary={primary} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <img src={page.heroImageUrl} alt={page.title} className="w-full h-[520px] object-cover rounded-2xl" />
             ) : (
