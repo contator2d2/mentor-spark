@@ -1845,12 +1845,24 @@ function CheckoutDialog({
                         value={installments}
                         onChange={(e) => setInstallments(parseInt(e.target.value))}
                       >
-                        {Array.from({ length: page.maxInstallments }, (_, i) => i + 1).map((n) => (
-                          <option key={n} value={n}>
-                            {n}x de {money(Math.floor(finalCents / n))} {n === 1 ? "(à vista)" : ""}
-                          </option>
-                        ))}
+                        {Array.from({ length: page.maxInstallments }, (_, i) => i + 1).map((n) => {
+                          const inst = computeInstallment(n);
+                          if (n === 1) {
+                            return <option key={n} value={n}>À vista — {money(inst.perInstallment)} (sem juros)</option>;
+                          }
+                          return (
+                            <option key={n} value={n}>
+                              {n}x de {money(inst.perInstallment)}
+                              {inst.hasInterest ? ` — total ${money(inst.total)} (com juros)` : " (sem juros)"}
+                            </option>
+                          );
+                        })}
                       </select>
+                      {installments > 1 && currentInstallment.hasInterest && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Juros de {(interestRate * 100).toFixed(2).replace(".", ",")}% a.m. repassados pela Asaas. Total: {money(currentInstallment.total)}.
+                        </p>
+                      )}
                     </div>
                   )}
                 </>
