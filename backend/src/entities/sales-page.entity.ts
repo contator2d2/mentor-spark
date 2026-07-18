@@ -57,6 +57,15 @@ export interface SalesPageEventInfo {
   extra?: string;     // "Credenciamento a partir das 8h30"
 }
 
+export interface SalesPageShowcase {
+  imageUrl?: string;
+  title?: string;
+  eyebrow?: string;
+  text?: string;
+  bullets?: string[];
+  side?: 'left' | 'right'; // lado da imagem no desktop
+}
+
 export interface SalesPageCountdown {
   enabled?: boolean;
   endsAt?: string;   // ISO date-time — quando a oferta termina
