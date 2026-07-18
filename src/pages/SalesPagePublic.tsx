@@ -254,6 +254,17 @@ function money(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/** Texto da parcela a prazo. Se `installmentDisplayCents` estiver definido,
+ *  usa esse valor literal ("12x R$ 97,00"). Caso contrário divide o preço à vista.
+ */
+function installmentText(p: { priceCents: number; maxInstallments: number; installmentDisplayCents?: number }) {
+  if (!p.maxInstallments || p.maxInstallments < 2) return "";
+  const per = p.installmentDisplayCents && p.installmentDisplayCents > 0
+    ? p.installmentDisplayCents
+    : Math.floor(p.priceCents / p.maxInstallments);
+  return `${p.maxInstallments}x de ${money(per)}`;
+}
+
 export default function SalesPagePublic() {
   const { mentorSlug, pageSlug } = useParams();
   const [data, setData] = useState<Payload | null>(null);
