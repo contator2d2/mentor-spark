@@ -751,6 +751,42 @@ export default function SalesPageEditorPage() {
                     ))}
                   </div>
                   <ImageUploadField label="Imagem" value={s.imageUrl} onChange={(url) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, imageUrl: url }; patch({ showcase: arr }); }} aspect="4/3" />
+                  <div className="grid md:grid-cols-4 gap-3 pt-2 border-t">
+                    <div>
+                      <Label>Tamanho do título</Label>
+                      <select
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        value={s.titleSize || "lg"}
+                        onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, titleSize: e.target.value as any }; patch({ showcase: arr }); }}
+                      >
+                        <option value="sm">Pequeno</option>
+                        <option value="md">Médio</option>
+                        <option value="lg">Grande</option>
+                        <option value="xl">Extra grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Cor do título</Label>
+                      <Input type="color" value={s.titleColor || "#ffffff"} onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, titleColor: e.target.value }; patch({ showcase: arr }); }} />
+                    </div>
+                    <div>
+                      <Label>Tamanho do texto</Label>
+                      <select
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        value={s.textSize || "md"}
+                        onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, textSize: e.target.value as any }; patch({ showcase: arr }); }}
+                      >
+                        <option value="sm">Pequeno</option>
+                        <option value="md">Médio</option>
+                        <option value="lg">Grande</option>
+                        <option value="xl">Extra grande</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label>Cor do texto</Label>
+                      <Input type="color" value={s.textColor || "#cccccc"} onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, textColor: e.target.value }; patch({ showcase: arr }); }} />
+                    </div>
+                  </div>
                 </div>
               ))}
             </Card>
