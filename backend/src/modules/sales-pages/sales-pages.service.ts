@@ -104,6 +104,7 @@ export class SalesPagesService {
       'theme', 'seo', 'published',
       'template', 'forWho', 'notForWho', 'agenda', 'about', 'eventInfo', 'urgencyText',
       'coupons', 'countdown', 'gallery', 'showcase',
+      'installmentInterestRate' as any,
     ];
     for (const k of editable) {
       if (dto[k] !== undefined) (p as any)[k] = dto[k];
