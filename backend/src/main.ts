@@ -28,6 +28,10 @@ async function bootstrap() {
       const host = new URL(clean).hostname;
       if (/\.easypanel\.host$/i.test(host)) return true;
       if (/^localhost$/i.test(host)) return true;
+      // Domínios oficiais do produto — liberados por padrão.
+      if (/(^|\.)gleego\.com\.br$/i.test(host)) return true;
+      if (/(^|\.)lovable\.app$/i.test(host)) return true;
+      if (/(^|\.)lovableproject\.com$/i.test(host)) return true;
       // libera todos os hosts que constam no allowList por sufixo de domínio
       // (ex.: CORS_ORIGIN=https://gleego.com.br libera mentor.gleego.com.br)
       for (const entry of allowList) {
