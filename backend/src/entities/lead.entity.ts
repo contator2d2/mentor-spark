@@ -138,6 +138,31 @@ export class Lead {
   @Column({ type: 'timestamptz', nullable: true })
   onboardingCompletedAt?: Date;
 
+  // ==================== Última compra (para conciliação Asaas) ====================
+  /** Código do cupom usado na última compra (vazio = sem cupom). */
+  @Column({ nullable: true })
+  lastPurchaseCouponCode?: string;
+
+  /** Método de pagamento da última compra: PIX | CREDIT_CARD | BOLETO. */
+  @Column({ nullable: true })
+  lastPurchasePaymentMethod?: string;
+
+  /** Número de parcelas (1 = à vista). */
+  @Column({ type: 'int', nullable: true })
+  lastPurchaseInstallments?: number;
+
+  /** Valor total pago em centavos (após desconto). */
+  @Column({ type: 'int', nullable: true })
+  lastPurchaseAmountCents?: number;
+
+  /** ID do charge/installment retornado pelo Asaas. */
+  @Column({ nullable: true })
+  lastPurchaseAsaasChargeId?: string;
+
+  /** Momento da última compra. */
+  @Column({ type: 'timestamptz', nullable: true })
+  lastPurchaseAt?: Date;
+
   // ==================== Vínculo com Empresa (opcional — sócios) ====================
   /** FK para companies.id quando este lead é sócio de uma empresa */
   @Column({ type: 'uuid', nullable: true })
