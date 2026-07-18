@@ -1063,12 +1063,21 @@ function ImmersionLayout({
         className="sticky top-0 z-40 backdrop-blur"
         style={{ background: `${bg}cc`, borderBottom: `1px solid ${border}` }}
       >
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-          {mentor.brandLogoUrl ? (
-            <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-9 w-auto object-contain" />
-          ) : (
-            <div className="font-bold text-lg" style={{ color: text }}>{mentor.brandName || "Mentoria"}</div>
-          )}
+        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0">
+            {mentor.brandLogoUrl ? (
+              <img
+                src={mentor.brandLogoUrl}
+                alt={mentor.brandName || ""}
+                className="h-12 md:h-14 w-auto object-contain"
+                style={{ filter: `drop-shadow(0 0 12px ${primary}55)` }}
+              />
+            ) : (
+              <div className="font-display font-black text-xl md:text-2xl truncate" style={{ color: text }}>
+                {mentor.brandName || page.title || "Mentoria"}
+              </div>
+            )}
+          </div>
           <Cta size="default" />
         </div>
       </header>
