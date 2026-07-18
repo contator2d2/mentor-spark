@@ -17,7 +17,9 @@ import {
   AlertCircle,
   QrCode as QrCodeIcon,
   ExternalLink,
+  Share2,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { MediaUpload } from "@/components/MediaUpload";
 
 const APP_BASE_DOMAIN =
@@ -45,6 +47,8 @@ export default function BrandingSettings() {
       brandCoursesLayout: (initialData as any)?.brandCoursesLayout || "netflix",
       brandDarkBannerUrl: (initialData as any)?.brandDarkBannerUrl || "",
       brandDarkLogoUrl: (initialData as any)?.brandDarkLogoUrl || "",
+      brandOgImageUrl: (initialData as any)?.brandOgImageUrl || "",
+      brandOgDescription: (initialData as any)?.brandOgDescription || "",
       customDomain: (initialData as any)?.customDomain || "",
    });
    useEffect(() => {
@@ -63,6 +67,8 @@ export default function BrandingSettings() {
            brandCoursesLayout: (data as any).brandCoursesLayout || "netflix",
            brandDarkBannerUrl: (data as any).brandDarkBannerUrl || "",
            brandDarkLogoUrl: (data as any).brandDarkLogoUrl || "",
+           brandOgImageUrl: (data as any).brandOgImageUrl || "",
+           brandOgDescription: (data as any).brandOgDescription || "",
            customDomain: (data as any).customDomain || "",
        });
      }
