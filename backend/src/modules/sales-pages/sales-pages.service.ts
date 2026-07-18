@@ -340,6 +340,7 @@ Gere o JSON agora.`;
       email: string;
       cpfCnpj: string;
       phone?: string;
+      company?: string;
       billingType: 'PIX' | 'CREDIT_CARD';
       creditCard?: {
         holderName: string;
@@ -515,6 +516,7 @@ Gere o JSON agora.`;
         name: dto.name,
         email: dto.email,
         phone: dto.phone,
+        company: dto.company,
         source: `sales_page:${page.slug}`,
         purchase: {
           couponCode: appliedCoupon?.code || null,
