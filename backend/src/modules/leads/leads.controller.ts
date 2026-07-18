@@ -84,8 +84,19 @@ export class LeadsController {
     @Query('stage') stage?: LeadStage,
     @Query('q') q?: string,
     @Query('eventId') eventId?: string,
+    @Query('source') source?: string,
+    @Query('couponCode') couponCode?: string,
+    @Query('paymentMethod') paymentMethod?: string,
+    @Query('hasPurchase') hasPurchase?: string,
   ) {
-    const list = await this.leads.list(mentorId, { stage, q });
+    const list = await this.leads.listAdvanced(mentorId, {
+      stage,
+      q,
+      source,
+      couponCode,
+      paymentMethod,
+      hasPurchase: hasPurchase === 'true' || hasPurchase === '1',
+    });
     const filtered = eventId ? list.filter((l) => l.eventId === eventId) : list;
     if (filtered.length === 0) return [];
 
