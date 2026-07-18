@@ -193,6 +193,15 @@ export class SalesPage {
   @Column({ type: 'numeric', precision: 6, scale: 2, default: 0 })
   installmentInterestRate: number;
 
+  /**
+   * Valor exibido de cada parcela (em centavos) quando o mentor prefere
+   * definir manualmente o "preço a prazo" (ex.: 12x R$ 97,00).
+   * Usado apenas para exibição na página pública. Quando 0/null, o valor
+   * das parcelas é calculado a partir de priceCents + installmentInterestRate.
+   */
+  @Column({ type: 'int', nullable: true })
+  installmentDisplayCents?: number;
+
   @Column({ type: 'enum', enum: SalesPagePaymentMode, default: SalesPagePaymentMode.ONE_TIME })
   paymentMode: SalesPagePaymentMode;
 
