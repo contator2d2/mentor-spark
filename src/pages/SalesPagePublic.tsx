@@ -104,6 +104,54 @@ type Payload = {
 };
 
 // ============= Badge pill sem ícone de IA — glow na cor da marca =============
+// Player de vídeo: detecta YouTube/Vimeo (iframe) vs arquivo de vídeo (tag <video>).
+function VideoPlayer({ src, primary, poster }: { src: string; primary: string; poster?: string }) {
+  const isYoutube = /youtube\.com|youtu\.be/i.test(src);
+  const isVimeo = /vimeo\.com/i.test(src);
+  const isFile = /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(src) || src.includes("/uploads/");
+
+  if (isYoutube || isVimeo) {
+    const embed = src
+      .replace("watch?v=", "embed/")
+      .replace("youtu.be/", "www.youtube.com/embed/")
+      .replace("vimeo.com/", "player.vimeo.com/video/");
+    return (
+      <div
+        className="aspect-video rounded-2xl overflow-hidden"
+        style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}
+      >
+        <iframe src={embed} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media; picture-in-picture" />
+      </div>
+    );
+  }
+
+  if (isFile) {
+    return (
+      <div
+        className="aspect-video rounded-2xl overflow-hidden bg-black relative group"
+        style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}
+      >
+        <video
+          src={src}
+          poster={poster}
+          controls
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover"
+          style={{ outline: "none" }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: tenta iframe genérico
+  return (
+    <div className="aspect-video rounded-2xl overflow-hidden" style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}>
+      <iframe src={src} className="w-full h-full" allowFullScreen />
+    </div>
+  );
+}
+
 function BadgePill({ children, primary, accent }: { children: React.ReactNode; primary: string; accent: string }) {
   return (
     <div
