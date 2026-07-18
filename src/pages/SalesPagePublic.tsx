@@ -508,13 +508,7 @@ export default function SalesPagePublic() {
 
           <div className="relative">
             {page.videoUrl ? (
-              <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-black/50 ring-1 ring-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
-                <iframe
-                  src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
-                  className="w-full h-full"
-                  allowFullScreen
-                />
-              </div>
+              <VideoPlayer src={page.videoUrl} primary={primaryHex} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <div className="relative">
                 {/* Fade image edges into the dark background */}
