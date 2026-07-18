@@ -1295,44 +1295,40 @@ function ImmersionLayout({
             );
 
             return (
-              <section key={i} className="relative w-full overflow-hidden">
+              <section
+                key={i}
+                className="relative w-full overflow-hidden min-h-[520px] md:min-h-[620px] flex items-center"
+              >
+                {/* Imagem de fundo full-bleed */}
+                {s.imageUrl && (
+                  <img
+                    src={s.imageUrl}
+                    alt={s.title || ""}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ objectPosition: imgRight ? "right center" : "left center" }}
+                  />
+                )}
+                {/* Gradiente escuro do lado do texto -> transparente do lado da imagem */}
                 <div
-                  className="pointer-events-none absolute inset-0"
-                  style={{ background: `radial-gradient(60% 70% at ${imgRight ? "80%" : "20%"} 50%, ${primary}33 0%, transparent 70%)` }}
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: imgRight
+                      ? `linear-gradient(to right, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`
+                      : `linear-gradient(to left, ${bg} 0%, ${bg}f2 30%, ${bg}99 55%, transparent 85%)`,
+                  }}
                 />
-                <div className="relative grid md:grid-cols-2 items-center gap-10 md:gap-0 min-h-[420px] md:min-h-[560px]">
-                  {/* TEXTO */}
-                  <div className={`px-6 md:px-12 lg:px-20 py-10 md:py-16 ${imgRight ? "md:order-1" : "md:order-2"}`}>
-                    <div className={imgRight ? "md:ml-auto md:mr-0 max-w-xl" : "md:mr-auto md:ml-0 max-w-xl"}>
-                      {textBlock}
-                    </div>
+                {/* Glow sutil na cor da marca */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
+                  style={{
+                    background: `radial-gradient(50% 60% at ${imgRight ? "20%" : "80%"} 50%, ${primary}22 0%, transparent 70%)`,
+                  }}
+                />
+                {/* Conteúdo de texto sobreposto */}
+                <div className="relative w-full max-w-6xl mx-auto px-6 md:px-12 lg:px-20 py-16 md:py-24">
+                  <div className={`max-w-xl ${imgRight ? "" : "md:ml-auto"}`}>
+                    {textBlock}
                   </div>
-                  {/* IMAGEM BANNER GRANDE */}
-                  {s.imageUrl && (
-                    <div className={`relative ${imgRight ? "md:order-2" : "md:order-1"}`}>
-                      <div
-                        className="absolute inset-0 pointer-events-none z-10"
-                        style={{ background: `radial-gradient(60% 70% at 50% 50%, ${primary}44 0%, transparent 70%)` }}
-                      />
-                      <div
-                        className="relative overflow-hidden aspect-[4/3] md:aspect-auto md:h-full md:min-h-[560px]"
-                        style={{ boxShadow: `0 40px 100px -20px ${primary}66`, borderTop: `1px solid ${primary}33`, borderBottom: `1px solid ${primary}33`, [imgRight ? "borderLeft" : "borderRight"]: `1px solid ${primary}33` } as any}
-                      >
-                        <img
-                          src={s.imageUrl}
-                          alt={s.title || ""}
-                          className="w-full h-full object-cover"
-                        />
-                        <div
-                          className="absolute inset-y-0 w-24 pointer-events-none"
-                          style={{
-                            [imgRight ? "left" : "right"]: 0,
-                            background: `linear-gradient(${imgRight ? "to right" : "to left"}, ${bg}, transparent)`,
-                          } as any}
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               </section>
             );
