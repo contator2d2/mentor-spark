@@ -81,6 +81,7 @@ type Theme = {
   titleSize?: "sm" | "md" | "lg" | "xl";
   titleColor?: string;
   highlightColor?: string;
+  logoUrl?: string;
 };
 
 type SalesPage = {
