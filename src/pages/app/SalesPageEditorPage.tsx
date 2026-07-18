@@ -16,6 +16,42 @@ import { ArrowLeft, Sparkles, Loader2, Save, Plus, Trash2, ExternalLink, Copy, R
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
+// Ícones disponíveis para features/pilares (nomes iguais aos do render público).
+const ICON_OPTIONS: { value: string; label: string }[] = [
+  { value: "sparkles", label: "✨ Destaque" },
+  { value: "target", label: "🎯 Alvo" },
+  { value: "trending-up", label: "📈 Crescimento" },
+  { value: "shield-check", label: "🛡️ Garantia" },
+  { value: "zap", label: "⚡ Rápido" },
+  { value: "book-open", label: "📖 Conteúdo" },
+  { value: "clock", label: "⏰ Tempo" },
+  { value: "users", label: "👥 Comunidade" },
+  { value: "rocket", label: "🚀 Lançamento" },
+  { value: "trophy", label: "🏆 Resultado" },
+  { value: "heart", label: "❤️ Paixão" },
+  { value: "star", label: "⭐ Premium" },
+  { value: "lightbulb", label: "💡 Insight" },
+  { value: "award", label: "🥇 Certificação" },
+  { value: "briefcase", label: "💼 Profissional" },
+  { value: "brain", label: "🧠 Método" },
+  { value: "dollar-sign", label: "💵 Faturamento" },
+  { value: "gift", label: "🎁 Bônus" },
+  { value: "message-circle", label: "💬 Suporte" },
+  { value: "mic", label: "🎤 Aula ao vivo" },
+  { value: "video", label: "🎬 Vídeo" },
+  { value: "globe", label: "🌐 Online" },
+  { value: "compass", label: "🧭 Direção" },
+  { value: "flag", label: "🚩 Marco" },
+  { value: "flame", label: "🔥 Momentum" },
+  { value: "gem", label: "💎 Valor" },
+  { value: "graduation-cap", label: "🎓 Formação" },
+  { value: "handshake", label: "🤝 Parceria" },
+  { value: "calendar", label: "📅 Agenda" },
+  { value: "map-pin", label: "📍 Local" },
+  { value: "check", label: "✅ Feito" },
+  { value: "check-circle", label: "✔️ Concluído" },
+];
+
 type Feature = { icon?: string; title: string; text?: string };
 type Faq = { q: string; a: string };
 type Testimonial = { name: string; role?: string; quote: string; avatarUrl?: string };
