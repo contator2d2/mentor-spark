@@ -8,6 +8,8 @@ import {
 import { User, UserStatus } from '../../entities/user.entity';
 import { MentorPaymentProvider, PaymentProviderType } from '../../entities/mentor-payment-provider.entity';
 import { AiService } from '../ai/ai.service';
+import { LeadsService } from '../leads/leads.service';
+import { AutomationsService } from '../automations/automations.service';
 
 function slugify(s: string) {
   return s
@@ -27,6 +29,8 @@ export class SalesPagesService {
     @InjectRepository(User) private users: Repository<User>,
     @InjectRepository(MentorPaymentProvider) private providers: Repository<MentorPaymentProvider>,
     private ai: AiService,
+    private leads: LeadsService,
+    private automations: AutomationsService,
   ) {}
 
   // ==================== CRUD mentor ====================
