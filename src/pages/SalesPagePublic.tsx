@@ -1055,6 +1055,16 @@ function ImmersionLayout({
     ? page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
     : null;
 
+  const titleSizeMap: Record<string, string> = {
+    sm: "text-3xl md:text-4xl",
+    md: "text-4xl md:text-5xl",
+    lg: "text-4xl md:text-5xl lg:text-6xl",
+    xl: "text-5xl md:text-6xl lg:text-7xl",
+  };
+  const titleSizeClass = titleSizeMap[page.theme?.titleSize || "lg"];
+  const titleColor = page.theme?.titleColor || text;
+  const highlightColor = page.theme?.highlightColor || primary;
+
   return (
     <div style={{ background: bg, color: text }} className="min-h-screen">
       {/* Header */}
@@ -1094,12 +1104,12 @@ function ImmersionLayout({
               <img src={mentor.brandLogoUrl} alt="" className="h-10 w-auto object-contain mb-8 opacity-95" />
             )}
             <h1
-              className="font-display font-black leading-[1.05] tracking-tight mb-6 text-4xl md:text-5xl lg:text-6xl"
-              style={{ color: text }}
+              className={`font-display font-black leading-[1.05] tracking-tight mb-6 ${titleSizeClass}`}
+              style={{ color: titleColor }}
               dangerouslySetInnerHTML={{
                 __html: (page.headline || page.title).replace(
                   /(Inteligência Artificial|IA|prática|multiplique|multiplicar|acelerar|transformar|dominar)/gi,
-                  (m) => `<span style="color:${primary}">${m}</span>`
+                  (m) => `<span style="color:${highlightColor}">${m}</span>`
                 ),
               }}
             />
@@ -1122,13 +1132,8 @@ function ImmersionLayout({
           </div>
 
           <div className="relative">
-            {videoEmbed ? (
-              <div
-                className="aspect-video rounded-2xl overflow-hidden"
-                style={{ background: surface, boxShadow: `0 40px 100px -20px ${primary}66` }}
-              >
-                <iframe src={videoEmbed} className="w-full h-full" allowFullScreen />
-              </div>
+            {page.videoUrl ? (
+              <VideoPlayer src={page.videoUrl} primary={primary} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <div
                 className="rounded-2xl overflow-hidden aspect-video"
