@@ -1016,6 +1016,17 @@ export default function SalesPageEditorPage() {
                 />
               </div>
               <div>
+                <Label>Juros ao mês no parcelamento (%)</Label>
+                <Input
+                  type="number" min="0" max="20" step="0.01"
+                  value={page.installmentInterestRate ?? 0}
+                  onChange={(e) => patch({ installmentInterestRate: Math.max(0, Math.min(20, parseFloat(e.target.value || "0"))) })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  0% = mentor absorve. Ex: 2,99% a.m. = juros cobrados do cliente em 2x+ (Tabela Price). PIX e à vista continuam sem juros.
+                </p>
+              </div>
+              <div>
                 <Label>Modelo</Label>
                 <Select value={page.paymentMode} onValueChange={(v: any) => patch({ paymentMode: v })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
