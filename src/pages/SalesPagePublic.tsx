@@ -2247,9 +2247,13 @@ function CheckoutDialog({
             <div className="h-14 w-14 rounded-full bg-primary/15 flex items-center justify-center mx-auto">
               <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-bold text-lg">Pagamento em processamento</h3>
+            <h3 className="font-bold text-lg">
+              {isFree ? "Inscrição confirmada!" : "Pagamento em processamento"}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Você receberá a confirmação por e-mail assim que a Asaas aprovar o cartão.
+              {isFree
+                ? "Seu cupom cobriu 100% do valor. Enviamos as instruções de acesso por e-mail e WhatsApp."
+                : "Você receberá a confirmação por e-mail assim que a Asaas aprovar o cartão."}
             </p>
             <Button onClick={onClose} className="w-full">Fechar</Button>
           </div>
