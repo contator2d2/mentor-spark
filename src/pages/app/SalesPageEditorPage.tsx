@@ -81,6 +81,7 @@ type Theme = {
   titleSize?: "sm" | "md" | "lg" | "xl";
   titleColor?: string;
   highlightColor?: string;
+  logoUrl?: string;
 };
 
 type SalesPage = {
@@ -324,9 +325,24 @@ export default function SalesPageEditorPage() {
             </div>
           </Card>
 
-          <Card className="p-6 space-y-4">
-            <div>
-              <h3 className="font-bold mb-1">Cores da página</h3>
+        <Card className="p-6 space-y-3">
+          <div>
+            <h3 className="font-bold mb-1">Logo do menu fixo</h3>
+            <p className="text-sm text-muted-foreground mb-3">
+              Envie um logo específico desta página. Se deixar em branco, usamos o logo da sua marca (whitelabel).
+            </p>
+            <ImageUploadField
+              label=""
+              value={page.theme?.logoUrl}
+              onChange={(url) => patch({ theme: { ...(page.theme || {}), logoUrl: url } })}
+              aspect="16/9"
+              hint="PNG com fundo transparente recomendado."
+            />
+          </div>
+        </Card>
+        <Card className="p-6 space-y-4">
+          <div>
+            <h3 className="font-bold mb-1">Cores da página</h3>
               <p className="text-sm text-muted-foreground mb-3">Use as cores da sua marca ou personalize só nesta página.</p>
               <div className="grid grid-cols-2 gap-3">
                 {[
