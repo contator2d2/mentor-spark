@@ -1,4 +1,6 @@
 import { BadRequestException, Body, Controller, Get, NotFoundException, Param, Post, Query } from '@nestjs/common';
+import { Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User, UserStatus } from '../../entities/user.entity';
@@ -156,6 +158,8 @@ export class PublicController {
       brandCoursesLayout: mentor.brandCoursesLayout,
       brandDarkBannerUrl: mentor.brandDarkBannerUrl,
       brandDarkLogoUrl: mentor.brandDarkLogoUrl,
+      brandOgImageUrl: mentor.brandOgImageUrl,
+      brandOgDescription: mentor.brandOgDescription,
     };
   }
 
@@ -178,6 +182,8 @@ export class PublicController {
         brandCoursesLayout: m.brandCoursesLayout,
         brandDarkBannerUrl: m.brandDarkBannerUrl,
         brandDarkLogoUrl: m.brandDarkLogoUrl,
+       brandOgImageUrl: m.brandOgImageUrl,
+       brandOgDescription: m.brandOgDescription,
        slug: m.slug,
        customDomain: m.customDomain,
      };
@@ -202,8 +208,81 @@ export class PublicController {
       brandCoursesLayout: m.brandCoursesLayout,
       brandDarkBannerUrl: m.brandDarkBannerUrl,
       brandDarkLogoUrl: m.brandDarkLogoUrl,
+      brandOgImageUrl: m.brandOgImageUrl,
+      brandOgDescription: m.brandOgDescription,
       slug: m.slug,
     };
+  }
+
+  /**
+   * Endpoint para compartilhamento em redes sociais.
+   * Retorna um HTML mínimo com meta tags OpenGraph/Twitter usando o branding do mentor.
+   * Crawlers (WhatsApp, Facebook, LinkedIn, X) leem as tags; humanos são redirecionados
+   * automaticamente para a URL real via <meta refresh> + JS.
+   */
+  @Get('share/mentor/:slug')
+  async shareMentor(
+    @Param('slug') slug: string,
+    @Query('to') to: string | undefined,
+    @Res() res: Response,
+  ) {
+    const m = await this.users.findOne({ where: { slug, status: UserStatus.ACTIVE } });
+    if (!m) {
+      res.status(404).send('Mentor não encontrado');
+      return;
+    }
+
+    const baseUrl = m.customDomain
+      ? `https://${m.customDomain}`
+      : (process.env.APP_URL || 'https://app.gleego.com.br').replace(/\/$/, '');
+
+    const safeTo = to && /^\/[a-zA-Z0-9\-_/?&=%.]*$/.test(to) ? to : `/c/${slug}`;
+    const target = `${baseUrl}${safeTo}`;
+
+    const title = m.brandName || m.name || 'Mentor Glee-go';
+    const description =
+      m.brandOgDescription ||
+      `Área exclusiva de mentoria de ${m.brandName || m.name}. Acesse cursos, conteúdos e acompanhamento.`;
+    const image = m.brandOgImageUrl || m.brandBannerUrl || m.brandLogoUrl || '';
+
+    const esc = (s: string) =>
+      String(s || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+
+    const html = `<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${esc(title)}</title>
+<meta name="description" content="${esc(description)}" />
+<link rel="canonical" href="${esc(target)}" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="${esc(title)}" />
+<meta property="og:title" content="${esc(title)}" />
+<meta property="og:description" content="${esc(description)}" />
+<meta property="og:url" content="${esc(target)}" />
+${image ? `<meta property="og:image" content="${esc(image)}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />` : ''}
+<meta name="twitter:card" content="${image ? 'summary_large_image' : 'summary'}" />
+<meta name="twitter:title" content="${esc(title)}" />
+<meta name="twitter:description" content="${esc(description)}" />
+${image ? `<meta name="twitter:image" content="${esc(image)}" />` : ''}
+<meta http-equiv="refresh" content="0;url=${esc(target)}" />
+<script>window.location.replace(${JSON.stringify(target)});</script>
+</head>
+<body style="font-family:system-ui;background:#0b0b0f;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;">
+<p>Redirecionando para <a style="color:#fff" href="${esc(target)}">${esc(title)}</a>…</p>
+</body>
+</html>`;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=300');
+    res.send(html);
   }
 
   @Get('mentor/:slug/qrcode')
