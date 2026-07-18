@@ -614,6 +614,52 @@ export default function BrandingSettings() {
         )}
       </section>
 
+      {/* ============== LINK PARA COMPARTILHAR ============== */}
+      <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-4 w-4 text-accent" />
+          <h2 className="font-semibold">Link para compartilhar em redes sociais</h2>
+          <Badge variant="secondary" className="ml-2">Preview com sua marca</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Use este link ao postar no WhatsApp, Instagram, LinkedIn ou Facebook. Ele mostra a sua
+          imagem, nome e descrição no card de preview e redireciona automaticamente para a sua área.
+        </p>
+        <div className="flex gap-2">
+          <Input value={shareLink} readOnly className="font-mono text-sm" />
+          <Button variant="outline" size="icon" onClick={() => copy(shareLink, "Link de compartilhamento")}>
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" asChild>
+            <a href={shareLink} target="_blank" rel="noreferrer">
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+        {form.brandOgImageUrl && (
+          <div className="rounded-lg overflow-hidden border border-border bg-muted/30 max-w-md">
+            <div className="aspect-[1200/630] bg-black">
+              <img src={form.brandOgImageUrl} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+            <div className="p-3 space-y-1">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+                {form.customDomain || (typeof window !== "undefined" ? window.location.host : "")}
+              </div>
+              <div className="font-semibold text-sm truncate">{form.brandName || "Sua marca"}</div>
+              {form.brandOgDescription && (
+                <div className="text-xs text-muted-foreground line-clamp-2">{form.brandOgDescription}</div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-3 leading-relaxed">
+          <b>Dica:</b> após alterar a imagem, as redes sociais podem manter o preview antigo em cache.
+          Force uma atualização usando o depurador de links do Facebook
+          (<code>developers.facebook.com/tools/debug</code>) ou do LinkedIn
+          (<code>linkedin.com/post-inspector</code>) e clique em "Scrape Again".
+        </div>
+      </section>
+
       <div className="flex justify-end sticky bottom-4">
         <Button onClick={save} disabled={saving} size="lg" className="shadow-elegant">
           {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
