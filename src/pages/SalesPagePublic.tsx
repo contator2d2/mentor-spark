@@ -1233,6 +1233,79 @@ function ImmersionLayout({
         </section>
       )}
 
+      {/* SHOWCASE — seções alternadas imagem + texto (storytelling) */}
+      {(page.showcase?.length || 0) > 0 && (
+        <section className="py-8">
+          <div className="max-w-6xl mx-auto px-6 space-y-16 md:space-y-24">
+            {page.showcase!.map((s, i) => {
+              const imgSide = s.side || (i % 2 === 0 ? "left" : "right");
+              const imageBlock = s.imageUrl ? (
+                <div className="relative">
+                  <div
+                    className="absolute -inset-6 rounded-3xl opacity-60 blur-3xl pointer-events-none"
+                    style={{ background: `radial-gradient(60% 60% at 50% 50%, ${primary}55, transparent 70%)` }}
+                  />
+                  <img
+                    src={s.imageUrl}
+                    alt={s.title || ""}
+                    className="relative w-full aspect-[4/3] object-cover rounded-2xl"
+                    style={{ boxShadow: `0 40px 100px -20px ${primary}66`, border: `1px solid ${border}` }}
+                  />
+                </div>
+              ) : (
+                <div className="aspect-[4/3] rounded-2xl flex items-center justify-center" style={{ background: surface, border: `1px solid ${border}` }}>
+                  <Sparkles className="h-14 w-14" style={{ color: primary, opacity: 0.6 }} />
+                </div>
+              );
+              const textBlock = (
+                <div>
+                  {s.eyebrow && (
+                    <div className="text-xs uppercase tracking-widest mb-3 font-semibold" style={{ color: primary }}>
+                      {s.eyebrow}
+                    </div>
+                  )}
+                  {s.title && (
+                    <h3 className="font-display text-2xl md:text-4xl font-bold leading-tight mb-4" style={{ color: text }}>
+                      {s.title}
+                    </h3>
+                  )}
+                  {s.text && (
+                    <p className="text-base md:text-lg leading-relaxed whitespace-pre-line mb-4" style={{ color: muted }}>
+                      {s.text}
+                    </p>
+                  )}
+                  {(s.bullets?.length || 0) > 0 && (
+                    <ul className="space-y-3 mt-4">
+                      {s.bullets!.map((b, j) => (
+                        <li key={j} className="flex gap-3">
+                          <CheckCircle2 className="h-5 w-5 shrink-0 mt-1" style={{ color: primary }} />
+                          <span style={{ color: muted }}>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              );
+              return (
+                <div key={i} className="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
+                  {imgSide === "left" ? (
+                    <>
+                      {imageBlock}
+                      {textBlock}
+                    </>
+                  ) : (
+                    <>
+                      <div className="md:order-2">{imageBlock}</div>
+                      <div className="md:order-1">{textBlock}</div>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* PILARES — features numeradas 01, 02, 03… */}
       {(page.features?.length || 0) > 0 && (
         <section className="py-16 md:py-24">
