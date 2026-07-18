@@ -93,7 +93,7 @@ export interface SalesPageTheme {
   heroOverlay?: number;
 }
 
-export type SalesPageTemplate = 'classic' | 'long_form';
+export type SalesPageTemplate = 'classic' | 'long_form' | 'immersion';
 
 /**
  * Página de vendas 1 produto = 1 página, publicada em /p/:mentorSlug/:pageSlug.
