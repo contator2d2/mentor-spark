@@ -701,9 +701,24 @@ export default function SalesPageEditorPage() {
               onChange={(url) => patch({ heroImageUrl: url })}
               aspect="16/9"
             />
-            <div>
-              <Label>URL de vídeo (YouTube/Vimeo — opcional)</Label>
-              <Input value={page.videoUrl || ""} onChange={(e) => patch({ videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." />
+            <div className="space-y-3">
+              <Label>Vídeo do hero (opcional)</Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Cole um link do YouTube/Vimeo <b>ou</b> envie um arquivo de vídeo. O player se ajusta automaticamente.
+              </p>
+              <Input
+                value={page.videoUrl || ""}
+                onChange={(e) => patch({ videoUrl: e.target.value })}
+                placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
+              />
+              <div className="text-xs text-muted-foreground text-center">— ou envie um arquivo —</div>
+              <MediaUpload
+                accept={["video"]}
+                value={page.videoUrl && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(page.videoUrl) ? page.videoUrl : undefined}
+                onChange={(m) => patch({ videoUrl: m?.url || "" })}
+                hint="MP4, WebM ou MOV — até 200MB"
+                compact
+              />
             </div>
           </Card>
 
@@ -715,7 +730,20 @@ export default function SalesPageEditorPage() {
               </Button>
             </div>
             {page.features.map((f, i) => (
-              <div key={i} className="grid md:grid-cols-[1fr_2fr_auto] gap-2 items-start">
+              <div key={i} className="grid md:grid-cols-[180px_1fr_2fr_auto] gap-2 items-start">
+                <Select
+                  value={f.icon || "sparkles"}
+                  onValueChange={(v) => {
+                    const arr = [...page.features]; arr[i] = { ...f, icon: v }; patch({ features: arr });
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {ICON_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input value={f.title} onChange={(e) => {
                   const arr = [...page.features]; arr[i] = { ...f, title: e.target.value }; patch({ features: arr });
                 }} placeholder="Título" />
