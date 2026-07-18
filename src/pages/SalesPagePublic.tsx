@@ -69,6 +69,7 @@ type Payload = {
     priceCents: number; currency: string; originalPriceCents?: number;
     maxInstallments: number; paymentMode: "one_time" | "subscription";
     installmentInterestRate?: number;
+    installmentDisplayCents?: number;
     seo?: { title?: string; description?: string };
     template?: "classic" | "long_form" | "immersion";
     theme?: {
