@@ -91,6 +91,12 @@ export interface SalesPageTheme {
   heroFocus?: string;
   /** Intensidade do overlay escuro sobre a imagem de fundo (0..1). Default 0.6 */
   heroOverlay?: number;
+  /** Tamanho do título principal (hero). */
+  titleSize?: 'sm' | 'md' | 'lg' | 'xl';
+  /** Cor do título principal (sobrescreve a cor de texto padrão). */
+  titleColor?: string;
+  /** Cor das palavras em destaque dentro do título. */
+  highlightColor?: string;
 }
 
 export type SalesPageTemplate = 'classic' | 'long_form' | 'immersion';

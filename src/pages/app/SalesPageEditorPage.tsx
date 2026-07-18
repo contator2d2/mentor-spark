@@ -11,9 +11,46 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { MediaUpload } from "@/components/MediaUpload";
 import { ArrowLeft, Sparkles, Loader2, Save, Plus, Trash2, ExternalLink, Copy, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Ícones disponíveis para features/pilares (nomes iguais aos do render público).
+const ICON_OPTIONS: { value: string; label: string }[] = [
+  { value: "sparkles", label: "✨ Destaque" },
+  { value: "target", label: "🎯 Alvo" },
+  { value: "trending-up", label: "📈 Crescimento" },
+  { value: "shield-check", label: "🛡️ Garantia" },
+  { value: "zap", label: "⚡ Rápido" },
+  { value: "book-open", label: "📖 Conteúdo" },
+  { value: "clock", label: "⏰ Tempo" },
+  { value: "users", label: "👥 Comunidade" },
+  { value: "rocket", label: "🚀 Lançamento" },
+  { value: "trophy", label: "🏆 Resultado" },
+  { value: "heart", label: "❤️ Paixão" },
+  { value: "star", label: "⭐ Premium" },
+  { value: "lightbulb", label: "💡 Insight" },
+  { value: "award", label: "🥇 Certificação" },
+  { value: "briefcase", label: "💼 Profissional" },
+  { value: "brain", label: "🧠 Método" },
+  { value: "dollar-sign", label: "💵 Faturamento" },
+  { value: "gift", label: "🎁 Bônus" },
+  { value: "message-circle", label: "💬 Suporte" },
+  { value: "mic", label: "🎤 Aula ao vivo" },
+  { value: "video", label: "🎬 Vídeo" },
+  { value: "globe", label: "🌐 Online" },
+  { value: "compass", label: "🧭 Direção" },
+  { value: "flag", label: "🚩 Marco" },
+  { value: "flame", label: "🔥 Momentum" },
+  { value: "gem", label: "💎 Valor" },
+  { value: "graduation-cap", label: "🎓 Formação" },
+  { value: "handshake", label: "🤝 Parceria" },
+  { value: "calendar", label: "📅 Agenda" },
+  { value: "map-pin", label: "📍 Local" },
+  { value: "check", label: "✅ Feito" },
+  { value: "check-circle", label: "✔️ Concluído" },
+];
 
 type Feature = { icon?: string; title: string; text?: string };
 type Faq = { q: string; a: string };
@@ -41,6 +78,9 @@ type Theme = {
   heroStyle?: "split" | "background";
   heroFocus?: string;
   heroOverlay?: number;
+  titleSize?: "sm" | "md" | "lg" | "xl";
+  titleColor?: string;
+  highlightColor?: string;
 };
 
 type SalesPage = {
@@ -377,6 +417,62 @@ export default function SalesPageEditorPage() {
 
           <Card className="p-6 space-y-4">
             <div>
+              <h3 className="font-bold mb-1">Título do hero</h3>
+              <p className="text-sm text-muted-foreground mb-3">Ajuste o tamanho e as cores do título principal.</p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Tamanho</Label>
+                  <Select
+                    value={page.theme?.titleSize || "lg"}
+                    onValueChange={(v: any) => patch({ theme: { ...(page.theme || {}), titleSize: v } })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sm">Pequeno</SelectItem>
+                      <SelectItem value="md">Médio</SelectItem>
+                      <SelectItem value="lg">Grande (padrão)</SelectItem>
+                      <SelectItem value="xl">Extra grande</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cor do título</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.titleColor || "#ffffff"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), titleColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.titleColor || ""}
+                      placeholder="auto"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), titleColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Cor das palavras em destaque</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.highlightColor || page.theme?.primaryColor || "#c9a84c"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), highlightColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.highlightColor || ""}
+                      placeholder="auto (cor primária)"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), highlightColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div>
               <h3 className="font-bold mb-1">Estilo do hero</h3>
               <p className="text-sm text-muted-foreground mb-3">Como a imagem principal aparece no topo da página.</p>
               <div className="grid md:grid-cols-2 gap-3">
@@ -661,9 +757,24 @@ export default function SalesPageEditorPage() {
               onChange={(url) => patch({ heroImageUrl: url })}
               aspect="16/9"
             />
-            <div>
-              <Label>URL de vídeo (YouTube/Vimeo — opcional)</Label>
-              <Input value={page.videoUrl || ""} onChange={(e) => patch({ videoUrl: e.target.value })} placeholder="https://youtube.com/watch?v=..." />
+            <div className="space-y-3">
+              <Label>Vídeo do hero (opcional)</Label>
+              <p className="text-xs text-muted-foreground -mt-1">
+                Cole um link do YouTube/Vimeo <b>ou</b> envie um arquivo de vídeo. O player se ajusta automaticamente.
+              </p>
+              <Input
+                value={page.videoUrl || ""}
+                onChange={(e) => patch({ videoUrl: e.target.value })}
+                placeholder="https://youtube.com/watch?v=... ou https://vimeo.com/..."
+              />
+              <div className="text-xs text-muted-foreground text-center">— ou envie um arquivo —</div>
+              <MediaUpload
+                accept={["video"]}
+                value={page.videoUrl && /\.(mp4|webm|mov|m4v)(\?|$)/i.test(page.videoUrl) ? page.videoUrl : undefined}
+                onChange={(m) => patch({ videoUrl: m?.url || "" })}
+                hint="MP4, WebM ou MOV — até 200MB"
+                compact
+              />
             </div>
           </Card>
 
@@ -675,7 +786,20 @@ export default function SalesPageEditorPage() {
               </Button>
             </div>
             {page.features.map((f, i) => (
-              <div key={i} className="grid md:grid-cols-[1fr_2fr_auto] gap-2 items-start">
+              <div key={i} className="grid md:grid-cols-[180px_1fr_2fr_auto] gap-2 items-start">
+                <Select
+                  value={f.icon || "sparkles"}
+                  onValueChange={(v) => {
+                    const arr = [...page.features]; arr[i] = { ...f, icon: v }; patch({ features: arr });
+                  }}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="max-h-72">
+                    {ICON_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input value={f.title} onChange={(e) => {
                   const arr = [...page.features]; arr[i] = { ...f, title: e.target.value }; patch({ features: arr });
                 }} placeholder="Título" />

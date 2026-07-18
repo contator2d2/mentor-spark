@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ShieldCheck, Sparkles, Target, TrendingUp, Zap, BookOpen, Clock, Users,
   Loader2, Copy, QrCode, CreditCard, Ticket, Check, Calendar, MapPin, UserCheck, AlertCircle, XCircle, PlayCircle,
+  Rocket, Trophy, Heart, Star, Lightbulb, Award, Briefcase, Brain, DollarSign, Gift,
+  MessageCircle, Mic, Video as VideoIcon, Globe, Compass, Flag, Flame, Gem, GraduationCap, Handshake,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +28,30 @@ const ICONS: Record<string, any> = {
   "book-open": BookOpen,
   clock: Clock,
   users: Users,
+  rocket: Rocket,
+  trophy: Trophy,
+  heart: Heart,
+  star: Star,
+  lightbulb: Lightbulb,
+  award: Award,
+  briefcase: Briefcase,
+  brain: Brain,
+  "dollar-sign": DollarSign,
+  gift: Gift,
+  "message-circle": MessageCircle,
+  mic: Mic,
+  video: VideoIcon,
+  globe: Globe,
+  compass: Compass,
+  flag: Flag,
+  flame: Flame,
+  gem: Gem,
+  "graduation-cap": GraduationCap,
+  handshake: Handshake,
+  calendar: Calendar,
+  "map-pin": MapPin,
+  check: Check,
+  "check-circle": CheckCircle2,
 };
 
 type Payload = {
@@ -53,6 +79,9 @@ type Payload = {
       heroStyle?: "split" | "background";
       heroFocus?: string;
       heroOverlay?: number;
+      titleSize?: "sm" | "md" | "lg" | "xl";
+      titleColor?: string;
+      highlightColor?: string;
     };
     forWho?: string[];
     notForWho?: string[];
@@ -75,6 +104,54 @@ type Payload = {
 };
 
 // ============= Badge pill sem ícone de IA — glow na cor da marca =============
+// Player de vídeo: detecta YouTube/Vimeo (iframe) vs arquivo de vídeo (tag <video>).
+function VideoPlayer({ src, primary, poster }: { src: string; primary: string; poster?: string }) {
+  const isYoutube = /youtube\.com|youtu\.be/i.test(src);
+  const isVimeo = /vimeo\.com/i.test(src);
+  const isFile = /\.(mp4|webm|ogg|mov|m4v)(\?|$)/i.test(src) || src.includes("/uploads/");
+
+  if (isYoutube || isVimeo) {
+    const embed = src
+      .replace("watch?v=", "embed/")
+      .replace("youtu.be/", "www.youtube.com/embed/")
+      .replace("vimeo.com/", "player.vimeo.com/video/");
+    return (
+      <div
+        className="aspect-video rounded-2xl overflow-hidden"
+        style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}
+      >
+        <iframe src={embed} className="w-full h-full" allowFullScreen allow="autoplay; encrypted-media; picture-in-picture" />
+      </div>
+    );
+  }
+
+  if (isFile) {
+    return (
+      <div
+        className="aspect-video rounded-2xl overflow-hidden bg-black relative group"
+        style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}
+      >
+        <video
+          src={src}
+          poster={poster}
+          controls
+          playsInline
+          preload="metadata"
+          className="w-full h-full object-cover"
+          style={{ outline: "none" }}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: tenta iframe genérico
+  return (
+    <div className="aspect-video rounded-2xl overflow-hidden" style={{ boxShadow: `0 40px 100px -20px ${primary}66` }}>
+      <iframe src={src} className="w-full h-full" allowFullScreen />
+    </div>
+  );
+}
+
 function BadgePill({ children, primary, accent }: { children: React.ReactNode; primary: string; accent: string }) {
   return (
     <div
@@ -431,13 +508,7 @@ export default function SalesPagePublic() {
 
           <div className="relative">
             {page.videoUrl ? (
-              <div className="aspect-[4/5] rounded-2xl overflow-hidden bg-black/50 ring-1 ring-white/10 shadow-[0_40px_80px_-20px_rgba(0,0,0,0.8)]">
-                <iframe
-                  src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
-                  className="w-full h-full"
-                  allowFullScreen
-                />
-              </div>
+              <VideoPlayer src={page.videoUrl} primary={primaryHex} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <div className="relative">
                 {/* Fade image edges into the dark background */}
@@ -682,12 +753,7 @@ function LongFormLayout({
           </div>
           <div className="relative">
             {page.videoUrl ? (
-              <div className="aspect-video rounded-2xl overflow-hidden" style={{ background: surface, boxShadow: `0 40px 80px -20px ${primary}55` }}>
-                <iframe
-                  src={page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")}
-                  className="w-full h-full" allowFullScreen
-                />
-              </div>
+              <VideoPlayer src={page.videoUrl} primary={primary} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <img src={page.heroImageUrl} alt={page.title} className="w-full h-[520px] object-cover rounded-2xl" />
             ) : (
@@ -978,6 +1044,16 @@ function ImmersionLayout({
     ? page.videoUrl.replace("watch?v=", "embed/").replace("youtu.be/", "www.youtube.com/embed/")
     : null;
 
+  const titleSizeMap: Record<string, string> = {
+    sm: "text-3xl md:text-4xl",
+    md: "text-4xl md:text-5xl",
+    lg: "text-4xl md:text-5xl lg:text-6xl",
+    xl: "text-5xl md:text-6xl lg:text-7xl",
+  };
+  const titleSizeClass = titleSizeMap[page.theme?.titleSize || "lg"];
+  const titleColor = page.theme?.titleColor || text;
+  const highlightColor = page.theme?.highlightColor || primary;
+
   return (
     <div style={{ background: bg, color: text }} className="min-h-screen">
       {/* Header */}
@@ -1017,12 +1093,12 @@ function ImmersionLayout({
               <img src={mentor.brandLogoUrl} alt="" className="h-10 w-auto object-contain mb-8 opacity-95" />
             )}
             <h1
-              className="font-display font-black leading-[1.05] tracking-tight mb-6 text-4xl md:text-5xl lg:text-6xl"
-              style={{ color: text }}
+              className={`font-display font-black leading-[1.05] tracking-tight mb-6 ${titleSizeClass}`}
+              style={{ color: titleColor }}
               dangerouslySetInnerHTML={{
                 __html: (page.headline || page.title).replace(
                   /(Inteligência Artificial|IA|prática|multiplique|multiplicar|acelerar|transformar|dominar)/gi,
-                  (m) => `<span style="color:${primary}">${m}</span>`
+                  (m) => `<span style="color:${highlightColor}">${m}</span>`
                 ),
               }}
             />
@@ -1045,13 +1121,8 @@ function ImmersionLayout({
           </div>
 
           <div className="relative">
-            {videoEmbed ? (
-              <div
-                className="aspect-video rounded-2xl overflow-hidden"
-                style={{ background: surface, boxShadow: `0 40px 100px -20px ${primary}66` }}
-              >
-                <iframe src={videoEmbed} className="w-full h-full" allowFullScreen />
-              </div>
+            {page.videoUrl ? (
+              <VideoPlayer src={page.videoUrl} primary={primary} poster={page.heroImageUrl} />
             ) : page.heroImageUrl ? (
               <div
                 className="rounded-2xl overflow-hidden aspect-video"
