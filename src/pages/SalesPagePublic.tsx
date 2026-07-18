@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ShieldCheck, Sparkles, Target, TrendingUp, Zap, BookOpen, Clock, Users,
-  Loader2, Copy, QrCode, CreditCard, Ticket, Check,
+  Loader2, Copy, QrCode, CreditCard, Ticket, Check, Calendar, MapPin, UserCheck, AlertCircle, XCircle, PlayCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -43,7 +43,7 @@ type Payload = {
     priceCents: number; currency: string; originalPriceCents?: number;
     maxInstallments: number; paymentMode: "one_time" | "subscription";
     seo?: { title?: string; description?: string };
-    template?: "classic" | "long_form";
+    template?: "classic" | "long_form" | "immersion";
     theme?: {
       colorSource?: "brand" | "custom";
       mode?: "light" | "dark";
@@ -235,6 +235,21 @@ export default function SalesPagePublic() {
   const openCheckout = () => setCheckoutOpen(true);
 
   const template = page.template || "classic";
+
+  if (template === "immersion") {
+    return (
+      <ImmersionLayout
+        mentor={mentor}
+        page={page}
+        colors={{ primary: primaryHex, accent: accentHex, bg: bgHex, text: textColor, muted: mutedText, soft: softText, border: borderCol, isDark }}
+        onCta={openCheckout}
+        mentorSlug={mentorSlug!}
+        pageSlug={pageSlug!}
+        checkoutOpen={checkoutOpen}
+        setCheckoutOpen={setCheckoutOpen}
+      />
+    );
+  }
 
   if (template === "long_form") {
     return (
