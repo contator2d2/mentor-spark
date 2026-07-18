@@ -689,8 +689,13 @@ function LongFormLayout({
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: page.theme?.heroFocus || "center" }}
         />
+        {/* Mobile: gradiente vertical suave (imagem visível). Desktop: gradiente horizontal. */}
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 md:hidden"
+          style={{ background: `linear-gradient(180deg, ${bg}cc 0%, ${bg}80 50%, ${bg}f0 100%)` }}
+        />
+        <div
+          className="hidden md:block absolute inset-0"
           style={{ background: `linear-gradient(90deg, ${bg}${Math.round((page.theme?.heroOverlay ?? 0.7) * 255).toString(16).padStart(2,'0')} 0%, ${bg}99 45%, ${bg}22 100%)` }}
         />
         <div
