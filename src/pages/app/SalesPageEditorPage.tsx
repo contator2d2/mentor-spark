@@ -105,6 +105,7 @@ type SalesPage = {
   currency: string;
   originalPriceCents?: number | null;
   maxInstallments: number;
+  installmentInterestRate?: number;
   paymentMode: "one_time" | "subscription";
   subscriptionCycle?: string | null;
   paymentProviderId?: string | null;
