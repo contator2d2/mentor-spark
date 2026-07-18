@@ -1969,8 +1969,54 @@ function CheckoutDialog({
                 </div>
               </div>
             </div>
-            <Button onClick={goToPayment} className="w-full bg-primary hover:opacity-90">
-              Continuar para pagamento →
+
+            {/* Cupom já na etapa 1 — permite descobrir se a inscrição fica grátis */}
+            <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
+              <Label className="flex items-center gap-2 text-sm">
+                <Ticket className="h-4 w-4" /> Tem um cupom? <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              {coupon?.valid ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-600 text-sm">
+                    <Check className="h-4 w-4" />
+                    <span className="font-mono font-semibold">{coupon.code}</span>
+                    <span className="text-muted-foreground">
+                      {(coupon.finalCents ?? 0) === 0
+                        ? "— 100% de desconto"
+                        : `-${money(coupon.discountCents || 0)}`}
+                    </span>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={removeCoupon}>Remover</Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Digite o código"
+                    className="font-mono uppercase"
+                  />
+                  <Button
+                    type="button" variant="outline"
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                  >
+                    {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
+                  </Button>
+                </div>
+              )}
+              {coupon?.valid && (coupon.finalCents ?? 0) === 0 && (
+                <p className="text-xs text-emerald-600">
+                  ✓ Este cupom cobre 100% do valor — sua inscrição será confirmada sem pagamento.
+                </p>
+              )}
+            </div>
+
+            <Button onClick={goToPayment} disabled={loading} className="w-full bg-primary hover:opacity-90">
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              {coupon?.valid && (coupon.finalCents ?? 0) === 0
+                ? "Confirmar inscrição gratuita"
+                : "Continuar para pagamento →"}
             </Button>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3" /> Seus dados são processados com segurança pela Asaas
