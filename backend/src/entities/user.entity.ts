@@ -89,6 +89,14 @@ export class User {
   @Column({ nullable: true })
   brandDarkLogoUrl?: string;
 
+  /** Imagem para preview em redes sociais (Open Graph) 1200x630 recomendado */
+  @Column({ nullable: true })
+  brandOgImageUrl?: string;
+
+  /** Descrição curta para preview em redes sociais */
+  @Column({ nullable: true })
+  brandOgDescription?: string;
+
   /** Onboarding concluído (mentor já configurou branding mínimo) */
   @Column({ default: false })
   onboardingCompleted: boolean;
