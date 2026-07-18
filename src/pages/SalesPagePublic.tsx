@@ -1687,7 +1687,7 @@ function CheckoutDialog({
   mentorSlug: string; pageSlug: string;
   page: Payload["page"];
 }) {
-  const [step, setStep] = useState<"form" | "pix" | "success">("form");
+  const [step, setStep] = useState<"enrollment" | "payment" | "pix" | "success">("enrollment");
   const [method, setMethod] = useState<"PIX" | "CREDIT_CARD">("PIX");
   const [loading, setLoading] = useState(false);
 
@@ -1695,6 +1695,14 @@ function CheckoutDialog({
   const [email, setEmail] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
   const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+
+  // Pagador (dono do cartão) — pode ser diferente do inscrito.
+  const [payerSameAsEnrollee, setPayerSameAsEnrollee] = useState(true);
+  const [payerName, setPayerName] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
+  const [payerCpf, setPayerCpf] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -1777,16 +1785,57 @@ function CheckoutDialog({
 
   const removeCoupon = () => { setCoupon(null); setCouponCode(""); };
 
+  // Validação de WhatsApp BR: aceita (11) 91234-5678 ou 11912345678.
+  // Regra: 10-11 dígitos, DDD 11-99, celulares (11 dígitos) começam com 9.
+  const digits = (s: string) => (s || "").replace(/\D/g, "");
+  const isValidWhats = (s: string) => {
+    const d = digits(s);
+    if (d.length < 10 || d.length > 11) return false;
+    const ddd = parseInt(d.slice(0, 2), 10);
+    if (ddd < 11 || ddd > 99) return false;
+    if (d.length === 11 && d[2] !== "9") return false;
+    return true;
+  };
+  const formatPhone = (s: string) => {
+    const d = digits(s).slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  };
+  const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+  const goToPayment = () => {
+    if (!name.trim()) { toast.error("Informe seu nome completo"); return; }
+    if (!isValidEmail(email)) { toast.error("E-mail inválido"); return; }
+    if (!isValidWhats(phone)) { toast.error("WhatsApp inválido — use DDD + número"); return; }
+    if (!cpfCnpj.trim()) { toast.error("Informe CPF ou CNPJ"); return; }
+    // Pré-popula dados do pagador iguais aos do inscrito.
+    if (payerSameAsEnrollee) {
+      setPayerName(name); setPayerEmail(email);
+      setPayerCpf(cpfCnpj); setPayerPhone(phone);
+    }
+    setStep("payment");
+  };
+
   const submit = async () => {
     if (!name || !email || !cpfCnpj) { toast.error("Preencha nome, e-mail e CPF/CNPJ"); return; }
-    if (method === "CREDIT_CARD" && (!cardNumber || !cardHolder || !cardExp || !cardCcv || !postalCode || !addressNumber)) {
-      toast.error("Preencha todos os dados do cartão e endereço"); return;
+    if (method === "CREDIT_CARD") {
+      if (!cardNumber || !cardHolder || !cardExp || !cardCcv || !postalCode || !addressNumber) {
+        toast.error("Preencha todos os dados do cartão e endereço"); return;
+      }
+      const pn = payerSameAsEnrollee ? name : payerName;
+      const pe = payerSameAsEnrollee ? email : payerEmail;
+      const pc = payerSameAsEnrollee ? cpfCnpj : payerCpf;
+      if (!pn || !isValidEmail(pe) || !pc) {
+        toast.error("Preencha os dados do pagador (dono do cartão)"); return;
+      }
     }
     setLoading(true);
     try {
       const [mm, yy] = cardExp.split("/").map((s) => s.trim());
       const body: any = {
-        name, email, cpfCnpj, phone, billingType: method,
+        name, email, cpfCnpj, phone, company, billingType: method,
       };
       if (coupon?.valid && couponCode) body.couponCode = couponCode.trim();
       if (method === "CREDIT_CARD") {
@@ -1798,8 +1847,11 @@ function CheckoutDialog({
           expiryYear: yy?.length === 2 ? `20${yy}` : yy,
           ccv: cardCcv,
         };
+        const holder = payerSameAsEnrollee
+          ? { name, email, cpfCnpj, phone }
+          : { name: payerName, email: payerEmail, cpfCnpj: payerCpf, phone: payerPhone || phone };
         body.creditCardHolderInfo = {
-          name, email, cpfCnpj, phone, postalCode, addressNumber,
+          ...holder, postalCode, addressNumber,
         };
       }
       const r = await fetch(`${API_BASE}/public/sales-pages/${mentorSlug}/${pageSlug}/checkout`, {
@@ -1827,11 +1879,89 @@ function CheckoutDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(displayTotal)}`}</DialogTitle>
+          <DialogTitle>
+            {step === "success"
+              ? "Compra confirmada"
+              : step === "enrollment"
+                ? "Etapa 1 de 2 — Dados da inscrição"
+                : step === "payment"
+                  ? `Etapa 2 de 2 — Pagamento — ${money(displayTotal)}`
+                  : `Finalizar compra — ${money(displayTotal)}`}
+          </DialogTitle>
         </DialogHeader>
 
-        {step === "form" && (
+        {/* Indicador visual das etapas */}
+        {(step === "enrollment" || step === "payment") && (
+          <div className="flex items-center gap-2 pb-1">
+            <div className={`flex-1 h-1.5 rounded-full ${step === "enrollment" ? "bg-primary" : "bg-emerald-500"}`} />
+            <div className={`flex-1 h-1.5 rounded-full ${step === "payment" ? "bg-primary" : "bg-muted"}`} />
+          </div>
+        )}
+
+        {step === "enrollment" && (
           <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Preencha os dados de quem está sendo <b>inscrito(a)</b>. No próximo passo você escolhe a forma de pagamento — se o cartão for de outra pessoa, é só marcar a opção lá.
+            </p>
+            <div className="grid gap-3">
+              <div>
+                <Label>Nome completo do inscrito</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como consta no documento" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>E-mail</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@email.com" />
+                </div>
+                <div>
+                  <Label>CPF/CNPJ</Label>
+                  <Input value={cpfCnpj} onChange={(e) => setCpfCnpj(e.target.value)} placeholder="000.000.000-00" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>WhatsApp</Label>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    placeholder="(11) 91234-5678"
+                    inputMode="tel"
+                    className={phone && !isValidWhats(phone) ? "border-red-500" : ""}
+                  />
+                  {phone && (
+                    <p className={`text-xs mt-1 ${isValidWhats(phone) ? "text-emerald-600" : "text-red-500"}`}>
+                      {isValidWhats(phone) ? "✓ Número válido" : "Formato inválido — DDD + celular com 9"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Empresa <span className="text-muted-foreground">(opcional)</span></Label>
+                  <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Nome da empresa" />
+                </div>
+              </div>
+            </div>
+            <Button onClick={goToPayment} className="w-full bg-primary hover:opacity-90">
+              Continuar para pagamento →
+            </Button>
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <ShieldCheck className="h-3 w-3" /> Seus dados são processados com segurança pela Asaas
+            </div>
+          </div>
+        )}
+
+        {step === "payment" && (
+          <div className="space-y-4">
+            <div className="rounded-lg border p-3 bg-muted/20 text-xs flex items-start justify-between gap-3">
+              <div>
+                <div className="font-semibold">Inscrição de:</div>
+                <div className="text-muted-foreground">{name} · {email}</div>
+                <div className="text-muted-foreground">{phone}{company ? ` · ${company}` : ""}</div>
+              </div>
+              <button type="button" className="text-primary underline shrink-0" onClick={() => setStep("enrollment")}>
+                editar
+              </button>
+            </div>
+
             <Tabs value={method} onValueChange={(v: any) => setMethod(v)}>
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX <span className="ml-1 text-[10px] opacity-70">sem juros</span></TabsTrigger>
@@ -1840,28 +1970,45 @@ function CheckoutDialog({
             </Tabs>
 
             <div className="grid gap-3">
-              <div>
-                <Label>Nome completo</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>E-mail</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div>
-                  <Label>CPF/CNPJ</Label>
-                  <Input value={cpfCnpj} onChange={(e) => setCpfCnpj(e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
-              </div>
-
               {method === "CREDIT_CARD" && (
                 <>
-                  <div className="pt-2 border-t" />
+                  {/* Dados do dono do cartão (pagador) */}
+                  <div className="rounded-lg border p-3 space-y-3 bg-muted/10">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={payerSameAsEnrollee}
+                        onChange={(e) => setPayerSameAsEnrollee(e.target.checked)}
+                      />
+                      Sou eu que estou pagando (mesmos dados da inscrição)
+                    </label>
+                    {!payerSameAsEnrollee && (
+                      <div className="grid gap-3 pt-1">
+                        <div className="text-xs text-muted-foreground">
+                          Informe os dados de quem <b>é dono do cartão</b> — obrigatório para a Asaas validar a cobrança.
+                        </div>
+                        <div>
+                          <Label>Nome do pagador</Label>
+                          <Input value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>E-mail do pagador</Label>
+                            <Input type="email" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} />
+                          </div>
+                          <div>
+                            <Label>CPF/CNPJ do pagador</Label>
+                            <Input value={payerCpf} onChange={(e) => setPayerCpf(e.target.value)} />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Telefone do pagador</Label>
+                          <Input value={payerPhone} onChange={(e) => setPayerPhone(formatPhone(e.target.value))} placeholder="(11) 91234-5678" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <Label>Número do cartão</Label>
                     <Input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="0000 0000 0000 0000" />
