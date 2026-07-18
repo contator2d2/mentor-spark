@@ -94,6 +94,8 @@ type Payload = {
     };
     eventInfo?: { date?: string; time?: string; location?: string; extra?: string };
     urgencyText?: string;
+    gallery?: string[];
+    showcase?: { imageUrl?: string; title?: string; eyebrow?: string; text?: string; bullets?: string[]; side?: "left" | "right" }[];
     countdown?: {
       enabled?: boolean;
       endsAt?: string;
