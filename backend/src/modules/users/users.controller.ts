@@ -82,6 +82,8 @@ export class UsersController {
       brandCoursesLayout?: string;
       brandDarkBannerUrl?: string;
       brandDarkLogoUrl?: string;
+      brandOgImageUrl?: string;
+      brandOgDescription?: string;
       customDomain?: string;
       slug?: string;
       demandNotificationSettings?: {
@@ -102,6 +104,8 @@ export class UsersController {
     if (dto.brandCoursesLayout !== undefined) patch.brandCoursesLayout = dto.brandCoursesLayout;
     if (dto.brandDarkBannerUrl !== undefined) patch.brandDarkBannerUrl = dto.brandDarkBannerUrl;
     if (dto.brandDarkLogoUrl !== undefined) patch.brandDarkLogoUrl = dto.brandDarkLogoUrl;
+    if (dto.brandOgImageUrl !== undefined) patch.brandOgImageUrl = dto.brandOgImageUrl;
+    if (dto.brandOgDescription !== undefined) patch.brandOgDescription = dto.brandOgDescription;
     if (dto.demandNotificationSettings !== undefined) patch.demandNotificationSettings = dto.demandNotificationSettings;
 
     if (dto.customDomain) {

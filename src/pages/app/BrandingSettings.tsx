@@ -17,7 +17,9 @@ import {
   AlertCircle,
   QrCode as QrCodeIcon,
   ExternalLink,
+  Share2,
 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { MediaUpload } from "@/components/MediaUpload";
 
 const APP_BASE_DOMAIN =
@@ -45,6 +47,8 @@ export default function BrandingSettings() {
       brandCoursesLayout: (initialData as any)?.brandCoursesLayout || "netflix",
       brandDarkBannerUrl: (initialData as any)?.brandDarkBannerUrl || "",
       brandDarkLogoUrl: (initialData as any)?.brandDarkLogoUrl || "",
+      brandOgImageUrl: (initialData as any)?.brandOgImageUrl || "",
+      brandOgDescription: (initialData as any)?.brandOgDescription || "",
       customDomain: (initialData as any)?.customDomain || "",
    });
    useEffect(() => {
@@ -63,6 +67,8 @@ export default function BrandingSettings() {
            brandCoursesLayout: (data as any).brandCoursesLayout || "netflix",
            brandDarkBannerUrl: (data as any).brandDarkBannerUrl || "",
            brandDarkLogoUrl: (data as any).brandDarkLogoUrl || "",
+           brandOgImageUrl: (data as any).brandOgImageUrl || "",
+           brandOgDescription: (data as any).brandOgDescription || "",
            customDomain: (data as any).customDomain || "",
        });
      }
@@ -87,6 +93,13 @@ export default function BrandingSettings() {
     () => (form.customDomain ? `https://${form.customDomain}` : null),
     [form.customDomain]
   );
+
+  const shareLink = useMemo(() => {
+    const base = form.customDomain
+      ? `https://${form.customDomain}`
+      : currentOrigin;
+    return `${base}/api/public/share/mentor/${form.slug || "seu-slug"}`;
+  }, [form.customDomain, form.slug, currentOrigin]);
 
   function onChange(patch: Partial<typeof form>) {
     const next = { ...form, ...patch };
@@ -262,6 +275,36 @@ export default function BrandingSettings() {
               maxSizeMB={5}
               compact={!!form.brandMobileBannerUrl}
             />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label className="flex items-center gap-2">
+              <Share2 className="h-3.5 w-3.5" />
+              Imagem de compartilhamento (Redes sociais)
+            </Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandOgImageUrl}
+              onChange={(m) => onChange({ brandOgImageUrl: m?.url || "" })}
+              hint="Recomendado: 1200×630 • Aparece no WhatsApp, Facebook, LinkedIn e X quando alguém envia o seu link"
+              maxSizeMB={5}
+              compact={!!form.brandOgImageUrl}
+            />
+            <p className="text-[10px] text-muted-foreground italic">
+              Se ficar em branco, usamos o banner e depois a logo como fallback.
+            </p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Descrição para o preview</Label>
+            <Textarea
+              rows={2}
+              value={form.brandOgDescription}
+              onChange={(e) => onChange({ brandOgDescription: e.target.value })}
+              placeholder="Ex: Área exclusiva de mentoria com cursos, conteúdos e acompanhamento."
+              maxLength={200}
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Texto curto que aparece embaixo do título quando o link é compartilhado. Máx. 200 caracteres.
+            </p>
           </div>
           <div className="space-y-2">
             <Label>Cor primária</Label>
@@ -569,6 +612,52 @@ export default function BrandingSettings() {
             </Button>
           </div>
         )}
+      </section>
+
+      {/* ============== LINK PARA COMPARTILHAR ============== */}
+      <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Share2 className="h-4 w-4 text-accent" />
+          <h2 className="font-semibold">Link para compartilhar em redes sociais</h2>
+          <Badge variant="secondary" className="ml-2">Preview com sua marca</Badge>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Use este link ao postar no WhatsApp, Instagram, LinkedIn ou Facebook. Ele mostra a sua
+          imagem, nome e descrição no card de preview e redireciona automaticamente para a sua área.
+        </p>
+        <div className="flex gap-2">
+          <Input value={shareLink} readOnly className="font-mono text-sm" />
+          <Button variant="outline" size="icon" onClick={() => copy(shareLink, "Link de compartilhamento")}>
+            <Copy className="h-4 w-4" />
+          </Button>
+          <Button variant="outline" size="icon" asChild>
+            <a href={shareLink} target="_blank" rel="noreferrer">
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+        {form.brandOgImageUrl && (
+          <div className="rounded-lg overflow-hidden border border-border bg-muted/30 max-w-md">
+            <div className="aspect-[1200/630] bg-black">
+              <img src={form.brandOgImageUrl} alt="Preview" className="w-full h-full object-cover" />
+            </div>
+            <div className="p-3 space-y-1">
+              <div className="text-[10px] uppercase tracking-wide text-muted-foreground truncate">
+                {form.customDomain || (typeof window !== "undefined" ? window.location.host : "")}
+              </div>
+              <div className="font-semibold text-sm truncate">{form.brandName || "Sua marca"}</div>
+              {form.brandOgDescription && (
+                <div className="text-xs text-muted-foreground line-clamp-2">{form.brandOgDescription}</div>
+              )}
+            </div>
+          </div>
+        )}
+        <div className="text-xs text-muted-foreground bg-muted/40 rounded-md p-3 leading-relaxed">
+          <b>Dica:</b> após alterar a imagem, as redes sociais podem manter o preview antigo em cache.
+          Force uma atualização usando o depurador de links do Facebook
+          (<code>developers.facebook.com/tools/debug</code>) ou do LinkedIn
+          (<code>linkedin.com/post-inspector</code>) e clique em "Scrape Again".
+        </div>
       </section>
 
       <div className="flex justify-end sticky bottom-4">
