@@ -689,6 +689,97 @@ export default function SalesPageEditorPage() {
               <h3 className="font-bold">Urgência / escassez</h3>
               <Textarea rows={2} value={page.urgencyText || ""} onChange={(e) => patch({ urgencyText: e.target.value })} placeholder="Lote 1 esgota em 48h · Vagas limitadas" />
             </Card>
+
+            {/* SHOWCASE: seções imagem + texto */}
+            <Card className="p-6 space-y-4">
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <div>
+                  <h3 className="font-bold">Seções imagem + texto</h3>
+                  <p className="text-xs text-muted-foreground">Blocos alternados (imagem à esquerda / direita) para contar sua história com imagens grandes.</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => patch({ showcase: [...(page.showcase || []), { title: "", text: "", side: (page.showcase?.length || 0) % 2 === 0 ? "left" : "right" }] })}>
+                  <Plus className="h-4 w-4 mr-1" />Adicionar bloco
+                </Button>
+              </div>
+              {(page.showcase || []).map((s, i) => (
+                <div key={i} className="border rounded-lg p-4 space-y-3 bg-muted/30">
+                  <div className="flex justify-between items-center">
+                    <div className="text-sm font-semibold text-muted-foreground">Bloco #{i + 1}</div>
+                    <Button variant="ghost" size="sm" onClick={() => patch({ showcase: (page.showcase || []).filter((_, j) => j !== i) })}>
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-3">
+                    <div>
+                      <Label>Rótulo pequeno (eyebrow)</Label>
+                      <Input value={s.eyebrow || ""} placeholder="Metodologia · Módulo 01 · Diferencial" onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, eyebrow: e.target.value }; patch({ showcase: arr }); }} />
+                    </div>
+                    <div>
+                      <Label>Lado da imagem</Label>
+                      <select
+                        className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm"
+                        value={s.side || (i % 2 === 0 ? "left" : "right")}
+                        onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, side: e.target.value as "left" | "right" }; patch({ showcase: arr }); }}
+                      >
+                        <option value="left">Imagem à esquerda</option>
+                        <option value="right">Imagem à direita</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Título</Label>
+                    <Input value={s.title || ""} placeholder="Você vai sair com um plano prático" onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, title: e.target.value }; patch({ showcase: arr }); }} />
+                  </div>
+                  <div>
+                    <Label>Texto</Label>
+                    <Textarea rows={4} value={s.text || ""} onChange={(e) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, text: e.target.value }; patch({ showcase: arr }); }} />
+                  </div>
+                  <div>
+                    <div className="flex justify-between items-center mb-2">
+                      <Label>Bullets (opcional)</Label>
+                      <Button variant="ghost" size="sm" onClick={() => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, bullets: [...(s.bullets || []), ""] }; patch({ showcase: arr }); }}>
+                        <Plus className="h-3 w-3 mr-1" />Adicionar
+                      </Button>
+                    </div>
+                    {(s.bullets || []).map((b, k) => (
+                      <div key={k} className="flex gap-2 mb-2">
+                        <Input value={b} onChange={(e) => { const arr = [...(page.showcase || [])]; const bullets = [...(s.bullets || [])]; bullets[k] = e.target.value; arr[i] = { ...s, bullets }; patch({ showcase: arr }); }} />
+                        <Button variant="ghost" size="sm" onClick={() => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, bullets: (s.bullets || []).filter((_, j) => j !== k) }; patch({ showcase: arr }); }}>
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                  <ImageUploadField label="Imagem" value={s.imageUrl} onChange={(url) => { const arr = [...(page.showcase || [])]; arr[i] = { ...s, imageUrl: url }; patch({ showcase: arr }); }} aspect="4/3" />
+                </div>
+              ))}
+            </Card>
+
+            {/* GALERIA */}
+            <Card className="p-6 space-y-4">
+              <div className="flex justify-between items-center flex-wrap gap-2">
+                <div>
+                  <h3 className="font-bold">Galeria de imagens</h3>
+                  <p className="text-xs text-muted-foreground">Fotos de edições anteriores, bastidores ou provas sociais em grid.</p>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => patch({ gallery: [...(page.gallery || []), ""] })}>
+                  <Plus className="h-4 w-4 mr-1" />Adicionar imagem
+                </Button>
+              </div>
+              <div className="grid md:grid-cols-2 gap-3">
+                {(page.gallery || []).map((url, i) => (
+                  <div key={i} className="border rounded-lg p-3 space-y-2 bg-muted/30 relative">
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs font-semibold text-muted-foreground">Imagem #{i + 1}</div>
+                      <Button variant="ghost" size="sm" onClick={() => patch({ gallery: (page.gallery || []).filter((_, j) => j !== i) })}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                    <ImageUploadField value={url} onChange={(newUrl) => { const arr = [...(page.gallery || [])]; arr[i] = newUrl; patch({ gallery: arr }); }} aspect="4/3" label="" />
+                  </div>
+                ))}
+              </div>
+            </Card>
           </TabsContent>
         )}
 
