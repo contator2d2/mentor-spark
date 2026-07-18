@@ -103,7 +103,7 @@ export class SalesPagesService {
       'maxInstallments', 'paymentMode', 'subscriptionCycle', 'paymentProviderId',
       'theme', 'seo', 'published',
       'template', 'forWho', 'notForWho', 'agenda', 'about', 'eventInfo', 'urgencyText',
-      'coupons', 'countdown',
+      'coupons', 'countdown', 'gallery', 'showcase',
     ];
     for (const k of editable) {
       if (dto[k] !== undefined) (p as any)[k] = dto[k];
