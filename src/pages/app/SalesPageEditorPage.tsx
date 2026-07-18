@@ -114,6 +114,8 @@ type SalesPage = {
   forWho?: string[];
   notForWho?: string[];
   agenda?: AgendaItem[];
+  gallery?: string[];
+  showcase?: { imageUrl?: string; title?: string; eyebrow?: string; text?: string; bullets?: string[]; side?: "left" | "right" }[];
   about?: {
     name?: string;
     role?: string;
