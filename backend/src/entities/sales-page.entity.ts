@@ -57,6 +57,15 @@ export interface SalesPageEventInfo {
   extra?: string;     // "Credenciamento a partir das 8h30"
 }
 
+export interface SalesPageShowcase {
+  imageUrl?: string;
+  title?: string;
+  eyebrow?: string;
+  text?: string;
+  bullets?: string[];
+  side?: 'left' | 'right'; // lado da imagem no desktop
+}
+
 export interface SalesPageCountdown {
   enabled?: boolean;
   endsAt?: string;   // ISO date-time — quando a oferta termina
@@ -216,6 +225,14 @@ export class SalesPage {
 
   @Column({ type: 'text', nullable: true })
   urgencyText?: string;
+
+  /** Galeria de imagens exibida como grid (bastidores, edições anteriores). */
+  @Column({ type: 'jsonb', default: '[]' })
+  gallery: string[];
+
+  /** Seções alternadas de imagem + texto (storytelling / módulos). */
+  @Column({ type: 'jsonb', default: '[]' })
+  showcase: SalesPageShowcase[];
 
   /** Contagem regressiva opcional (ativada pelo mentor no editor). */
   @Column({ type: 'jsonb', nullable: true })
