@@ -226,6 +226,14 @@ export class SalesPage {
   @Column({ type: 'text', nullable: true })
   urgencyText?: string;
 
+  /** Galeria de imagens exibida como grid (bastidores, edições anteriores). */
+  @Column({ type: 'jsonb', default: '[]' })
+  gallery: string[];
+
+  /** Seções alternadas de imagem + texto (storytelling / módulos). */
+  @Column({ type: 'jsonb', default: '[]' })
+  showcase: SalesPageShowcase[];
+
   /** Contagem regressiva opcional (ativada pelo mentor no editor). */
   @Column({ type: 'jsonb', nullable: true })
   countdown?: SalesPageCountdown;
