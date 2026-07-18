@@ -396,7 +396,11 @@ export default function SalesPagePublic() {
           style={{ objectPosition: page.theme?.heroFocus || "center" }}
         />
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 md:hidden"
+          style={{ background: `linear-gradient(180deg, rgba(10,10,10,0.75) 0%, rgba(10,10,10,0.4) 50%, rgba(10,10,10,0.9) 100%)` }}
+        />
+        <div
+          className="hidden md:block absolute inset-0"
           style={{ background: `linear-gradient(90deg, rgba(10,10,10,${page.theme?.heroOverlay ?? 0.75}) 0%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.7}) 45%, rgba(10,10,10,${(page.theme?.heroOverlay ?? 0.75) * 0.2}) 100%)` }}
         />
         <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(50% 60% at 85% 50%, rgba(201,168,76,0.25) 0%, transparent 70%)" }} />
