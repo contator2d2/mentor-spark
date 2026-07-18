@@ -1713,6 +1713,7 @@ function CheckoutDialog({
   const [addressNumber, setAddressNumber] = useState("");
 
   const [pix, setPix] = useState<{ payload?: string; qrImage?: string } | null>(null);
+  const [isFree, setIsFree] = useState(false);
 
   const [couponCode, setCouponCode] = useState("");
   const [coupon, setCoupon] = useState<{
@@ -1810,12 +1811,40 @@ function CheckoutDialog({
     if (!isValidEmail(email)) { toast.error("E-mail inválido"); return; }
     if (!isValidWhats(phone)) { toast.error("WhatsApp inválido — use DDD + número"); return; }
     if (!cpfCnpj.trim()) { toast.error("Informe CPF ou CNPJ"); return; }
+    // Cupom 100% → inscrição gratuita, pula etapa de pagamento e envia direto.
+    if (coupon?.valid && (coupon.finalCents ?? 0) === 0) {
+      submitFree();
+      return;
+    }
     // Pré-popula dados do pagador iguais aos do inscrito.
     if (payerSameAsEnrollee) {
       setPayerName(name); setPayerEmail(email);
       setPayerCpf(cpfCnpj); setPayerPhone(phone);
     }
     setStep("payment");
+  };
+
+  const submitFree = async () => {
+    setLoading(true);
+    try {
+      const body: any = {
+        name, email, cpfCnpj, phone, company, billingType: "PIX",
+        couponCode: couponCode.trim(),
+      };
+      const r = await fetch(`${API_BASE}/public/sales-pages/${mentorSlug}/${pageSlug}/checkout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data?.message || "Falha ao confirmar inscrição");
+      setIsFree(true);
+      setStep("success");
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const submit = async () => {
@@ -1940,8 +1969,54 @@ function CheckoutDialog({
                 </div>
               </div>
             </div>
-            <Button onClick={goToPayment} className="w-full bg-primary hover:opacity-90">
-              Continuar para pagamento →
+
+            {/* Cupom já na etapa 1 — permite descobrir se a inscrição fica grátis */}
+            <div className="rounded-lg border p-3 space-y-2 bg-muted/20">
+              <Label className="flex items-center gap-2 text-sm">
+                <Ticket className="h-4 w-4" /> Tem um cupom? <span className="text-muted-foreground font-normal">(opcional)</span>
+              </Label>
+              {coupon?.valid ? (
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-emerald-600 text-sm">
+                    <Check className="h-4 w-4" />
+                    <span className="font-mono font-semibold">{coupon.code}</span>
+                    <span className="text-muted-foreground">
+                      {(coupon.finalCents ?? 0) === 0
+                        ? "— 100% de desconto"
+                        : `-${money(coupon.discountCents || 0)}`}
+                    </span>
+                  </div>
+                  <Button type="button" variant="ghost" size="sm" onClick={removeCoupon}>Remover</Button>
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    placeholder="Digite o código"
+                    className="font-mono uppercase"
+                  />
+                  <Button
+                    type="button" variant="outline"
+                    onClick={applyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                  >
+                    {validatingCoupon ? <Loader2 className="h-4 w-4 animate-spin" /> : "Aplicar"}
+                  </Button>
+                </div>
+              )}
+              {coupon?.valid && (coupon.finalCents ?? 0) === 0 && (
+                <p className="text-xs text-emerald-600">
+                  ✓ Este cupom cobre 100% do valor — sua inscrição será confirmada sem pagamento.
+                </p>
+              )}
+            </div>
+
+            <Button onClick={goToPayment} disabled={loading} className="w-full bg-primary hover:opacity-90">
+              {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
+              {coupon?.valid && (coupon.finalCents ?? 0) === 0
+                ? "Confirmar inscrição gratuita"
+                : "Continuar para pagamento →"}
             </Button>
             <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3" /> Seus dados são processados com segurança pela Asaas
@@ -2172,9 +2247,13 @@ function CheckoutDialog({
             <div className="h-14 w-14 rounded-full bg-primary/15 flex items-center justify-center mx-auto">
               <CheckCircle2 className="h-8 w-8 text-primary" />
             </div>
-            <h3 className="font-bold text-lg">Pagamento em processamento</h3>
+            <h3 className="font-bold text-lg">
+              {isFree ? "Inscrição confirmada!" : "Pagamento em processamento"}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              Você receberá a confirmação por e-mail assim que a Asaas aprovar o cartão.
+              {isFree
+                ? "Seu cupom cobriu 100% do valor. Enviamos as instruções de acesso por e-mail e WhatsApp."
+                : "Você receberá a confirmação por e-mail assim que a Asaas aprovar o cartão."}
             </p>
             <Button onClick={onClose} className="w-full">Fechar</Button>
           </div>

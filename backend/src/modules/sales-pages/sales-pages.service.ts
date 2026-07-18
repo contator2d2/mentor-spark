@@ -385,9 +385,79 @@ Gere o JSON agora.`;
       appliedCoupon = res.coupon;
       discountCents = res.discountCents;
       chargeCents = res.finalCents;
-      if (chargeCents < 100) {
+      // Se cupom zera o valor → inscrição gratuita (skip Asaas).
+      if (chargeCents > 0 && chargeCents < 100) {
         throw new BadRequestException('Valor final após desconto é menor que R$ 1,00.');
       }
+    }
+
+    // ============ Fluxo GRATUITO (cupom 100%) ============
+    if (chargeCents === 0 && appliedCoupon) {
+      // Registra lead e marca cupom como usado, sem chamar Asaas.
+      let freeLeadId: string | null = null;
+      try {
+        const { lead } = await this.leads.createFromCapture({
+          mentorId: mentor.id,
+          mentorBrand: mentor.brandName || 'Mentor Glee-go',
+          name: dto.name,
+          email: dto.email,
+          phone: dto.phone,
+          company: dto.company,
+          source: `sales_page:${page.slug}`,
+          purchase: {
+            couponCode: appliedCoupon.code,
+            paymentMethod: 'FREE',
+            installments: 1,
+            amountCents: 0,
+            asaasChargeId: undefined,
+          },
+        });
+        freeLeadId = lead.id;
+        await this.automations.fire({
+          type: 'lead_created',
+          mentorId: mentor.id,
+          leadId: lead.id,
+          data: { source: `sales_page:${page.slug}`, salesPageId: page.id, free: true },
+        });
+      } catch (e: any) {
+        this.logger.warn(`Falha ao registrar lead grátis: ${e?.message}`);
+      }
+      try {
+        const idx = (page.coupons || []).findIndex(
+          (c) => (c.code || '').toUpperCase() === appliedCoupon!.code.toUpperCase(),
+        );
+        if (idx >= 0) {
+          const list = [...(page.coupons || [])];
+          const cur = { ...list[idx] };
+          cur.usedCount = (cur.usedCount || 0) + 1;
+          if (cur.oneUsePerPerson) {
+            const emails = new Set([
+              ...(cur.usedEmails || []).map((x) => x.toLowerCase()),
+              dto.email.toLowerCase(),
+            ]);
+            cur.usedEmails = Array.from(emails);
+          }
+          list[idx] = cur;
+          page.coupons = list;
+          await this.pages.save(page);
+        }
+      } catch (e: any) {
+        this.logger.warn(`Falha ao marcar cupom grátis usado: ${e?.message}`);
+      }
+      return {
+        ok: true,
+        free: true,
+        chargeId: null,
+        status: 'CONFIRMED',
+        billingType: 'FREE',
+        value: 0,
+        originalValue: page.priceCents / 100,
+        discountValue: discountCents / 100,
+        couponCode: appliedCoupon.code,
+        invoiceUrl: null,
+        bankSlipUrl: null,
+        pix: null,
+      };
     }
 
     // Carrega provider com apiKey
