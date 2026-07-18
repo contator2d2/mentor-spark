@@ -94,6 +94,13 @@ export default function BrandingSettings() {
     [form.customDomain]
   );
 
+  const shareLink = useMemo(() => {
+    const base = form.customDomain
+      ? `https://${form.customDomain}`
+      : currentOrigin;
+    return `${base}/api/public/share/mentor/${form.slug || "seu-slug"}`;
+  }, [form.customDomain, form.slug, currentOrigin]);
+
   function onChange(patch: Partial<typeof form>) {
     const next = { ...form, ...patch };
     setForm(next);
