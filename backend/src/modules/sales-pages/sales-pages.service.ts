@@ -523,13 +523,16 @@ Gere o JSON agora.`;
         const explicitRate = Number((page as any).installmentInterestRate || 0) / 100;
         const displayCents = Number((page as any).installmentDisplayCents || 0);
         const N = page.maxInstallments;
-        const pvCents = Math.round(value * 100);
+        // Taxa derivada do preço ORIGINAL (sem cupom) — corresponde à taxa
+        // implícita configurada pelo mentor em "Nx de R$ X". Depois aplicamos
+        // essa mesma taxa ao valor com desconto (chargeCents).
+        const originalPvCents = page.priceCents;
         let rate = explicitRate;
-        if (displayCents > 0 && N > 1 && pvCents > 0 && displayCents * N > pvCents) {
+        if (displayCents > 0 && N > 1 && originalPvCents > 0 && displayCents * N > originalPvCents) {
           let lo = 0, hi = 5;
           for (let k = 0; k < 80; k++) {
             const mid = (lo + hi) / 2;
-            const calc = pvCents * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
+            const calc = originalPvCents * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
             if (calc > displayCents) hi = mid; else lo = mid;
           }
           rate = (lo + hi) / 2;
