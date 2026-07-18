@@ -1715,7 +1715,28 @@ function CheckoutDialog({
   const finalCents = coupon?.valid ? (coupon.finalCents ?? page.priceCents) : page.priceCents;
 
   // Cálculo de parcelamento com juros (Tabela Price). Rate=0 => sem juros.
-  const interestRate = Number(page.installmentInterestRate || 0) / 100;
+  // Se `installmentDisplayCents` estiver definido, derivamos a taxa mensal
+  // implícita a partir do valor exibido para maxInstallments, e usamos essa
+  // mesma taxa para as parcelas menores. 1x sempre à vista (sem juros).
+  const explicitRate = Number(page.installmentInterestRate || 0) / 100;
+  const deriveRateFromDisplay = () => {
+    const N = page.maxInstallments;
+    const pmt = page.installmentDisplayCents || 0;
+    if (!pmt || N <= 1 || finalCents <= 0) return 0;
+    // se pmt*N <= pv, não há juros
+    if (pmt * N <= finalCents) return 0;
+    // Bisseção para achar i em (0, 5)
+    let lo = 0, hi = 5;
+    for (let k = 0; k < 80; k++) {
+      const mid = (lo + hi) / 2;
+      const calc = finalCents * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
+      if (calc > pmt) hi = mid; else lo = mid;
+    }
+    return (lo + hi) / 2;
+  };
+  const interestRate = page.installmentDisplayCents && page.installmentDisplayCents > 0
+    ? deriveRateFromDisplay()
+    : explicitRate;
   const computeInstallment = (n: number) => {
     if (n <= 1 || interestRate <= 0) {
       return { perInstallment: Math.round(finalCents / n), total: finalCents, hasInterest: false };
