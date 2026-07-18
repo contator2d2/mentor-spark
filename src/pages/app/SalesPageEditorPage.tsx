@@ -69,7 +69,7 @@ type SalesPage = {
   paymentProviderId?: string | null;
   published: boolean;
   seo?: { title?: string; description?: string; ogImage?: string };
-  template?: "classic" | "long_form";
+  template?: "classic" | "long_form" | "immersion";
   theme?: Theme;
   forWho?: string[];
   notForWho?: string[];
@@ -244,7 +244,7 @@ export default function SalesPageEditorPage() {
           <TabsTrigger value="ai"><Sparkles className="h-3 w-3 mr-1" />Gerar com IA</TabsTrigger>
           <TabsTrigger value="design">Design</TabsTrigger>
           <TabsTrigger value="content">Conteúdo</TabsTrigger>
-          {page.template === "long_form" && (
+          {(page.template === "long_form" || page.template === "immersion") && (
             <TabsTrigger value="longform">Versão completa</TabsTrigger>
           )}
           <TabsTrigger value="offer">Oferta</TabsTrigger>
@@ -258,10 +258,11 @@ export default function SalesPageEditorPage() {
             <div>
               <h3 className="font-bold mb-1">Modelo da página</h3>
               <p className="text-sm text-muted-foreground mb-3">Escolha um layout base. Você ainda pode ajustar cores e conteúdo.</p>
-              <div className="grid md:grid-cols-2 gap-3">
+              <div className="grid md:grid-cols-3 gap-3">
                 {[
                   { id: "classic", title: "Clássico premium", desc: "Hero dark elegante com foto/vídeo + benefícios + FAQ. Ideal para mentorias, cursos e ebooks." },
                   { id: "long_form", title: "Versão completa (imersão)", desc: "Longa e persuasiva: hero, para quem é/não é, agenda, sobre o mentor, urgência e múltiplos CTAs. Ideal para eventos e imersões." },
+                  { id: "immersion", title: "Imersão presencial (evento)", desc: "Estrutura de página de evento presencial: hero + vídeo, barra de infos (data/hora/local), pra você/não é, pilares numerados, investimento e FAQ." },
                 ].map((t) => (
                   <button
                     key={t.id}
