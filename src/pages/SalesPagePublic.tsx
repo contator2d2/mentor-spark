@@ -1879,11 +1879,89 @@ function CheckoutDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(displayTotal)}`}</DialogTitle>
+          <DialogTitle>
+            {step === "success"
+              ? "Compra confirmada"
+              : step === "enrollment"
+                ? "Etapa 1 de 2 — Dados da inscrição"
+                : step === "payment"
+                  ? `Etapa 2 de 2 — Pagamento — ${money(displayTotal)}`
+                  : `Finalizar compra — ${money(displayTotal)}`}
+          </DialogTitle>
         </DialogHeader>
 
-        {step === "form" && (
+        {/* Indicador visual das etapas */}
+        {(step === "enrollment" || step === "payment") && (
+          <div className="flex items-center gap-2 pb-1">
+            <div className={`flex-1 h-1.5 rounded-full ${step === "enrollment" ? "bg-primary" : "bg-emerald-500"}`} />
+            <div className={`flex-1 h-1.5 rounded-full ${step === "payment" ? "bg-primary" : "bg-muted"}`} />
+          </div>
+        )}
+
+        {step === "enrollment" && (
           <div className="space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Preencha os dados de quem está sendo <b>inscrito(a)</b>. No próximo passo você escolhe a forma de pagamento — se o cartão for de outra pessoa, é só marcar a opção lá.
+            </p>
+            <div className="grid gap-3">
+              <div>
+                <Label>Nome completo do inscrito</Label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Como consta no documento" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>E-mail</Label>
+                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="voce@email.com" />
+                </div>
+                <div>
+                  <Label>CPF/CNPJ</Label>
+                  <Input value={cpfCnpj} onChange={(e) => setCpfCnpj(e.target.value)} placeholder="000.000.000-00" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <Label>WhatsApp</Label>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhone(e.target.value))}
+                    placeholder="(11) 91234-5678"
+                    inputMode="tel"
+                    className={phone && !isValidWhats(phone) ? "border-red-500" : ""}
+                  />
+                  {phone && (
+                    <p className={`text-xs mt-1 ${isValidWhats(phone) ? "text-emerald-600" : "text-red-500"}`}>
+                      {isValidWhats(phone) ? "✓ Número válido" : "Formato inválido — DDD + celular com 9"}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <Label>Empresa <span className="text-muted-foreground">(opcional)</span></Label>
+                  <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Nome da empresa" />
+                </div>
+              </div>
+            </div>
+            <Button onClick={goToPayment} className="w-full bg-primary hover:opacity-90">
+              Continuar para pagamento →
+            </Button>
+            <div className="flex items-center justify-center gap-1 text-xs text-muted-foreground">
+              <ShieldCheck className="h-3 w-3" /> Seus dados são processados com segurança pela Asaas
+            </div>
+          </div>
+        )}
+
+        {step === "payment" && (
+          <div className="space-y-4">
+            <div className="rounded-lg border p-3 bg-muted/20 text-xs flex items-start justify-between gap-3">
+              <div>
+                <div className="font-semibold">Inscrição de:</div>
+                <div className="text-muted-foreground">{name} · {email}</div>
+                <div className="text-muted-foreground">{phone}{company ? ` · ${company}` : ""}</div>
+              </div>
+              <button type="button" className="text-primary underline shrink-0" onClick={() => setStep("enrollment")}>
+                editar
+              </button>
+            </div>
+
             <Tabs value={method} onValueChange={(v: any) => setMethod(v)}>
               <TabsList className="grid grid-cols-2 w-full">
                 <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX <span className="ml-1 text-[10px] opacity-70">sem juros</span></TabsTrigger>
@@ -1892,28 +1970,45 @@ function CheckoutDialog({
             </Tabs>
 
             <div className="grid gap-3">
-              <div>
-                <Label>Nome completo</Label>
-                <Input value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>E-mail</Label>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-                <div>
-                  <Label>CPF/CNPJ</Label>
-                  <Input value={cpfCnpj} onChange={(e) => setCpfCnpj(e.target.value)} />
-                </div>
-              </div>
-              <div>
-                <Label>Telefone</Label>
-                <Input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(11) 99999-9999" />
-              </div>
-
               {method === "CREDIT_CARD" && (
                 <>
-                  <div className="pt-2 border-t" />
+                  {/* Dados do dono do cartão (pagador) */}
+                  <div className="rounded-lg border p-3 space-y-3 bg-muted/10">
+                    <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={payerSameAsEnrollee}
+                        onChange={(e) => setPayerSameAsEnrollee(e.target.checked)}
+                      />
+                      Sou eu que estou pagando (mesmos dados da inscrição)
+                    </label>
+                    {!payerSameAsEnrollee && (
+                      <div className="grid gap-3 pt-1">
+                        <div className="text-xs text-muted-foreground">
+                          Informe os dados de quem <b>é dono do cartão</b> — obrigatório para a Asaas validar a cobrança.
+                        </div>
+                        <div>
+                          <Label>Nome do pagador</Label>
+                          <Input value={payerName} onChange={(e) => setPayerName(e.target.value)} />
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <Label>E-mail do pagador</Label>
+                            <Input type="email" value={payerEmail} onChange={(e) => setPayerEmail(e.target.value)} />
+                          </div>
+                          <div>
+                            <Label>CPF/CNPJ do pagador</Label>
+                            <Input value={payerCpf} onChange={(e) => setPayerCpf(e.target.value)} />
+                          </div>
+                        </div>
+                        <div>
+                          <Label>Telefone do pagador</Label>
+                          <Input value={payerPhone} onChange={(e) => setPayerPhone(formatPhone(e.target.value))} placeholder="(11) 91234-5678" />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <div>
                     <Label>Número do cartão</Label>
                     <Input value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} placeholder="0000 0000 0000 0000" />
