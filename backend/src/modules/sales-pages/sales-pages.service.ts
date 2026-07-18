@@ -516,6 +516,13 @@ Gere o JSON agora.`;
         email: dto.email,
         phone: dto.phone,
         source: `sales_page:${page.slug}`,
+        purchase: {
+          couponCode: appliedCoupon?.code || null,
+          paymentMethod: dto.billingType,
+          installments: chargePayload.installmentCount || 1,
+          amountCents: Math.round((chargePayload.totalValue || chargePayload.value || 0) * 100),
+          asaasChargeId: chargeId,
+        },
       });
       createdLeadId = lead.id;
       // Dispara automações configuradas (welcome messages, tarefas, etc.)
