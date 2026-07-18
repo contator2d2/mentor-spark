@@ -446,7 +446,7 @@ export default function SalesPagePublic() {
               </span>
               {page.maxInstallments > 1 && (
                 <span className="text-sm text-white/70">
-                  ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                  ou {installmentText(page)}
                 </span>
               )}
             </div>
@@ -508,7 +508,7 @@ export default function SalesPagePublic() {
               </span>
               {page.maxInstallments > 1 && (
                 <span className="text-sm text-white/60">
-                  ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                  ou {installmentText(page)}
                 </span>
               )}
             </div>
@@ -594,7 +594,7 @@ export default function SalesPagePublic() {
             <span className="font-display text-3xl font-bold text-primary">{money(page.priceCents)}</span>
             {page.maxInstallments > 1 && (
               <span className="text-sm text-muted-foreground">
-                ou {page.maxInstallments}x {money(Math.floor(page.priceCents / page.maxInstallments))}
+                ou {installmentText(page)}
               </span>
             )}
           </div>
@@ -973,7 +973,7 @@ function LongFormLayout({
             <span className="font-display text-4xl md:text-5xl font-bold" style={{ color: accent }}>{money(page.priceCents)}</span>
             {page.maxInstallments > 1 && (
               <span className="text-sm" style={{ color: muted }}>
-                ou até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                ou {installmentText(page)}
               </span>
             )}
           </div>
@@ -1606,7 +1606,7 @@ function ImmersionLayout({
               ) : null}
               {page.maxInstallments > 1 && (
                 <div className="text-base font-medium mb-6" style={{ color: text }}>
-                  à vista ou em até <span className="font-bold" style={{ color: primary }}>{page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}</span>
+                  à vista ou em até <span className="font-bold" style={{ color: primary }}>{installmentText(page)}</span>
                 </div>
               )}
 
