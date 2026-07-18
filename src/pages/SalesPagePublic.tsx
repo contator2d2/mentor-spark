@@ -79,6 +79,9 @@ type Payload = {
       heroStyle?: "split" | "background";
       heroFocus?: string;
       heroOverlay?: number;
+      titleSize?: "sm" | "md" | "lg" | "xl";
+      titleColor?: string;
+      highlightColor?: string;
     };
     forWho?: string[];
     notForWho?: string[];
