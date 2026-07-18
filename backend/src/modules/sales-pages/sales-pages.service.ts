@@ -8,6 +8,8 @@ import {
 import { User, UserStatus } from '../../entities/user.entity';
 import { MentorPaymentProvider, PaymentProviderType } from '../../entities/mentor-payment-provider.entity';
 import { AiService } from '../ai/ai.service';
+import { LeadsService } from '../leads/leads.service';
+import { AutomationsService } from '../automations/automations.service';
 
 function slugify(s: string) {
   return s
@@ -27,6 +29,8 @@ export class SalesPagesService {
     @InjectRepository(User) private users: Repository<User>,
     @InjectRepository(MentorPaymentProvider) private providers: Repository<MentorPaymentProvider>,
     private ai: AiService,
+    private leads: LeadsService,
+    private automations: AutomationsService,
   ) {}
 
   // ==================== CRUD mentor ====================
@@ -500,6 +504,30 @@ Gere o JSON agora.`;
     }
 
     const chargeId = charge.id || charge.installment;
+
+    // Registra o comprador como Lead no sistema (com origem = sales_page:<slug>).
+    // Isso alimenta o CRM do mentor e dispara automações do tipo `lead_created`.
+    let createdLeadId: string | null = null;
+    try {
+      const { lead } = await this.leads.createFromCapture({
+        mentorId: mentor.id,
+        mentorBrand: mentor.brandName || 'Mentor Glee-go',
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        source: `sales_page:${page.slug}`,
+      });
+      createdLeadId = lead.id;
+      // Dispara automações configuradas (welcome messages, tarefas, etc.)
+      await this.automations.fire({
+        type: 'lead_created',
+        mentorId: mentor.id,
+        leadId: lead.id,
+        data: { source: `sales_page:${page.slug}`, salesPageId: page.id, chargeId },
+      });
+    } catch (e: any) {
+      this.logger.warn(`Falha ao registrar lead de sales page: ${e?.message}`);
+    }
 
     // Marca uso do cupom (best-effort). Se der erro persistente, seguimos com a cobrança criada.
     if (appliedCoupon) {
