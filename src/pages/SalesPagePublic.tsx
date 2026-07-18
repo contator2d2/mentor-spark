@@ -1774,14 +1774,14 @@ function CheckoutDialog({
     <Dialog open={open} onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(finalCents)}`}</DialogTitle>
+          <DialogTitle>{step === "success" ? "Compra confirmada" : `Finalizar compra — ${money(displayTotal)}`}</DialogTitle>
         </DialogHeader>
 
         {step === "form" && (
           <div className="space-y-4">
             <Tabs value={method} onValueChange={(v: any) => setMethod(v)}>
               <TabsList className="grid grid-cols-2 w-full">
-                <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX</TabsTrigger>
+                <TabsTrigger value="PIX"><QrCode className="h-4 w-4 mr-2" />PIX <span className="ml-1 text-[10px] opacity-70">sem juros</span></TabsTrigger>
                 <TabsTrigger value="CREDIT_CARD"><CreditCard className="h-4 w-4 mr-2" />Cartão</TabsTrigger>
               </TabsList>
             </Tabs>
