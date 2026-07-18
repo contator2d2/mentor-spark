@@ -14,6 +14,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CheckCircle2, ShieldCheck, Sparkles, Target, TrendingUp, Zap, BookOpen, Clock, Users,
   Loader2, Copy, QrCode, CreditCard, Ticket, Check, Calendar, MapPin, UserCheck, AlertCircle, XCircle, PlayCircle,
+  Rocket, Trophy, Heart, Star, Lightbulb, Award, Briefcase, Brain, DollarSign, Gift,
+  MessageCircle, Mic, Video as VideoIcon, Globe, Compass, Flag, Flame, Gem, GraduationCap, Handshake,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +28,30 @@ const ICONS: Record<string, any> = {
   "book-open": BookOpen,
   clock: Clock,
   users: Users,
+  rocket: Rocket,
+  trophy: Trophy,
+  heart: Heart,
+  star: Star,
+  lightbulb: Lightbulb,
+  award: Award,
+  briefcase: Briefcase,
+  brain: Brain,
+  "dollar-sign": DollarSign,
+  gift: Gift,
+  "message-circle": MessageCircle,
+  mic: Mic,
+  video: VideoIcon,
+  globe: Globe,
+  compass: Compass,
+  flag: Flag,
+  flame: Flame,
+  gem: Gem,
+  "graduation-cap": GraduationCap,
+  handshake: Handshake,
+  calendar: Calendar,
+  "map-pin": MapPin,
+  check: Check,
+  "check-circle": CheckCircle2,
 };
 
 type Payload = {
