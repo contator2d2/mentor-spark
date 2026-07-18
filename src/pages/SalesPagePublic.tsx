@@ -1374,6 +1374,31 @@ function ImmersionLayout({
         </section>
       )}
 
+      {/* GALERIA — grid de imagens (edições anteriores, bastidores) */}
+      {(page.gallery?.length || 0) > 0 && (
+        <section className="py-16 md:py-20">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="text-center mb-10">
+              <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Bastidores</div>
+              <h2 className="font-display text-3xl md:text-4xl font-bold" style={{ color: text }}>
+                Como é <span style={{ color: primary }}>por dentro</span>
+              </h2>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4">
+              {page.gallery!.map((url, i) => (
+                <div
+                  key={i}
+                  className={`overflow-hidden rounded-2xl ${i % 5 === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto" : "aspect-square"}`}
+                  style={{ border: `1px solid ${border}`, boxShadow: `0 20px 40px -20px ${primary}44` }}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover transition-transform duration-500 hover:scale-105" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* SOBRE — quem conduz */}
       {(() => {
         const about = page.about;
