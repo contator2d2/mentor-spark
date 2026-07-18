@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ImageUploadField } from "@/components/ImageUploadField";
+import { MediaUpload } from "@/components/MediaUpload";
 import { ArrowLeft, Sparkles, Loader2, Save, Plus, Trash2, ExternalLink, Copy, Rocket } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,6 +42,9 @@ type Theme = {
   heroStyle?: "split" | "background";
   heroFocus?: string;
   heroOverlay?: number;
+  titleSize?: "sm" | "md" | "lg" | "xl";
+  titleColor?: string;
+  highlightColor?: string;
 };
 
 type SalesPage = {
