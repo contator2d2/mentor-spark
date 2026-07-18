@@ -276,6 +276,36 @@ export default function BrandingSettings() {
               compact={!!form.brandMobileBannerUrl}
             />
           </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label className="flex items-center gap-2">
+              <Share2 className="h-3.5 w-3.5" />
+              Imagem de compartilhamento (Redes sociais)
+            </Label>
+            <MediaUpload
+              accept={["image"]}
+              value={form.brandOgImageUrl}
+              onChange={(m) => onChange({ brandOgImageUrl: m?.url || "" })}
+              hint="Recomendado: 1200×630 • Aparece no WhatsApp, Facebook, LinkedIn e X quando alguém envia o seu link"
+              maxSizeMB={5}
+              compact={!!form.brandOgImageUrl}
+            />
+            <p className="text-[10px] text-muted-foreground italic">
+              Se ficar em branco, usamos o banner e depois a logo como fallback.
+            </p>
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label>Descrição para o preview</Label>
+            <Textarea
+              rows={2}
+              value={form.brandOgDescription}
+              onChange={(e) => onChange({ brandOgDescription: e.target.value })}
+              placeholder="Ex: Área exclusiva de mentoria com cursos, conteúdos e acompanhamento."
+              maxLength={200}
+            />
+            <p className="text-[10px] text-muted-foreground">
+              Texto curto que aparece embaixo do título quando o link é compartilhado. Máx. 200 caracteres.
+            </p>
+          </div>
           <div className="space-y-2">
             <Label>Cor primária</Label>
             <div className="flex gap-2 items-center">
