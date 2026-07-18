@@ -443,7 +443,22 @@ Gere o JSON agora.`;
       chargePayload.installmentCount = Math.max(1, Math.min(dto.installments || 1, page.maxInstallments));
       if (chargePayload.installmentCount > 1) {
         // Juros repassados ao cliente (Tabela Price). Se rate=0, mantém sem juros.
-        const rate = Number((page as any).installmentInterestRate || 0) / 100;
+        // Se `installmentDisplayCents` estiver definido, derivamos a taxa a partir
+        // do valor exibido para `maxInstallments` (mesmo cálculo do frontend).
+        const explicitRate = Number((page as any).installmentInterestRate || 0) / 100;
+        const displayCents = Number((page as any).installmentDisplayCents || 0);
+        const N = page.maxInstallments;
+        const pvCents = Math.round(value * 100);
+        let rate = explicitRate;
+        if (displayCents > 0 && N > 1 && pvCents > 0 && displayCents * N > pvCents) {
+          let lo = 0, hi = 5;
+          for (let k = 0; k < 80; k++) {
+            const mid = (lo + hi) / 2;
+            const calc = pvCents * (mid * Math.pow(1 + mid, N)) / (Math.pow(1 + mid, N) - 1);
+            if (calc > displayCents) hi = mid; else lo = mid;
+          }
+          rate = (lo + hi) / 2;
+        }
         const n = chargePayload.installmentCount;
         let totalValue = value;
         if (rate > 0) {
