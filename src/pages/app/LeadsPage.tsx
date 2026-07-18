@@ -467,6 +467,75 @@ function Column({
         </Badge>
       </div>
 
+      {/* FILTROS FINANCEIROS (conciliação Asaas) */}
+      <div className="glass-card rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm">
+          <Tag className="h-4 w-4 text-primary" />
+          <span className="font-medium">Filtros financeiros</span>
+          <span className="text-xs text-muted-foreground">— use para conferir vendas Asaas por cupom, método ou origem</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Cupom</Label>
+            <Select value={filterCoupon} onValueChange={setFilterCoupon}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="__any__">Com qualquer cupom</SelectItem>
+                <SelectItem value="__none__">Sem cupom</SelectItem>
+                {couponOptions.map((c) => (
+                  <SelectItem key={c} value={c}>🎟️ {c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Método de pagamento</Label>
+            <Select value={filterPayment} onValueChange={setFilterPayment}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="PIX">PIX</SelectItem>
+                <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
+                <SelectItem value="BOLETO">Boleto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Origem</Label>
+            <Select value={filterSource} onValueChange={setFilterSource}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="__salespage__">Todas as páginas de venda</SelectItem>
+                {sourceOptions.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {(filterCoupon !== "all" || filterPayment !== "all" || filterSource !== "all") && (
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
+            <div className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{financeStats.count}</span> compras ·{" "}
+              <span className="font-semibold text-emerald-400">
+                R$ {(financeStats.totalCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>{" "}
+              · PIX {financeStats.pix} · Cartão {financeStats.card} · Com cupom {financeStats.withCoupon}
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="ml-auto h-7 text-xs"
+              onClick={() => { setFilterCoupon("all"); setFilterPayment("all"); setFilterSource("all"); }}
+            >
+              Limpar filtros
+            </Button>
+          </div>
+        )}
+      </div>
+
        {funnelView === "list" ? (
          <div className="space-y-4 animate-fade-in">
            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/40">
