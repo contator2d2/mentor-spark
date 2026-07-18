@@ -581,6 +581,21 @@ function Column({
                    <Badge variant="outline" className="text-[10px] capitalize">
                      {STAGES.find(s => s.id === l.stage)?.label}
                    </Badge>
+                    {l.lastPurchaseCouponCode && (
+                      <Badge className="text-[10px] bg-amber-500/15 text-amber-300 border-amber-500/30">
+                        🎟️ {l.lastPurchaseCouponCode}
+                      </Badge>
+                    )}
+                    {l.lastPurchasePaymentMethod && (
+                      <Badge variant="outline" className="text-[10px] border-primary/40 text-primary/90">
+                        {l.lastPurchasePaymentMethod === "PIX" ? "PIX" : `Cartão ${l.lastPurchaseInstallments || 1}x`}
+                      </Badge>
+                    )}
+                    {l.lastPurchaseAmountCents != null && (
+                      <Badge variant="outline" className="text-[10px]">
+                        R$ {(l.lastPurchaseAmountCents / 100).toFixed(2)}
+                      </Badge>
+                    )}
                    {(l as any).tags?.map((tag: string) => (
                      <Badge key={tag} className="text-[10px] bg-secondary/20 text-secondary-foreground border-secondary/30">
                        <Tag className="h-2 w-2 mr-1" /> {tag}
