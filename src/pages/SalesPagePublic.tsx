@@ -1277,44 +1277,36 @@ function ImmersionLayout({
               </div>
             );
             const imageBlock = s.imageUrl ? (
-              <div className="relative h-[420px] md:h-[560px] w-full overflow-hidden">
+              <div className="relative">
                 <div
-                  className="absolute inset-0 pointer-events-none z-10"
-                  style={{
-                    background: imgRight
-                      ? `linear-gradient(90deg, ${bg} 0%, ${bg}cc 15%, transparent 45%)`
-                      : `linear-gradient(270deg, ${bg} 0%, ${bg}cc 15%, transparent 45%)`,
-                  }}
+                  className="absolute -inset-6 rounded-[2rem] pointer-events-none"
+                  style={{ background: `radial-gradient(50% 60% at 50% 50%, ${primary}44 0%, transparent 70%)` }}
                 />
                 <div
-                  className="absolute inset-0 pointer-events-none z-10"
-                  style={{ background: `radial-gradient(50% 60% at ${imgRight ? "80%" : "20%"} 50%, ${primary}33 0%, transparent 70%)` }}
-                />
-                <img
-                  src={s.imageUrl}
-                  alt={s.title || ""}
-                  className="absolute inset-0 w-full h-full object-cover"
-                  style={{ objectPosition: imgRight ? "left center" : "right center" }}
-                />
+                  className="relative rounded-2xl overflow-hidden aspect-video"
+                  style={{ boxShadow: `0 40px 100px -20px ${primary}66`, border: `1px solid ${primary}33` }}
+                >
+                  <img
+                    src={s.imageUrl}
+                    alt={s.title || ""}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
             ) : null;
 
             return (
               <section key={i} className="relative">
-                <div className="relative grid md:grid-cols-2 items-center">
+                <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
                   {imgRight ? (
                     <>
-                      <div className="relative z-20 max-w-6xl mx-auto md:mx-0 md:ml-auto w-full px-6 md:pr-10 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] py-12 md:py-0">
-                        {textBlock}
-                      </div>
-                      <div className="relative">{imageBlock}</div>
+                      <div>{textBlock}</div>
+                      <div>{imageBlock}</div>
                     </>
                   ) : (
                     <>
-                      <div className="relative order-2 md:order-1">{imageBlock}</div>
-                      <div className="relative z-20 order-1 md:order-2 max-w-6xl mx-auto md:mx-0 md:mr-auto w-full px-6 md:pl-10 md:pr-[max(1.5rem,calc((100vw-72rem)/2))] py-12 md:py-0">
-                        {textBlock}
-                      </div>
+                      <div className="order-2 md:order-1">{imageBlock}</div>
+                      <div className="order-1 md:order-2">{textBlock}</div>
                     </>
                   )}
                 </div>
