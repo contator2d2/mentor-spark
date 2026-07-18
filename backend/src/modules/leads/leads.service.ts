@@ -20,6 +20,35 @@ export class LeadsService {
     return qb.getMany();
   }
 
+  /** Lista com filtros extras (usado nas telas de conciliação financeira). */
+  listAdvanced(mentorId: string, filter: {
+    stage?: LeadStage;
+    q?: string;
+    source?: string;
+    couponCode?: string;      // "__none__" = leads sem cupom
+    paymentMethod?: string;    // PIX | CREDIT_CARD | BOLETO
+    hasPurchase?: boolean;
+  }) {
+    const qb = this.leads.createQueryBuilder('l').where('l.mentorId = :mentorId', { mentorId }).orderBy('l.updatedAt', 'DESC');
+    if (filter.stage) qb.andWhere('l.stage = :stage', { stage: filter.stage });
+    if (filter.q) qb.andWhere('(l.name ILIKE :q OR l.email ILIKE :q OR l.company ILIKE :q)', { q: `%${filter.q}%` });
+    if (filter.source) qb.andWhere('l.source = :source', { source: filter.source });
+    if (filter.couponCode) {
+      if (filter.couponCode === '__none__') {
+        qb.andWhere('(l.lastPurchaseCouponCode IS NULL OR l.lastPurchaseCouponCode = \'\')');
+      } else {
+        qb.andWhere('UPPER(l.lastPurchaseCouponCode) = UPPER(:coupon)', { coupon: filter.couponCode });
+      }
+    }
+    if (filter.paymentMethod) {
+      qb.andWhere('l.lastPurchasePaymentMethod = :pm', { pm: filter.paymentMethod });
+    }
+    if (filter.hasPurchase) {
+      qb.andWhere('l.lastPurchaseAt IS NOT NULL');
+    }
+    return qb.getMany();
+  }
+
   async getById(mentorId: string, id: string) {
     const lead = await this.leads.findOne({ where: { id, mentorId } });
     if (!lead) throw new NotFoundException('Lead não encontrado');
@@ -44,6 +73,14 @@ export class LeadsService {
     eventId?: string;
     /** Senha definida pelo próprio lead no auto-cadastro público. */
     password?: string;
+    /** Metadados de compra (Asaas) para conciliação financeira. */
+    purchase?: {
+      couponCode?: string | null;
+      paymentMethod?: string;      // PIX | CREDIT_CARD | BOLETO
+      installments?: number;
+      amountCents?: number;
+      asaasChargeId?: string;
+    };
   }) {
     // Cria usuário PROSPECT — usa a senha do lead se informada; senão, gera temporária
     const { user, generatedPassword, userChosePassword } = await this.authService.createProspectUser({
@@ -74,6 +111,19 @@ export class LeadsService {
       await this.leads.save(lead);
     } else if (params.eventId && !lead.eventId) {
       lead.eventId = params.eventId;
+      await this.leads.save(lead);
+    }
+
+    // Se veio metadados de compra, registra na tela do funil para conciliação.
+    if (params.purchase) {
+      lead.lastPurchaseCouponCode = params.purchase.couponCode || undefined;
+      lead.lastPurchasePaymentMethod = params.purchase.paymentMethod;
+      lead.lastPurchaseInstallments = params.purchase.installments;
+      lead.lastPurchaseAmountCents = params.purchase.amountCents;
+      lead.lastPurchaseAsaasChargeId = params.purchase.asaasChargeId;
+      lead.lastPurchaseAt = new Date();
+      // Mantém a origem original se já existir; senão usa a informada.
+      if (params.source && !lead.source) lead.source = params.source;
       await this.leads.save(lead);
     }
 
