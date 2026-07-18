@@ -82,6 +82,7 @@ type Payload = {
       titleSize?: "sm" | "md" | "lg" | "xl";
       titleColor?: string;
       highlightColor?: string;
+      logoUrl?: string;
     };
     forWho?: string[];
     notForWho?: string[];
