@@ -40,6 +40,13 @@ interface Lead {
   temperature?: "cold" | "warm" | "hot";
   score?: number;
   createdAt: string;
+  source?: string;
+  lastPurchaseCouponCode?: string;
+  lastPurchasePaymentMethod?: string;
+  lastPurchaseInstallments?: number;
+  lastPurchaseAmountCents?: number;
+  lastPurchaseAsaasChargeId?: string;
+  lastPurchaseAt?: string;
 }
 
  type FunnelView = "principal" | "hot" | "tested" | "negotiating" | "clients" | "lost" | "list";
@@ -136,6 +143,16 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
           {lead.score != null && (
             <Badge variant="outline" className="text-[10px] h-5 border-border/60 bg-card/40">
               {Math.round(lead.score)}%
+            </Badge>
+          )}
+          {lead.lastPurchaseCouponCode && (
+            <Badge className="text-[10px] h-5 bg-amber-500/15 text-amber-300 border-amber-500/30" title="Cupom aplicado">
+              🎟️ {lead.lastPurchaseCouponCode}
+            </Badge>
+          )}
+          {lead.lastPurchasePaymentMethod && (
+            <Badge variant="outline" className="text-[10px] h-5 border-primary/40 text-primary/90" title="Método de pagamento">
+              {lead.lastPurchasePaymentMethod === "PIX" ? "PIX" : `${lead.lastPurchaseInstallments || 1}x`}
             </Badge>
           )}
         </div>
