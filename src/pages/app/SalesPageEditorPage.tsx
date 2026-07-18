@@ -417,6 +417,62 @@ export default function SalesPageEditorPage() {
 
           <Card className="p-6 space-y-4">
             <div>
+              <h3 className="font-bold mb-1">Título do hero</h3>
+              <p className="text-sm text-muted-foreground mb-3">Ajuste o tamanho e as cores do título principal.</p>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div>
+                  <Label>Tamanho</Label>
+                  <Select
+                    value={page.theme?.titleSize || "lg"}
+                    onValueChange={(v: any) => patch({ theme: { ...(page.theme || {}), titleSize: v } })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sm">Pequeno</SelectItem>
+                      <SelectItem value="md">Médio</SelectItem>
+                      <SelectItem value="lg">Grande (padrão)</SelectItem>
+                      <SelectItem value="xl">Extra grande</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Cor do título</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.titleColor || "#ffffff"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), titleColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.titleColor || ""}
+                      placeholder="auto"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), titleColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label>Cor das palavras em destaque</Label>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="color"
+                      className="h-10 w-14 rounded border cursor-pointer"
+                      value={page.theme?.highlightColor || page.theme?.primaryColor || "#c9a84c"}
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), highlightColor: e.target.value } })}
+                    />
+                    <Input
+                      value={page.theme?.highlightColor || ""}
+                      placeholder="auto (cor primária)"
+                      onChange={(e) => patch({ theme: { ...(page.theme || {}), highlightColor: e.target.value } })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 space-y-4">
+            <div>
               <h3 className="font-bold mb-1">Estilo do hero</h3>
               <p className="text-sm text-muted-foreground mb-3">Como a imagem principal aparece no topo da página.</p>
               <div className="grid md:grid-cols-2 gap-3">
