@@ -505,6 +505,30 @@ Gere o JSON agora.`;
 
     const chargeId = charge.id || charge.installment;
 
+    // Registra o comprador como Lead no sistema (com origem = sales_page:<slug>).
+    // Isso alimenta o CRM do mentor e dispara automações do tipo `lead_created`.
+    let createdLeadId: string | null = null;
+    try {
+      const { lead } = await this.leads.createFromCapture({
+        mentorId: mentor.id,
+        mentorBrand: mentor.brandName || 'Mentor Glee-go',
+        name: dto.name,
+        email: dto.email,
+        phone: dto.phone,
+        source: `sales_page:${page.slug}`,
+      });
+      createdLeadId = lead.id;
+      // Dispara automações configuradas (welcome messages, tarefas, etc.)
+      await this.automations.fire({
+        type: 'lead_created',
+        mentorId: mentor.id,
+        leadId: lead.id,
+        data: { source: `sales_page:${page.slug}`, salesPageId: page.id, chargeId },
+      });
+    } catch (e: any) {
+      this.logger.warn(`Falha ao registrar lead de sales page: ${e?.message}`);
+    }
+
     // Marca uso do cupom (best-effort). Se der erro persistente, seguimos com a cobrança criada.
     if (appliedCoupon) {
       try {
