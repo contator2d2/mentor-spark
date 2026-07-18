@@ -352,8 +352,8 @@ export default function SalesPagePublic() {
       <header className="sticky top-0 z-40 backdrop-blur bg-[#0a0a0a]/80 border-b border-white/5">
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {mentor.brandLogoUrl ? (
-              <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-8 w-8 rounded-lg object-cover" />
+            {(page.theme?.logoUrl || mentor.brandLogoUrl) ? (
+              <img src={(page.theme?.logoUrl || mentor.brandLogoUrl)} alt={mentor.brandName || ""} className="h-8 w-8 rounded-lg object-cover" />
             ) : (
               <div
                 className="h-8 w-8 rounded-lg flex items-center justify-center font-bold text-sm"
@@ -659,8 +659,8 @@ function LongFormLayout({
       >
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            {mentor.brandLogoUrl ? (
-              <img src={mentor.brandLogoUrl} alt={mentor.brandName || ""} className="h-9 w-auto object-contain" />
+            {(page.theme?.logoUrl || mentor.brandLogoUrl) ? (
+              <img src={(page.theme?.logoUrl || mentor.brandLogoUrl)} alt={mentor.brandName || ""} className="h-9 w-auto object-contain" />
             ) : (
               <div className="font-bold" style={{ color: text }}>{mentor.brandName || "Mentoria"}</div>
             )}
@@ -1066,9 +1066,9 @@ function ImmersionLayout({
       >
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
           <div className="flex items-center gap-3 min-w-0">
-            {mentor.brandLogoUrl ? (
+            {(page.theme?.logoUrl || mentor.brandLogoUrl) ? (
               <img
-                src={mentor.brandLogoUrl}
+                src={(page.theme?.logoUrl || mentor.brandLogoUrl)}
                 alt={mentor.brandName || ""}
                 className="h-12 md:h-14 w-auto object-contain"
                 style={{ filter: `drop-shadow(0 0 12px ${primary}55)` }}
@@ -1101,8 +1101,8 @@ function ImmersionLayout({
         />
         <div className="relative max-w-6xl mx-auto px-6 py-16 md:py-24 grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            {mentor.brandLogoUrl && (
-              <img src={mentor.brandLogoUrl} alt="" className="h-10 w-auto object-contain mb-8 opacity-95" />
+            {(page.theme?.logoUrl || mentor.brandLogoUrl) && (
+              <img src={(page.theme?.logoUrl || mentor.brandLogoUrl)} alt="" className="h-10 w-auto object-contain mb-8 opacity-95" />
             )}
             <h1
               className={`font-display font-black leading-[1.05] tracking-tight mb-6 ${titleSizeClass}`}
