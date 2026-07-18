@@ -1244,75 +1244,84 @@ function ImmersionLayout({
 
       {/* SHOWCASE — seções alternadas imagem + texto (storytelling) */}
       {(page.showcase?.length || 0) > 0 && (
-        <section className="py-8">
-          <div className="max-w-6xl mx-auto px-6 space-y-16 md:space-y-24">
-            {page.showcase!.map((s, i) => {
-              const imgSide = s.side || (i % 2 === 0 ? "left" : "right");
-              const imageBlock = s.imageUrl ? (
-                <div className="relative">
-                  <div
-                    className="absolute -inset-6 rounded-3xl opacity-60 blur-3xl pointer-events-none"
-                    style={{ background: `radial-gradient(60% 60% at 50% 50%, ${primary}55, transparent 70%)` }}
-                  />
-                  <img
-                    src={s.imageUrl}
-                    alt={s.title || ""}
-                    className="relative w-full aspect-[4/3] object-cover rounded-2xl"
-                    style={{ boxShadow: `0 40px 100px -20px ${primary}66`, border: `1px solid ${border}` }}
-                  />
-                </div>
-              ) : (
-                <div className="aspect-[4/3] rounded-2xl flex items-center justify-center" style={{ background: surface, border: `1px solid ${border}` }}>
-                  <Sparkles className="h-14 w-14" style={{ color: primary, opacity: 0.6 }} />
-                </div>
-              );
-              const textBlock = (
-                <div>
-                  {s.eyebrow && (
-                    <div className="text-xs uppercase tracking-widest mb-3 font-semibold" style={{ color: primary }}>
-                      {s.eyebrow}
-                    </div>
-                  )}
-                  {s.title && (
-                    <h3 className="font-display text-2xl md:text-4xl font-bold leading-tight mb-4" style={{ color: text }}>
-                      {s.title}
-                    </h3>
-                  )}
-                  {s.text && (
-                    <p className="text-base md:text-lg leading-relaxed whitespace-pre-line mb-4" style={{ color: muted }}>
-                      {s.text}
-                    </p>
-                  )}
-                  {(s.bullets?.length || 0) > 0 && (
-                    <ul className="space-y-3 mt-4">
-                      {s.bullets!.map((b, j) => (
-                        <li key={j} className="flex gap-3">
-                          <CheckCircle2 className="h-5 w-5 shrink-0 mt-1" style={{ color: primary }} />
-                          <span style={{ color: muted }}>{b}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              );
-              return (
-                <div key={i} className="grid md:grid-cols-2 gap-10 md:gap-14 items-center">
-                  {imgSide === "left" ? (
+        <div className="space-y-20 md:space-y-28 py-10">
+          {page.showcase!.map((s, i) => {
+            const imgRight = (s.side || (i % 2 === 0 ? "left" : "right")) !== "left";
+            const textBlock = (
+              <div className="max-w-xl">
+                {s.eyebrow && (
+                  <div className="text-xs uppercase tracking-widest mb-3 font-semibold" style={{ color: primary }}>
+                    {s.eyebrow}
+                  </div>
+                )}
+                {s.title && (
+                  <h3 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-5" style={{ color: text }}>
+                    {s.title}
+                  </h3>
+                )}
+                {s.text && (
+                  <p className="text-base md:text-lg leading-relaxed whitespace-pre-line mb-4" style={{ color: muted }}>
+                    {s.text}
+                  </p>
+                )}
+                {(s.bullets?.length || 0) > 0 && (
+                  <ul className="space-y-3 mt-4">
+                    {s.bullets!.map((b, j) => (
+                      <li key={j} className="flex gap-3">
+                        <CheckCircle2 className="h-5 w-5 shrink-0 mt-1" style={{ color: primary }} />
+                        <span style={{ color: muted }}>{b}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+            const imageBlock = s.imageUrl ? (
+              <div className="relative h-[420px] md:h-[560px] w-full overflow-hidden">
+                <div
+                  className="absolute inset-0 pointer-events-none z-10"
+                  style={{
+                    background: imgRight
+                      ? `linear-gradient(90deg, ${bg} 0%, ${bg}cc 15%, transparent 45%)`
+                      : `linear-gradient(270deg, ${bg} 0%, ${bg}cc 15%, transparent 45%)`,
+                  }}
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none z-10"
+                  style={{ background: `radial-gradient(50% 60% at ${imgRight ? "80%" : "20%"} 50%, ${primary}33 0%, transparent 70%)` }}
+                />
+                <img
+                  src={s.imageUrl}
+                  alt={s.title || ""}
+                  className="absolute inset-0 w-full h-full object-cover"
+                  style={{ objectPosition: imgRight ? "left center" : "right center" }}
+                />
+              </div>
+            ) : null;
+
+            return (
+              <section key={i} className="relative">
+                <div className="relative grid md:grid-cols-2 items-center">
+                  {imgRight ? (
                     <>
-                      {imageBlock}
-                      {textBlock}
+                      <div className="relative z-20 max-w-6xl mx-auto md:mx-0 md:ml-auto w-full px-6 md:pr-10 md:pl-[max(1.5rem,calc((100vw-72rem)/2))] py-12 md:py-0">
+                        {textBlock}
+                      </div>
+                      <div className="relative">{imageBlock}</div>
                     </>
                   ) : (
                     <>
-                      <div className="md:order-2">{imageBlock}</div>
-                      <div className="md:order-1">{textBlock}</div>
+                      <div className="relative order-2 md:order-1">{imageBlock}</div>
+                      <div className="relative z-20 order-1 md:order-2 max-w-6xl mx-auto md:mx-0 md:mr-auto w-full px-6 md:pl-10 md:pr-[max(1.5rem,calc((100vw-72rem)/2))] py-12 md:py-0">
+                        {textBlock}
+                      </div>
                     </>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </section>
+              </section>
+            );
+          })}
+        </div>
       )}
 
       {/* PILARES — features numeradas 01, 02, 03… */}
