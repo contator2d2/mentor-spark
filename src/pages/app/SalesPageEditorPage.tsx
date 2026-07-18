@@ -176,7 +176,7 @@ export default function SalesPageEditorPage() {
         ctaText: g.ctaText || page?.ctaText,
         faqs: g.faqs || [],
         seo: g.seo,
-        ...(page?.template === "long_form" ? {
+        ...((page?.template === "long_form" || page?.template === "immersion") ? {
           forWho: g.forWho || [],
           notForWho: g.notForWho || [],
           agenda: g.agenda || [],
