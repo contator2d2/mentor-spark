@@ -1687,7 +1687,7 @@ function CheckoutDialog({
   mentorSlug: string; pageSlug: string;
   page: Payload["page"];
 }) {
-  const [step, setStep] = useState<"form" | "pix" | "success">("form");
+  const [step, setStep] = useState<"enrollment" | "payment" | "pix" | "success">("enrollment");
   const [method, setMethod] = useState<"PIX" | "CREDIT_CARD">("PIX");
   const [loading, setLoading] = useState(false);
 
@@ -1695,6 +1695,14 @@ function CheckoutDialog({
   const [email, setEmail] = useState("");
   const [cpfCnpj, setCpfCnpj] = useState("");
   const [phone, setPhone] = useState("");
+  const [company, setCompany] = useState("");
+
+  // Pagador (dono do cartão) — pode ser diferente do inscrito.
+  const [payerSameAsEnrollee, setPayerSameAsEnrollee] = useState(true);
+  const [payerName, setPayerName] = useState("");
+  const [payerEmail, setPayerEmail] = useState("");
+  const [payerCpf, setPayerCpf] = useState("");
+  const [payerPhone, setPayerPhone] = useState("");
 
   const [cardNumber, setCardNumber] = useState("");
   const [cardHolder, setCardHolder] = useState("");
@@ -1777,16 +1785,57 @@ function CheckoutDialog({
 
   const removeCoupon = () => { setCoupon(null); setCouponCode(""); };
 
+  // Validação de WhatsApp BR: aceita (11) 91234-5678 ou 11912345678.
+  // Regra: 10-11 dígitos, DDD 11-99, celulares (11 dígitos) começam com 9.
+  const digits = (s: string) => (s || "").replace(/\D/g, "");
+  const isValidWhats = (s: string) => {
+    const d = digits(s);
+    if (d.length < 10 || d.length > 11) return false;
+    const ddd = parseInt(d.slice(0, 2), 10);
+    if (ddd < 11 || ddd > 99) return false;
+    if (d.length === 11 && d[2] !== "9") return false;
+    return true;
+  };
+  const formatPhone = (s: string) => {
+    const d = digits(s).slice(0, 11);
+    if (d.length <= 2) return d;
+    if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+    if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+    return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+  };
+  const isValidEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s);
+
+  const goToPayment = () => {
+    if (!name.trim()) { toast.error("Informe seu nome completo"); return; }
+    if (!isValidEmail(email)) { toast.error("E-mail inválido"); return; }
+    if (!isValidWhats(phone)) { toast.error("WhatsApp inválido — use DDD + número"); return; }
+    if (!cpfCnpj.trim()) { toast.error("Informe CPF ou CNPJ"); return; }
+    // Pré-popula dados do pagador iguais aos do inscrito.
+    if (payerSameAsEnrollee) {
+      setPayerName(name); setPayerEmail(email);
+      setPayerCpf(cpfCnpj); setPayerPhone(phone);
+    }
+    setStep("payment");
+  };
+
   const submit = async () => {
     if (!name || !email || !cpfCnpj) { toast.error("Preencha nome, e-mail e CPF/CNPJ"); return; }
-    if (method === "CREDIT_CARD" && (!cardNumber || !cardHolder || !cardExp || !cardCcv || !postalCode || !addressNumber)) {
-      toast.error("Preencha todos os dados do cartão e endereço"); return;
+    if (method === "CREDIT_CARD") {
+      if (!cardNumber || !cardHolder || !cardExp || !cardCcv || !postalCode || !addressNumber) {
+        toast.error("Preencha todos os dados do cartão e endereço"); return;
+      }
+      const pn = payerSameAsEnrollee ? name : payerName;
+      const pe = payerSameAsEnrollee ? email : payerEmail;
+      const pc = payerSameAsEnrollee ? cpfCnpj : payerCpf;
+      if (!pn || !isValidEmail(pe) || !pc) {
+        toast.error("Preencha os dados do pagador (dono do cartão)"); return;
+      }
     }
     setLoading(true);
     try {
       const [mm, yy] = cardExp.split("/").map((s) => s.trim());
       const body: any = {
-        name, email, cpfCnpj, phone, billingType: method,
+        name, email, cpfCnpj, phone, company, billingType: method,
       };
       if (coupon?.valid && couponCode) body.couponCode = couponCode.trim();
       if (method === "CREDIT_CARD") {
@@ -1798,8 +1847,11 @@ function CheckoutDialog({
           expiryYear: yy?.length === 2 ? `20${yy}` : yy,
           ccv: cardCcv,
         };
+        const holder = payerSameAsEnrollee
+          ? { name, email, cpfCnpj, phone }
+          : { name: payerName, email: payerEmail, cpfCnpj: payerCpf, phone: payerPhone || phone };
         body.creditCardHolderInfo = {
-          name, email, cpfCnpj, phone, postalCode, addressNumber,
+          ...holder, postalCode, addressNumber,
         };
       }
       const r = await fetch(`${API_BASE}/public/sales-pages/${mentorSlug}/${pageSlug}/checkout`, {
