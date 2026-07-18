@@ -1682,6 +1682,22 @@ function CheckoutDialog({
 
   const finalCents = coupon?.valid ? (coupon.finalCents ?? page.priceCents) : page.priceCents;
 
+  // Cálculo de parcelamento com juros (Tabela Price). Rate=0 => sem juros.
+  const interestRate = Number(page.installmentInterestRate || 0) / 100;
+  const computeInstallment = (n: number) => {
+    if (n <= 1 || interestRate <= 0) {
+      return { perInstallment: Math.round(finalCents / n), total: finalCents, hasInterest: false };
+    }
+    const pv = finalCents;
+    const pmt = pv * (interestRate * Math.pow(1 + interestRate, n)) / (Math.pow(1 + interestRate, n) - 1);
+    const perInstallment = Math.round(pmt);
+    return { perInstallment, total: perInstallment * n, hasInterest: true };
+  };
+  const currentInstallment = computeInstallment(installments);
+  const displayTotal = method === "CREDIT_CARD" && installments > 1
+    ? currentInstallment.total
+    : finalCents;
+
   const applyCoupon = async () => {
     if (!couponCode.trim()) return;
     if (!email) { toast.error("Informe o e-mail antes de aplicar o cupom"); return; }
