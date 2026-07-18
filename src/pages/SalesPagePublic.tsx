@@ -1471,18 +1471,33 @@ function ImmersionLayout({
               <div className="text-center mb-10">
                 <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>{sectionTitle}</div>
               </div>
-              <div className={`grid grid-cols-1 md:grid-cols-${Math.min(people.length, 3)} gap-6`}>
+              <div className={`grid grid-cols-1 md:grid-cols-${Math.min(people.length, 3)} gap-10 md:gap-8`}>
                 {people.map((p, i) => (
-                  <div key={i} className="rounded-2xl p-6 text-center" style={{ background: surface }}>
+                  <div key={i} className="relative text-center">
+                    {/* neon glow atrás do bloco */}
+                    <div
+                      className="absolute -inset-6 -z-10 rounded-[2rem] pointer-events-none"
+                      style={{
+                        background: `radial-gradient(60% 55% at 50% 30%, ${primary}33 0%, transparent 70%), radial-gradient(50% 60% at 50% 90%, ${accent}22 0%, transparent 75%)`,
+                        filter: 'blur(8px)',
+                      }}
+                    />
                     {p.photoUrl ? (
-                      <img src={p.photoUrl} alt={p.name || ""} className="w-32 h-32 mx-auto object-cover rounded-full mb-4" />
+                      <div className="relative mb-6">
+                        <img
+                          src={p.photoUrl}
+                          alt={p.name || ""}
+                          className="w-full aspect-[4/5] object-cover rounded-2xl"
+                          style={{ boxShadow: `0 30px 60px -20px ${primary}66, 0 0 0 1px ${primary}22` }}
+                        />
+                      </div>
                     ) : (
-                      <div className="w-32 h-32 mx-auto rounded-full flex items-center justify-center mb-4" style={{ background: `${primary}22` }}>
-                        <Users className="h-10 w-10" style={{ color: primary }} />
+                      <div className="w-full aspect-[4/5] rounded-2xl flex items-center justify-center mb-6" style={{ background: `${primary}18`, boxShadow: `0 30px 60px -20px ${primary}55` }}>
+                        <Users className="h-14 w-14" style={{ color: primary }} />
                       </div>
                     )}
-                    {p.name && <div className="font-display text-xl font-bold" style={{ color: text }}>{p.name}</div>}
-                    {p.role && <div className="text-sm mb-3 mt-1" style={{ color: accent }}>{p.role}</div>}
+                    {p.name && <div className="font-display text-2xl font-bold" style={{ color: text }}>{p.name}</div>}
+                    {p.role && <div className="text-sm mb-3 mt-1 uppercase tracking-wider" style={{ color: accent }}>{p.role}</div>}
                     {p.bio && <p className="text-sm leading-relaxed whitespace-pre-line" style={{ color: muted }}>{p.bio}</p>}
                   </div>
                 ))}
