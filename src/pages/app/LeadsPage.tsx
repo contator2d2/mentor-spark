@@ -40,6 +40,13 @@ interface Lead {
   temperature?: "cold" | "warm" | "hot";
   score?: number;
   createdAt: string;
+  source?: string;
+  lastPurchaseCouponCode?: string;
+  lastPurchasePaymentMethod?: string;
+  lastPurchaseInstallments?: number;
+  lastPurchaseAmountCents?: number;
+  lastPurchaseAsaasChargeId?: string;
+  lastPurchaseAt?: string;
 }
 
  type FunnelView = "principal" | "hot" | "tested" | "negotiating" | "clients" | "lost" | "list";
@@ -138,6 +145,16 @@ function LeadCard({ lead, onOpen }: { lead: Lead; onOpen: () => void }) {
               {Math.round(lead.score)}%
             </Badge>
           )}
+          {lead.lastPurchaseCouponCode && (
+            <Badge className="text-[10px] h-5 bg-amber-500/15 text-amber-300 border-amber-500/30" title="Cupom aplicado">
+              🎟️ {lead.lastPurchaseCouponCode}
+            </Badge>
+          )}
+          {lead.lastPurchasePaymentMethod && (
+            <Badge variant="outline" className="text-[10px] h-5 border-primary/40 text-primary/90" title="Método de pagamento">
+              {lead.lastPurchasePaymentMethod === "PIX" ? "PIX" : `${lead.lastPurchaseInstallments || 1}x`}
+            </Badge>
+          )}
         </div>
         <span className="text-[10px] text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
           Abrir →
@@ -201,6 +218,10 @@ function Column({
    const [availableGroups, setAvailableGroups] = useState<any[]>([]);
    const [loadingGroups, setLoadingGroups] = useState(false);
    const [targetGroup, setTargetGroup] = useState("");
+   // Filtros financeiros (para conciliação Asaas)
+   const [filterCoupon, setFilterCoupon] = useState<string>("all");
+   const [filterPayment, setFilterPayment] = useState<string>("all");
+   const [filterSource, setFilterSource] = useState<string>("all");
    const nav = useNavigate();
    async function loadGroups() {
      setLoadingGroups(true);
@@ -283,8 +304,49 @@ function Column({
     if (!leads) return [];
     let result = leads.filter((l) => view.stages.includes(l.stage));
     if (funnelView === "hot") result = result.filter((l) => l.temperature === "hot");
+    if (filterCoupon !== "all") {
+      if (filterCoupon === "__none__") {
+        result = result.filter((l) => !l.lastPurchaseCouponCode);
+      } else if (filterCoupon === "__any__") {
+        result = result.filter((l) => !!l.lastPurchaseCouponCode);
+      } else {
+        result = result.filter((l) => (l.lastPurchaseCouponCode || "").toUpperCase() === filterCoupon.toUpperCase());
+      }
+    }
+    if (filterPayment !== "all") {
+      result = result.filter((l) => l.lastPurchasePaymentMethod === filterPayment);
+    }
+    if (filterSource !== "all") {
+      if (filterSource === "__salespage__") {
+        result = result.filter((l) => (l.source || "").startsWith("sales_page:"));
+      } else {
+        result = result.filter((l) => (l.source || "") === filterSource);
+      }
+    }
     return result;
-  }, [leads, view, funnelView]);
+  }, [leads, view, funnelView, filterCoupon, filterPayment, filterSource]);
+
+  // Cupons e origens únicos vistos nos leads (para popular selects)
+  const couponOptions = useMemo(() => {
+    const set = new Set<string>();
+    (leads || []).forEach((l) => l.lastPurchaseCouponCode && set.add(l.lastPurchaseCouponCode.toUpperCase()));
+    return Array.from(set).sort();
+  }, [leads]);
+  const sourceOptions = useMemo(() => {
+    const set = new Set<string>();
+    (leads || []).forEach((l) => l.source && set.add(l.source));
+    return Array.from(set).sort();
+  }, [leads]);
+
+  // Totais financeiros da visão atual (para conferência Asaas)
+  const financeStats = useMemo(() => {
+    const withPurchase = filteredLeads.filter((l) => l.lastPurchaseAt);
+    const totalCents = withPurchase.reduce((s, l) => s + (l.lastPurchaseAmountCents || 0), 0);
+    const pix = withPurchase.filter((l) => l.lastPurchasePaymentMethod === "PIX").length;
+    const card = withPurchase.filter((l) => l.lastPurchasePaymentMethod === "CREDIT_CARD").length;
+    const withCoupon = withPurchase.filter((l) => !!l.lastPurchaseCouponCode).length;
+    return { count: withPurchase.length, totalCents, pix, card, withCoupon };
+  }, [filteredLeads]);
 
   const visibleStages = useMemo(
     () => STAGES.filter((s) => view.stages.includes(s.id)),
@@ -405,6 +467,75 @@ function Column({
         </Badge>
       </div>
 
+      {/* FILTROS FINANCEIROS (conciliação Asaas) */}
+      <div className="glass-card rounded-2xl p-4 space-y-3">
+        <div className="flex items-center gap-2 text-sm">
+          <Tag className="h-4 w-4 text-primary" />
+          <span className="font-medium">Filtros financeiros</span>
+          <span className="text-xs text-muted-foreground">— use para conferir vendas Asaas por cupom, método ou origem</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <Label className="text-xs text-muted-foreground">Cupom</Label>
+            <Select value={filterCoupon} onValueChange={setFilterCoupon}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="__any__">Com qualquer cupom</SelectItem>
+                <SelectItem value="__none__">Sem cupom</SelectItem>
+                {couponOptions.map((c) => (
+                  <SelectItem key={c} value={c}>🎟️ {c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Método de pagamento</Label>
+            <Select value={filterPayment} onValueChange={setFilterPayment}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="PIX">PIX</SelectItem>
+                <SelectItem value="CREDIT_CARD">Cartão de crédito</SelectItem>
+                <SelectItem value="BOLETO">Boleto</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="text-xs text-muted-foreground">Origem</Label>
+            <Select value={filterSource} onValueChange={setFilterSource}>
+              <SelectTrigger className="bg-card/50 border-border/60"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="__salespage__">Todas as páginas de venda</SelectItem>
+                {sourceOptions.map((s) => (
+                  <SelectItem key={s} value={s}>{s}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {(filterCoupon !== "all" || filterPayment !== "all" || filterSource !== "all") && (
+          <div className="flex flex-wrap items-center gap-3 pt-2 border-t border-border/40">
+            <div className="text-xs text-muted-foreground">
+              <span className="font-semibold text-foreground">{financeStats.count}</span> compras ·{" "}
+              <span className="font-semibold text-emerald-400">
+                R$ {(financeStats.totalCents / 100).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}
+              </span>{" "}
+              · PIX {financeStats.pix} · Cartão {financeStats.card} · Com cupom {financeStats.withCoupon}
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="ml-auto h-7 text-xs"
+              onClick={() => { setFilterCoupon("all"); setFilterPayment("all"); setFilterSource("all"); }}
+            >
+              Limpar filtros
+            </Button>
+          </div>
+        )}
+      </div>
+
        {funnelView === "list" ? (
          <div className="space-y-4 animate-fade-in">
            <div className="flex items-center justify-between p-4 bg-muted/20 rounded-xl border border-border/40">
@@ -450,6 +581,21 @@ function Column({
                    <Badge variant="outline" className="text-[10px] capitalize">
                      {STAGES.find(s => s.id === l.stage)?.label}
                    </Badge>
+                    {l.lastPurchaseCouponCode && (
+                      <Badge className="text-[10px] bg-amber-500/15 text-amber-300 border-amber-500/30">
+                        🎟️ {l.lastPurchaseCouponCode}
+                      </Badge>
+                    )}
+                    {l.lastPurchasePaymentMethod && (
+                      <Badge variant="outline" className="text-[10px] border-primary/40 text-primary/90">
+                        {l.lastPurchasePaymentMethod === "PIX" ? "PIX" : `Cartão ${l.lastPurchaseInstallments || 1}x`}
+                      </Badge>
+                    )}
+                    {l.lastPurchaseAmountCents != null && (
+                      <Badge variant="outline" className="text-[10px]">
+                        R$ {(l.lastPurchaseAmountCents / 100).toFixed(2)}
+                      </Badge>
+                    )}
                    {(l as any).tags?.map((tag: string) => (
                      <Badge key={tag} className="text-[10px] bg-secondary/20 text-secondary-foreground border-secondary/30">
                        <Tag className="h-2 w-2 mr-1" /> {tag}
