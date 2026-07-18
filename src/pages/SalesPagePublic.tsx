@@ -1462,21 +1462,30 @@ function ImmersionLayout({
       })()}
 
       {/* INVESTIMENTO — card grande com todos os detalhes */}
-      <section className="py-16 md:py-24" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
-        <div className="max-w-4xl mx-auto px-6">
+      <section className="py-16 md:py-24 relative overflow-hidden" style={{ background: surface, borderTop: `1px solid ${border}`, borderBottom: `1px solid ${border}` }}>
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{ background: `radial-gradient(60% 60% at 50% 50%, ${primary}22 0%, transparent 70%)` }}
+        />
+        <div className="relative max-w-4xl mx-auto px-6">
           <div className="text-center mb-10">
-            <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Garanta seu acesso</div>
+            <div
+              className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] mb-3 px-3 py-1 rounded-full"
+              style={{ color: primary, background: `${primary}1f`, border: `1px solid ${primary}55` }}
+            >
+              Garanta seu acesso
+            </div>
             <h2 className="font-display text-3xl md:text-5xl font-bold" style={{ color: text }}>{page.title}</h2>
             {page.subheadline && (
               <p className="mt-3 text-base md:text-lg" style={{ color: muted }}>{page.subheadline}</p>
             )}
           </div>
           <div
-            className="rounded-3xl p-8 md:p-12"
+            className="rounded-3xl p-8 md:p-12 relative"
             style={{
-              background: `linear-gradient(135deg, ${primary}18, ${accent}0a)`,
-              border: `1px solid ${primary}55`,
-              boxShadow: `0 40px 80px -20px ${primary}44`,
+              background: `linear-gradient(135deg, ${primary}2e, ${accent}14)`,
+              border: `2px solid ${primary}`,
+              boxShadow: `0 0 0 6px ${primary}18, 0 40px 100px -20px ${primary}88, inset 0 1px 0 ${primary}55`,
             }}
           >
             {infoItems.length > 0 && (
@@ -1490,17 +1499,35 @@ function ImmersionLayout({
               </div>
             )}
 
-            <div className="text-center border-t pt-8" style={{ borderColor: `${primary}33` }}>
-              <div className="text-xs uppercase tracking-widest mb-2" style={{ color: soft }}>Investimento</div>
+            <div className="text-center border-t pt-8" style={{ borderColor: `${primary}55` }}>
+              <div
+                className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] mb-4 px-3 py-1 rounded-full"
+                style={{ color: text, background: primary, boxShadow: `0 0 24px ${primary}99` }}
+              >
+                Investimento
+              </div>
               <div className="flex items-baseline justify-center gap-3 flex-wrap mb-2">
                 {page.originalPriceCents ? (
-                  <span className="line-through text-lg" style={{ color: soft }}>{money(page.originalPriceCents)}</span>
+                  <span className="line-through text-xl md:text-2xl font-semibold" style={{ color: muted }}>{money(page.originalPriceCents)}</span>
                 ) : null}
-                <span className="font-display text-5xl md:text-6xl font-black" style={{ color: primary }}>{money(page.priceCents)}</span>
+                <span
+                  className="font-display text-6xl md:text-7xl font-black leading-none"
+                  style={{
+                    color: text,
+                    textShadow: `0 0 30px ${primary}cc, 0 0 60px ${primary}66`,
+                  }}
+                >
+                  {money(page.priceCents)}
+                </span>
               </div>
+              {page.originalPriceCents && page.originalPriceCents > page.priceCents ? (
+                <div className="inline-block mt-1 mb-3 px-3 py-1 rounded-full text-xs font-bold" style={{ background: `${primary}`, color: text }}>
+                  Economize {money(page.originalPriceCents - page.priceCents)}
+                </div>
+              ) : null}
               {page.maxInstallments > 1 && (
-                <div className="text-sm mb-6" style={{ color: muted }}>
-                  à vista ou parcelado em até {page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}
+                <div className="text-base font-medium mb-6" style={{ color: text }}>
+                  à vista ou em até <span className="font-bold" style={{ color: primary }}>{page.maxInstallments}x de {money(Math.floor(page.priceCents / page.maxInstallments))}</span>
                 </div>
               )}
 
