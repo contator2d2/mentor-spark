@@ -106,6 +106,7 @@ type SalesPage = {
   originalPriceCents?: number | null;
   maxInstallments: number;
   installmentInterestRate?: number;
+  installmentDisplayCents?: number;
   paymentMode: "one_time" | "subscription";
   subscriptionCycle?: string | null;
   paymentProviderId?: string | null;
@@ -992,7 +993,7 @@ export default function SalesPageEditorPage() {
           <Card className="p-6 space-y-4">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <Label>Preço (R$)</Label>
+                <Label>Preço à vista (R$) — PIX ou cartão à vista</Label>
                 <Input
                   type="number" step="0.01" min="0"
                   value={(page.priceCents / 100).toString()}
@@ -1008,15 +1009,28 @@ export default function SalesPageEditorPage() {
                 />
               </div>
               <div>
-                <Label>Máximo de parcelas (cartão)</Label>
+                <Label>Parcelas a prazo (cartão)</Label>
                 <Input
                   type="number" min="1" max="12"
                   value={page.maxInstallments}
                   onChange={(e) => patch({ maxInstallments: Math.max(1, Math.min(12, parseInt(e.target.value || "1"))) })}
                 />
+                <p className="text-xs text-muted-foreground mt-1">Ex.: 12 → exibe "12x de …"</p>
               </div>
               <div>
-                <Label>Juros ao mês no parcelamento (%)</Label>
+                <Label>Valor de cada parcela a prazo (R$) — opcional</Label>
+                <Input
+                  type="number" step="0.01" min="0"
+                  placeholder="Ex.: 97,00"
+                  value={page.installmentDisplayCents ? (page.installmentDisplayCents / 100).toString() : ""}
+                  onChange={(e) => patch({ installmentDisplayCents: e.target.value ? Math.round(parseFloat(e.target.value) * 100) : null })}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Se preenchido, a página mostra <b>12x R$ 97,00</b> exatamente como você digitar. Se deixar vazio, o valor é calculado a partir do preço à vista {`+`} juros abaixo.
+                </p>
+              </div>
+              <div className="md:col-span-2">
+                <Label>Juros ao mês no parcelamento (%) — usado se você não fixar o valor da parcela acima</Label>
                 <Input
                   type="number" min="0" max="20" step="0.01"
                   value={page.installmentInterestRate ?? 0}
