@@ -1244,9 +1244,26 @@ function ImmersionLayout({
 
       {/* SHOWCASE — seções alternadas imagem + texto (storytelling) */}
       {(page.showcase?.length || 0) > 0 && (
-        <div className="space-y-20 md:space-y-28 py-10">
+        <div className="space-y-16 md:space-y-24 py-10">
           {page.showcase!.map((s, i) => {
             const imgRight = (s.side || (i % 2 === 0 ? "left" : "right")) !== "left";
+            const titleSizeMap = {
+              sm: "text-2xl md:text-3xl",
+              md: "text-3xl md:text-4xl",
+              lg: "text-4xl md:text-6xl",
+              xl: "text-5xl md:text-7xl",
+            } as const;
+            const textSizeMap = {
+              sm: "text-sm md:text-base",
+              md: "text-base md:text-lg",
+              lg: "text-lg md:text-xl",
+              xl: "text-xl md:text-2xl",
+            } as const;
+            const titleCls = titleSizeMap[s.titleSize || "lg"];
+            const textCls = textSizeMap[s.textSize || "md"];
+            const titleC = s.titleColor || text;
+            const textC = s.textColor || muted;
+
             const textBlock = (
               <div className="max-w-xl">
                 {s.eyebrow && (
@@ -1255,12 +1272,12 @@ function ImmersionLayout({
                   </div>
                 )}
                 {s.title && (
-                  <h3 className="font-display text-3xl md:text-5xl font-bold leading-tight mb-5" style={{ color: text }}>
+                  <h3 className={`font-display ${titleCls} font-bold leading-tight mb-5`} style={{ color: titleC }}>
                     {s.title}
                   </h3>
                 )}
                 {s.text && (
-                  <p className="text-base md:text-lg leading-relaxed whitespace-pre-line mb-4" style={{ color: muted }}>
+                  <p className={`${textCls} leading-relaxed whitespace-pre-line mb-4`} style={{ color: textC }}>
                     {s.text}
                   </p>
                 )}
@@ -1269,45 +1286,52 @@ function ImmersionLayout({
                     {s.bullets!.map((b, j) => (
                       <li key={j} className="flex gap-3">
                         <CheckCircle2 className="h-5 w-5 shrink-0 mt-1" style={{ color: primary }} />
-                        <span style={{ color: muted }}>{b}</span>
+                        <span style={{ color: textC }}>{b}</span>
                       </li>
                     ))}
                   </ul>
                 )}
               </div>
             );
-            const imageBlock = s.imageUrl ? (
-              <div className="relative">
-                <div
-                  className="absolute -inset-6 rounded-[2rem] pointer-events-none"
-                  style={{ background: `radial-gradient(50% 60% at 50% 50%, ${primary}44 0%, transparent 70%)` }}
-                />
-                <div
-                  className="relative rounded-2xl overflow-hidden aspect-video"
-                  style={{ boxShadow: `0 40px 100px -20px ${primary}66`, border: `1px solid ${primary}33` }}
-                >
-                  <img
-                    src={s.imageUrl}
-                    alt={s.title || ""}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            ) : null;
 
             return (
-              <section key={i} className="relative">
-                <div className="max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-10 lg:gap-16 items-center">
-                  {imgRight ? (
-                    <>
-                      <div>{textBlock}</div>
-                      <div>{imageBlock}</div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="order-2 md:order-1">{imageBlock}</div>
-                      <div className="order-1 md:order-2">{textBlock}</div>
-                    </>
+              <section key={i} className="relative w-full overflow-hidden">
+                <div
+                  className="pointer-events-none absolute inset-0"
+                  style={{ background: `radial-gradient(60% 70% at ${imgRight ? "80%" : "20%"} 50%, ${primary}33 0%, transparent 70%)` }}
+                />
+                <div className="relative grid md:grid-cols-2 items-center gap-10 md:gap-0 min-h-[420px] md:min-h-[560px]">
+                  {/* TEXTO */}
+                  <div className={`px-6 md:px-12 lg:px-20 py-10 md:py-16 ${imgRight ? "md:order-1" : "md:order-2"}`}>
+                    <div className={imgRight ? "md:ml-auto md:mr-0 max-w-xl" : "md:mr-auto md:ml-0 max-w-xl"}>
+                      {textBlock}
+                    </div>
+                  </div>
+                  {/* IMAGEM BANNER GRANDE */}
+                  {s.imageUrl && (
+                    <div className={`relative ${imgRight ? "md:order-2" : "md:order-1"}`}>
+                      <div
+                        className="absolute inset-0 pointer-events-none z-10"
+                        style={{ background: `radial-gradient(60% 70% at 50% 50%, ${primary}44 0%, transparent 70%)` }}
+                      />
+                      <div
+                        className="relative overflow-hidden aspect-[4/3] md:aspect-auto md:h-full md:min-h-[560px]"
+                        style={{ boxShadow: `0 40px 100px -20px ${primary}66`, borderTop: `1px solid ${primary}33`, borderBottom: `1px solid ${primary}33`, [imgRight ? "borderLeft" : "borderRight"]: `1px solid ${primary}33` } as any}
+                      >
+                        <img
+                          src={s.imageUrl}
+                          alt={s.title || ""}
+                          className="w-full h-full object-cover"
+                        />
+                        <div
+                          className="absolute inset-y-0 w-24 pointer-events-none"
+                          style={{
+                            [imgRight ? "left" : "right"]: 0,
+                            background: `linear-gradient(${imgRight ? "to right" : "to left"}, ${bg}, transparent)`,
+                          } as any}
+                        />
+                      </div>
+                    </div>
                   )}
                 </div>
               </section>
